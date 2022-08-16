@@ -1,0 +1,81 @@
+# 8/4(목)
+
+- Webserv 자료조사
+	- 소켓프로그래밍 in c++
+	- select, poll, epoll, kqueue 등 함수 조사
+	- I/O multiplexing 조사
+		- block I/O vs non-block I/O 개념 (https://www.youtube.com/watch?v=mb-QHxVfmcs&t=848s)
+		- Blocking I/O와 Non-blocking I/O (https://www.youtube.com/watch?v=XNGfl3sfErc)
+
+- Swagger 자료조사, 발표준비
+- Exam4 응시준비
+
+# 8/15(월)
+
+- 오늘할일
+	- 집현전에 책 반납
+	- socket 예제만들기
+		- tcp_server/client
+		- select_server/client
+		- kqueue_server/client
+	- Swagger 튜토리얼 만들기
+
+# 8/15(월) 16:39
+
+- tcp_server에서 왜 adress 구조체를 0이아닌 '\0'으로 초기화?
+
+- select 타임아웃값을 얼마로 설정해야 할까?
+- listen 대기열(백로그)의 수를 얼마로 설정해야 할까?
+
+# 8/15(월) 20:00
+
+- 한 클라이언트가 서버에 접속하고 문자열을 전송하는 과정에서 3번의 select가 호출된다.
+1. 클라이언트가 서버에 접속을 시도할때, 서버의 리스닝 소켓에서 이벤트가 발생.
+2. 클라이언트소켓에서 전송한 문자열을 read하는 이벤트 발생
+3. 수신한 데이터가 EOF인 경우의 이벤트 발생.
+
+# 8/15(월) 20:43
+
+- kevent에 대해,,,
+	1. 큐에 이벤트를 등록한다.
+	- select()는 감시대상이 read, write, error가 그 조건이었다.
+	- 어떤 이벤트를 시스템이 감지하게 할지 직접 요청할 수 있다.
+	2. 미처리된 이벤트를 사용자에게 반환한다.
+	- select()가 미처리된 이벤트의 개수를 사용자에게 반환한 것과 비슷하다.
+
+# 8/16(화) 22:00
+
+- kevent
+```C
+int
+	kevent(int	kq, const struct kevent	*changelist, int nchanges,
+	struct	kevent *eventlist, int nevents,
+	const struct timespec *timeout);
+
+struct kevent
+{
+	uintptr_t ident; /* 이벤트에 대한 identifier(파일 기술자) */
+	short filter;    /* 이벤트 필터 플래그 */
+	u_short flags;   /* kqueue?대한 액션 플래그 */
+	u_int fflags;    /* 필터 플래그 값 */
+	intptr_t data;   /* 필터 데이터 값 */
+	void * udata;    /* 사용자 정의 데이터 */
+};
+<ident, filter> 로 이벤트를 식별함.
+filter, fflags로 상황 인식,
+flags로 해당 상황에 대한 처리.
+```
+- 인자설명
+	- kq			: kqueue()로 만든 fd.
+	- changelist	: 감시할 이벤트리스트
+	- nchanges		: changelist 크기
+	- eventlist		: changelist중 발생한 이벤트 목록
+	- nevents		: 들어오는 이벤트의 최대값 => nchanges 아닌가?
+	- timeout		: 함수호출후, 몇초동안 대기할 것인지?
+	- ret			: 타임아웃시 0, 아닐시 발생한 이벤트의 수 반환.
+
+- 사용법
+	- kevent()호출은 반복해서 일어난다.
+	- 호출후엔 nchanges를 0 으로 설정해야 한다.
+	- 이벤트 등록을 할때, changelist, nchanges값을 변화시키면 된다.
+
