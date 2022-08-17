@@ -45,6 +45,28 @@
 
 # 8/16(화) 22:00
 
+# 8/17(수) 20:00
+
+TIL
+
+- user mode, kernel mode
+- kevent 이해 70%?
+- listen의 두번째 인자인 backlog
+	- 클라이언트가 connect()를 시도할때 한번에 줄을 설수있는 대기열 크기를 말함.
+	- 이때 대기열은 서버에서 accept()를 하기 전 클라이언트가 줄을 설때 생긴다.
+	- 만약 멀티쓰레드/프로스세나 IO멀티플렉싱을 적용하지않아서 한번에 한 클라이언트랑만 송수신할수있다면
+	  실제 연결되는 클라이언트를 제외하고 모두 대기열에 줄을 서게 된다.
+
+- blocking socket vs non-blocking socket
+- https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=i1004me2&logNo=140151020393
+	- blocking socket
+		- 소켓 기본값
+		- block될 수 있는 system call 호출시 block 될 수 있음.
+
+	- non-blocking socket
+		- 만들어진 소켓을 가지고 fcntl 함수로 만들 수 있다.
+		- system call 사용시 block되는 상황이면, -1을 리턴하며 errno가 EWOULDBLOCK | EAGAIN이됨.
+
 - kevent
 ```C
 int
@@ -79,3 +101,12 @@ flags로 해당 상황에 대한 처리.
 	- 호출후엔 nchanges를 0 으로 설정해야 한다.
 	- 이벤트 등록을 할때, changelist, nchanges값을 변화시키면 된다.
 
+## fflags
+
+EVFILT_READ
+- 해당 fd에 읽을 수 있는 데이터가 존재할때.
+- filter의 행동은 fd타입에 따라 조금씩 다르다.
+
+EVFILT_WRITE
+- 해당 fd에 write할 수 있을때.
+- read/write를 동시에 할순 없으니, read할 데이터가 없을때가 write할수 있는 경우 아닐까?

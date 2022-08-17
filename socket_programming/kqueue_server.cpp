@@ -52,6 +52,7 @@ int main()
 
 	if (listen(server_socket, 5) == -1)
 		exit_with_perror("listen() error\n" + string(strerror(errno)));
+	// 소켓을 non-blocking으로 전환한다.
 	fcntl(server_socket, F_SETFL, O_NONBLOCK);
 
 	/* init kqueue */
@@ -137,7 +138,7 @@ int main()
 				map<int, string>::iterator it = clients.find(curr_event->ident);
 				if (it != clients.end())
 				{
-					if (clients[curr_event->ident] != "")
+					if (clients[curr_event->ident] != "") // 보낼문자열이 있을때만.
 					{
 						int n;
 						if ((n = write(curr_event->ident, clients[curr_event->ident].c_str(),
@@ -147,7 +148,7 @@ int main()
 							disconnect_client(curr_event->ident, clients);
 						}
 						else
-							clients[curr_event->ident].clear();
+							clients[curr_event->ident].clear();	// echo 이후 보낼 문자열을 지운다.
 					}
 				}
 			}
