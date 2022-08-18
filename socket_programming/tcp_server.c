@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <arpa/inet.h> // inet_ntoa
 #include <string.h>
 
 #ifndef PORT
@@ -52,6 +53,7 @@ int main(int argc, char const *argv[])
 			perror("In accept");
 			exit(EXIT_FAILURE);
 		}
+		printf("ip: %s, port: %d \n",inet_ntoa(address.sin_addr), address.sin_port);
 
 		char buffer[30000] = {0};
 		valread = read( new_socket , buffer, 30000);

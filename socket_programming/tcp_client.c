@@ -7,9 +7,9 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-// #ifndef PORT
-// # define PORT 2000
-// #endif
+#ifndef PORT
+# define PORT 2000
+#endif
 
 int main(int argc, char const *argv[])
 {

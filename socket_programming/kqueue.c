@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// https://www.gpgstudy.com/gpgiki/KqueueProgramming
+
 int main(int argc, char **argv)
 {
 	struct	kevent event;	 /* 감시대상 이벤트 */
@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 	// kev, ident, filter, flags, fflags, data, udata
 	EV_SET(&event,	fd, EVFILT_VNODE, EV_ADD | EV_CLEAR, NOTE_WRITE,
 		0,	NULL);
+
 	/* Attach event to the	kqueue.	*/
 	// kq, changelist, nchanges, eventlist, nevents, timeout
 	ret = kevent(kq, &event, 1, NULL, 0, NULL);
@@ -37,10 +38,9 @@ int main(int argc, char **argv)
 	for (;;) {
 		/*	Sleep until something happens. */
 		ret = kevent(kq, NULL, 0, &tevent,	1, NULL);
-		if	(ret ==	-1) {
-		err(EXIT_FAILURE, "kevent wait");
-		} else if (ret > 0) {
-		printf("Something was written in '%s'\n", argv[1]);
-		}
+		if (ret ==	-1)
+			err(EXIT_FAILURE, "kevent wait");
+		else if (ret > 0)
+			printf("Something was written in '%s'\n", argv[1]);
 	}
 }
