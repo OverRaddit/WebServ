@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 				// 클라이언트소켓 이벤트라면 disconnect
 				else
 				{
-					cerr << "client socket error" << endl;
+					cerr << "client socket[" << curr_event->ident << "] got error" << endl;
 					disconnect_client(curr_event->ident, clients);
 				}
 			}
@@ -166,6 +166,7 @@ int main(int argc, char **argv)
 					// 클소켓을 change_list에 읽쓰이벤트로 등록
 					if ((client_socket = accept(server_fd, NULL, NULL)) == -1)
 						exit_with_perror("accept error");
+					cout << "client socket[" << client_socket << "] just connected" << endl;
 					change_events(change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 					change_events(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 					// 클라이언트의 요청저장을 위해 map에 공간할당.
@@ -195,31 +196,32 @@ int main(int argc, char **argv)
 			// 해당 이벤트가 쓰기이벤트라면
 			else if (curr_event->filter == EVFILT_WRITE)
 			{
-				// string protocol = "HTT/1.0 200 OK\r\n";
-				// string servName = "Server:simple web server\r\n";
-				// string cntLen = "Content-length:2048\r\n";
-				// string cntType = "Content-type:text/html; charset=UTF-8\r\n";
-				// string response = protocol+servName+cntLen+cntType;
-				// const char *res = response.c_str();
-
 				map<int, string>::iterator it = clients.find(curr_event->ident);
 				if (it != clients.end())
 				{
-					if (clients[curr_event->ident] != "") // 보낼문자열이 있을때만.
+					if (clients[curr_event->ident] != "") // 보낼문자열이 있을때만. -
 					{
+						string protocol = "HTTP/1.0 404 KO\r\n";
+						string servName = "Server:simple web server\r\n";
+						string cntLen = "Content-length:2048\r\n";
+						string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
+						string content = "<html><head><title>Default Page</title></head><body><h1>Hello World!</h1></body></html>";
+						string response = protocol+servName+cntLen+cntType+content;
+						const char *res = response.c_str();
+
 						// 클라이언트에게 write
 						int n;
-						// if ((n = write(curr_event->ident, res, strlen(res)) == -1))
-						// {
-						// 	cerr << "client write error!" << endl;
-						// 	disconnect_client(curr_event->ident, clients);
-						// }
-						// else
-						// {
-						// 	clients[curr_event->ident].clear();	// echo 이후 보낼 문자열을 지운다.
-						// 	cout << "http response complete";
-						// }
-						SendErrorMSG(curr_event->ident);
+						if ((n = write(curr_event->ident, res, strlen(res)) == -1))
+						{
+							cerr << "client write error!" << endl;
+							disconnect_client(curr_event->ident, clients);
+						}
+						else
+						{
+							clients[curr_event->ident].clear();	// echo 이후 보낼 문자열을 지운다.
+							cout << "http response complete";
+						}
+						//SendErrorMSG(curr_event->ident);
 						disconnect_client(curr_event->ident, clients);
 					}
 				}

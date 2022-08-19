@@ -110,3 +110,11 @@ EVFILT_READ
 EVFILT_WRITE
 - 해당 fd에 write할 수 있을때.
 - read/write를 동시에 할순 없으니, read할 데이터가 없을때가 write할수 있는 경우 아닐까?
+
+				// string protocol = "HTT/1.0 200 OK\r\n";
+				// string servName = "Server:simple web server\r\n";
+				// string cntLen = "Content-length:2048\r\n";
+				// string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
+				// string content = "<html><head><title>Default Page</title></head><body><h1>Hello World!</h1></body></html>";
+				// string response = protocol+servName+cntLen+cntType;
+				//const char *res = response.c_str();
