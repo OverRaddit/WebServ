@@ -17,7 +17,7 @@ using namespace std;
 //=========================================
 // Make Response data here!
 //=========================================
-const char* make_response(string& response)
+const char* make_response(string& request, string& response)
 {
 	// dummy data
 	string protocol = "HTTP/1.0 404 KO\r\n";
@@ -26,8 +26,9 @@ const char* make_response(string& response)
 	string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
 	string content = "<html><head><title>Default Page</title></head><body><h1>Hello World!</h1></body></html>";
 
-	response = protocol+servName+cntLen+cntType+content;
 
+
+	response = protocol+servName+cntLen+cntType+content;
 	return response.c_str();
 }
 
@@ -221,7 +222,7 @@ int main(int argc, char **argv)
 						string response;
 
 
-						const char *res = make_response(response);
+						const char *res = make_response(clients[curr_event->ident], response);
 
 						// 클라이언트에게 write
 						int n;
