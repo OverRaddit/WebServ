@@ -1,10 +1,12 @@
 {
 	"files.associations": {
+		"*.html": "html",
 		"functional": "cpp",
 		"memory": "c",
 		"map": "cpp",
 		"iostream": "cpp",
 		"ostream": "cpp",
-		"iosfwd": "cpp"
+		"iosfwd": "cpp",
+		"__config": "cpp"
 	}
 }
