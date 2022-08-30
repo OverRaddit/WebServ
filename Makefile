@@ -3,77 +3,75 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2022/08/23 17:39:03 by gshim             #+#    #+#              #
-#    Updated: 2022/08/29 18:58:41 by gshim            ###   ########.fr        #
+#    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
+#    Updated: 2022/08/30 18:33:46 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-CC = c++
-#CFLAGS = -Wall -Wextra -Werror -Iinclude
-# -g3 -fsanitize=address
-# -o2 or -o3
-NAME = webserv
-#B_NAME = cub3D_bonus
+# =============================================================================
+# Color Variables
+# =============================================================================
+BLACK		= 	"\033[0;30m"
+GRAY		= 	"\033[1;30m"
+RED			=	"\033[0;31m"
+GREEN		=	"\033[0;32m"
+YELLOW		=	"\033[1;33m"
+PURPLE		=	"\033[0;35m"
+CYAN		=	"\033[0;36m"
+WHITE		=	"\033[1;37m"
+EOC			=	"\033[0;0m"
+LINE_CLEAR	=	"\x1b[1A\x1b[M"
 
-SRCS =		src/webserv.cpp \
-			src/util.cpp
-#B_SRCS = 	src/main.c \
+# =============================================================================
+# Command Variables
+# =============================================================================
+CXX			=	c++
+#CFLAGS		=	-Wall -Wextra -Werror -std=c++98
+CDEBUG		=	-g -fsanitize=address
 
+# =============================================================================
+# File Variables
+# =============================================================================
+NAME		=	webserv
+SRCS_DIR	=	./
+SRC_LIST	=	src/webserv.cpp			\
+				src/Request.cpp			\
+				src/Client/Client.cpp
+#				src/util.cpp
 
-OBJS = $(SRCS:.c=.o)
-#B_OBJS = $(B_SRCS:.c=.o)
+SRCS		=	$(addprefix $(SRCS_DIR), $(SRC_LIST))
+OBJS		=	$(SRCS:.cpp=.o)
 
-# MLX_NAME = mlx
-# MLX_DIR = include/minilibx_opengl_20191021
+# =============================================================================
+# Target Generating
+# =============================================================================
+$(NAME)			:	$(OBJS)
+	@echo $(GREEN) "Source files are compiled!\n" $(EOC)
+	@echo $(WHITE) "Building $(NAME) for" $(YELLOW) "Mandatory" $(WHITE) "..." $(EOC)
+	@$(CXX) $(CFLAGS) $^ -o $@
+	@echo $(GREEN) "$(NAME) is created!\n" $(EOC)
 
-# GNL_NAME = gnl
-# GNL_DIR = include/get_next_line
+$(SRCS_DIR)/%.o	:	$(SRCS_DIR)/%.cpp
+	@echo $(YELLOW) "Compiling...\t" $< $(EOC) $(LINE_CLEAR)
+	@$(CXX) $(CFLAGS) -c $< -o $@
 
-# LIBFT_NAME = ft
-# LIBFT_DIR = include/libft
+# =============================================================================
+# Rules
+# =============================================================================
+all			: $(NAME)
 
-.PHONY : all clean fclean re
+clean		:
+				@echo $(YELLOW) "Cleaning object files..." $(EOC)
+				@rm -rf $(OBJS)
+				@echo $(RED) "Object files are cleaned! 🧹 🧹\n" $(EOC)
 
-$(NAME) : $(OBJS)
-#	$(MAKE) -C $(MLX_DIR) all
-#	$(MAKE) -C $(GNL_DIR) all
-#	$(MAKE) -C $(LIBFT_DIR) all
-	$(CC) $(CFLAGS) $^ -o $@
-#			-L$(MLX_DIR) -l$(MLX_NAME) \
-#			-L$(GNL_DIR) -l$(GNL_NAME) \
-#			-L$(LIBFT_DIR) -l$(LIBFT_NAME) \
-			-framework OpenGL -framework AppKit $^ -o $@
+fclean		:
+				@echo $(YELLOW) "Removing $(NAME)..." $(EOC)
+				@rm -rf $(NAME) $(OBJS)
+				@echo $(RED) "$(NAME) is removed! 🗑 🗑\n" $(EOC)
 
-# $(B_NAME) : $(B_OBJS)
-# 	$(MAKE) -C $(MLX_DIR) all
-# 	$(MAKE) -C $(GNL_DIR) all
-# 	$(MAKE) -C $(LIBFT_DIR) all
-# 	$(CC) $(CFLAGS) -L$(MLX_DIR) -l$(MLX_NAME) \
-# 			-L$(GNL_DIR) -l$(GNL_NAME) \
-# 			-L$(LIBFT_DIR) -l$(LIBFT_NAME) \
-# 			-framework OpenGL -framework AppKit $^ -o $@
+re			: fclean all
 
-# $(SRCS_DIR)/%.o : $(SRCS_DIR)/%.c
-# 	$(CC) $(CFLAGS) -I$(MLX_DIR) -I$(GNL_DIR) -I$(LIBFT_DIR) -c $< -o $@
-
-all : $(NAME)
-
-#bonus : $(B_NAME)
-
-clean :
-	@rm -rf $(OBJS) $(B_OBJS)
-#	$(MAKE) -C $(MLX_DIR) clean
-#	$(MAKE) -C $(GNL_DIR) clean
-#	$(MAKE) -C $(LIBFT_DIR) clean
-
-fclean :
-	@rm -rf $(NAME) $(B_NAME) $(OBJS) $(B_OBJS)
-#	$(MAKE) -C $(MLX_DIR) clean
-#	$(MAKE) -C $(GNL_DIR) fclean
-#	$(MAKE) -C $(LIBFT_DIR) fclean
-
-re :
-	$(MAKE) fclean
-	$(MAKE) all
+.PHONY		: all clean fclean re

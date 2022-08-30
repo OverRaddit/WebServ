@@ -1,10 +1,11 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
 
+//# include "webserv.hpp" // for split
+# include <vector>
 # include <iostream>
 # include <string>
 # include <map>
-# include <sstream> // for string split
 
 class Request {
 private:
@@ -22,13 +23,7 @@ public:
 	std::string getVersion();
 	std::string getHeaderByKey(std::string& key);	// map을 수정하지 않고 조회목적으로만 등록하는게 좋을듯함.
 	std::string getContent();
+
 };
 
 #endif
-
-Request::Request(std::string& request) {
-
-}
-
-Request::~Request() {
-}

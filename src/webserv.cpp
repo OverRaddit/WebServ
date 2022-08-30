@@ -18,8 +18,11 @@
 //=========================================
 // Make Response data here!
 //=========================================
-const char* make_response(string& request, string& response)
+const char* make_response(Client& client, string& response)
 {
+	pid_t pid;
+	int m_pipe[2];
+
 	// dummy data
 	string protocol = "HTTP/1.0 404 KO\r\n";
 	string servName = "Server:simple web server\r\n";
@@ -27,11 +30,53 @@ const char* make_response(string& request, string& response)
 	string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
 	string content = "<html><head><title>Default Page</title></head><body><h1>Hello World!</h1></body></html>";
 
-	vector<string> tokens;
-	split(request, "\r\n", tokens);
-	for(int i=0;i<tokens.size();i++)
-		cout << i << ":" << tokens[i] << endl;
+	// cgi meta-variable 생성
 
+
+	{ // CGI 돌리기.
+		//env = (char**)malloc(sizeof(char*) * 18);
+		//make_env(env);
+		pipe(m_pipe);
+		pid = fork();
+		// 파이프 fd를 nonblock하면 어떻게 되는 거지?
+		fcntl(m_pipe[1], F_SETFL, O_NONBLOCK);
+		fcntl(m_pipe[0], F_SETFL, O_NONBLOCK);
+
+		char buf[1024];
+		memcpy(buf, client.getRequest().getContent().c_str(), sizeof(buf));
+		printf("Content: [%s]\n", client.getRequest().getContent().c_str());
+		printf("Buf: [%s]\n", buf);
+		buf[0] = '\0';
+
+		if (pid == 0) {	// child
+			dup2(m_pipe[1], 1);
+			dup2(m_pipe[0], 0);
+			close(m_pipe[1]);
+			close(m_pipe[0]);
+			//if (execve("./cgi_tester", 0, env) == -1) {
+			printf("Before Execve in Child!!\n");
+			if (execve("./cgi_tester", 0, 0) == -1) {
+				std::cout << "cgi error\n";
+				return NULL;
+			}
+		} else { // parent
+			dup2(m_pipe[0], 0);
+			dup2(m_pipe[1], 1);
+
+			// client가 보낸 body를 파이프의 입력에 넣는다.
+			write(m_pipe[1], buf, 1024);
+			close(m_pipe[1]);
+			close(m_pipe[0]);
+			//fcntl(0, F_SETFL, O_NONBLOCK);
+			int status;
+			printf("Waiting in Parent!!\n");
+			waitpid(pid, &status, 0);
+			while((status = read(0, buf, 1024)) > 0) {
+				write(1, buf, status);
+			}
+			printf("Read Done\n");
+		}
+	}
 	response = protocol+servName+cntLen+cntType+content;
 	return response.c_str();
 }
@@ -76,6 +121,12 @@ void SendErrorMSG(int sock)
 
 int main(int argc, char **argv)
 {
+	int			client_socket;
+	sockaddr_in	client_addr;
+	socklen_t	client_len;
+
+
+
 	// for tcp/ip
 	int server_fd, new_socket; long valread;
 	struct sockaddr_in address;
@@ -184,9 +235,9 @@ int main(int argc, char **argv)
 				// 서버소켓의 이벤트라면 accept
 				if (curr_event->ident == server_fd)
 				{
-					int			client_socket;
-					sockaddr_in	client_addr;
-					socklen_t	client_len;
+					// int			client_socket;
+					// sockaddr_in	client_addr;
+					// socklen_t	client_len;
 					// 클소켓을 change_list에 읽쓰이벤트로 등록
 					if ((client_socket = accept(server_fd, (sockaddr*)&client_addr, &client_len)) == -1)
 						exit_with_perror("accept error");
@@ -227,8 +278,13 @@ int main(int argc, char **argv)
 					{
 						string response;
 
-
-						const char *res = make_response(clients[curr_event->ident], response);
+						Client *c_ptr = new Client(client_socket, client_addr, client_len, *(new Request(clients[curr_event->ident])));
+						cout << "fd : " << c_ptr->getFd() << endl;
+						cout << "path : " << c_ptr->getRequest().getPath() << endl;
+						cout << "version : " << c_ptr->getRequest().getVersion() << endl;
+						string str = "Host";
+						cout << "host : " << c_ptr->getRequest().getHeaderByKey(str) << endl;
+						const char *res = make_response(*c_ptr, response);
 
 						// 클라이언트에게 write
 						int n;

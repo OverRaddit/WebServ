@@ -160,3 +160,25 @@ EVFILT_WRITE
 	- 그래서 그 fd가 다른파일을 open하여 반환된 값이 되어도 이전 파일과 동일하게 감시할까?
 	- 내가보았을땐 fd를 close하고 kqueue의 changelist에서도 제거해주는 것이 맞는 것 같다.
 	- 그냥 EV_DELETE하면 되겠네.
+
+# 8/30(화) 18:55
+
+- errno를 쓸수없어 non-blocking 방식으로 반복 read/write 할 수 없다.
+- 현재 CGI에 meta-variable을 주기 위해 Client, Request 객체를 생성하였다.
+	- Client에서 env를 생성하도록 하는데, string을 argv[]로 어떻게 변형해야 할지 모르겠다.
+
+- 지금 모든 시스템콜을 기다리지 않기 위해 하나의 통신과정이 여러 단계로 나뉘고 있다. 정리해보자.
+
+- 클라이언트가 서버에 접속한다.
+- 클라이언트의 read event를 polling 한다.
+- 자식프로세스를 생성하여 클라이언트의 request를 CGI에 전달한다.
+- 부모프로세스는 자식을 기다리지 않고 자식과 연결된 파이프의 read event를 polling 한다.
+- 파이프의 read event를 polling 한다.
+- 꺼낸 데이터를 response에 담는다.
+- 클라이언트의 write event를 polling 한다.
+- response를 클라이언트에게 write 한다.
+
+# 8/30(화) 20:08
+
+- HTTP Request 를 \r\n으로 split하는데,,,
+	- Request안에 content가 \r, \n을 포함하는데 그건 왜 자르지 않는걸까/
