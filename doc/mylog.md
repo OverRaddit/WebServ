@@ -118,3 +118,37 @@ EVFILT_WRITE
 				// string content = "<html><head><title>Default Page</title></head><body><h1>Hello World!</h1></body></html>";
 				// string response = protocol+servName+cntLen+cntType;
 				//const char *res = response.c_str();
+
+# 8/24(수) 15:43
+
+- Request 객체를 설계하고 있다.
+	- HTTP Request 문자열을 파싱하여 Request의 각 멤버변수에 넣을 것이다.
+	- 파싱하기 위해 split류의 함수를 써야하는데 ft_split은 C 스타일이라 C++스타일을 찾기로함.
+		- C의 문자열과 C++의 문자열은 어떻게 다른지?
+	- CGI 객체? CGI에 해당하는 환경변수 초기화를 어떻게 할지?
+
+	# 환경변수 목록
+	AUTH_TYPE
+
+	요청데이터에 있는거
+	CONTENT_LENGTH
+	CONTENT_TYPE
+	PATH_INFO
+	QUERY_STRING
+	REQUEST_METHOD
+	REQUEST_URI
+	SCRIPT_NAME
+	SERVER_NAME
+	SERVER_PORT
+
+	고정
+	GATEWAY_INTERFACE
+
+	몰루?
+	PATH_TRANSLATED
+
+	소켓
+	REMOTE_ADDR
+	REMOTE_IDENT
+	REMOTE_USER => 불필요?
+/script/index.html
