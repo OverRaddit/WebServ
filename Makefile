@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
+#    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/23 17:39:03 by gshim             #+#    #+#              #
-#    Updated: 2022/08/23 17:42:35 by gshim            ###   ########.fr        #
+#    Updated: 2022/08/29 16:20:11 by jinyoo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,11 +17,10 @@ CC = c++
 NAME = webserv
 #B_NAME = cub3D_bonus
 
-SRCS =		src/webserv.cpp
+SRCS =	src/main.cpp src/Request/Request.cpp
 #B_SRCS = 	src/main.c \
 
-
-OBJS = $(SRCS:.c=.o)
+OBJS = $(SRCS:.cpp=.o)
 #B_OBJS = $(B_SRCS:.c=.o)
 
 # MLX_NAME = mlx
@@ -62,13 +61,13 @@ all : $(NAME)
 #bonus : $(B_NAME)
 
 clean :
-	@rm -rf $(OBJS) $(B_OBJS)
+	@rm -rf $(OBJS)
 #	$(MAKE) -C $(MLX_DIR) clean
 #	$(MAKE) -C $(GNL_DIR) clean
 #	$(MAKE) -C $(LIBFT_DIR) clean
 
-fclean :
-	@rm -rf $(NAME) $(B_NAME) $(OBJS) $(B_OBJS)
+fclean : clean
+	@rm -rf $(NAME)
 #	$(MAKE) -C $(MLX_DIR) clean
 #	$(MAKE) -C $(GNL_DIR) fclean
 #	$(MAKE) -C $(LIBFT_DIR) fclean
