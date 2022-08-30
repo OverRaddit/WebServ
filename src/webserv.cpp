@@ -1,3 +1,5 @@
+#include "webserv.hpp"
+
 // Server side C program to demonstrate Socket programming
 #include <sys/socket.h>
 #include <unistd.h>
@@ -12,7 +14,6 @@
 #include <map>
 #include <vector>
 #include <iostream>
-using namespace std;
 
 //=========================================
 // Make Response data here!
@@ -26,7 +27,10 @@ const char* make_response(string& request, string& response)
 	string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
 	string content = "<html><head><title>Default Page</title></head><body><h1>Hello World!</h1></body></html>";
 
-
+	vector<string> tokens;
+	split(request, "\r\n", tokens);
+	for(int i=0;i<tokens.size();i++)
+		cout << i << ":" << tokens[i] << endl;
 
 	response = protocol+servName+cntLen+cntType+content;
 	return response.c_str();
@@ -180,9 +184,11 @@ int main(int argc, char **argv)
 				// 서버소켓의 이벤트라면 accept
 				if (curr_event->ident == server_fd)
 				{
-					int client_socket;
+					int			client_socket;
+					sockaddr_in	client_addr;
+					socklen_t	client_len;
 					// 클소켓을 change_list에 읽쓰이벤트로 등록
-					if ((client_socket = accept(server_fd, NULL, NULL)) == -1)
+					if ((client_socket = accept(server_fd, (sockaddr*)&client_addr, &client_len)) == -1)
 						exit_with_perror("accept error");
 					cout << "client socket[" << client_socket << "] just connected" << endl;
 					change_events(change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
