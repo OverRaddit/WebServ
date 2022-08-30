@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
+#    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/08/30 18:33:46 by gshim            ###   ########.fr        #
+#    Updated: 2022/08/30 22:50:49 by jinyoo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,7 +38,8 @@ NAME		=	webserv
 SRCS_DIR	=	./
 SRC_LIST	=	src/webserv.cpp			\
 				src/Request.cpp			\
-				src/Client/Client.cpp
+				src/Client/Client.cpp	\
+				src/Request/Request.cpp
 #				src/util.cpp
 
 SRCS		=	$(addprefix $(SRCS_DIR), $(SRC_LIST))
