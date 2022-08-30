@@ -1,4 +1,7 @@
 // Server side C program to demonstrate Socket programming
+#include <algorithm>
+#include <sstream>
+#include <string>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -12,6 +15,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include "Request/Request.hpp"
 using namespace std;
 
 //=========================================
@@ -25,9 +29,12 @@ const char* make_response(string& request, string& response)
 	string cntLen = "Content-length:2048\r\n";
 	string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
 	string content = "<html><head><title>Default Page</title></head><body><h1>Hello World!</h1></body></html>";
+	Request req(request);
 
-
-
+	// req 객체 파싱 체크 코드
+	// cout << req.getMethod() << " " << req.getReqTarget() << " " << req.getHttpVersion() << endl;
+	// cout << req.getReqHeaderValue("Accept") << endl << endl;
+	// cout << req.getReqBody() << endl;
 	response = protocol+servName+cntLen+cntType+content;
 	return response.c_str();
 }
@@ -207,7 +214,7 @@ int main(int argc, char **argv)
 					{
 						buf[n] = '\0';
 						clients[curr_event->ident] += buf;
-						cout << "received data from " << curr_event->ident << ": " << clients[curr_event->ident] << endl;
+						// cout << "received data from " << curr_event->ident << ": " << clients[curr_event->ident] << endl;
 					}
 				}
 			}
@@ -221,9 +228,7 @@ int main(int argc, char **argv)
 					{
 						string response;
 
-
 						const char *res = make_response(clients[curr_event->ident], response);
-
 						// 클라이언트에게 write
 						int n;
 						if ((n = write(curr_event->ident, res, strlen(res)) == -1))
