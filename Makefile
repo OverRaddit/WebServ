@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/23 17:39:03 by gshim             #+#    #+#              #
-#    Updated: 2022/08/23 17:42:35 by gshim            ###   ########.fr        #
+#    Updated: 2022/08/29 18:58:41 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,8 @@ CC = c++
 NAME = webserv
 #B_NAME = cub3D_bonus
 
-SRCS =		src/webserv.cpp
+SRCS =		src/webserv.cpp \
+			src/util.cpp
 #B_SRCS = 	src/main.c \
 
 

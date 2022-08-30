@@ -79,4 +79,6 @@ cgi : SCRIPT_NAME
 path: /cgi/hello or /hello
 path: /cgi/bye or /bye
 
+=> /cgi 이하의 요청은 스크립트를 호출하여 해결할 요청.
+=>
 l

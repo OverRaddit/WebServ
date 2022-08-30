@@ -152,3 +152,11 @@ EVFILT_WRITE
 	REMOTE_IDENT
 	REMOTE_USER => 불필요?
 /script/index.html
+# 8/29(월) 20:08
+
+- read/write할때 non-blocking version으로 바꾸자.
+- 각 이벤트를 처리할때, 읽기쓰기별로 함수를 쪼개자.'
+- 감시중인 fd를 close하면, kqueue에서는 해당 fd를 계속 감시할까?
+	- 그래서 그 fd가 다른파일을 open하여 반환된 값이 되어도 이전 파일과 동일하게 감시할까?
+	- 내가보았을땐 fd를 close하고 kqueue의 changelist에서도 제거해주는 것이 맞는 것 같다.
+	- 그냥 EV_DELETE하면 되겠네.
