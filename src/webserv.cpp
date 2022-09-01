@@ -16,13 +16,36 @@
 #include <iostream>
 
 #include "Request/Request.hpp"
+
+void make_env(char **env) {
+	env[0] = strdup("AUTH_TYPE=");
+	env[1] = strdup("CONTENT_LENGTH=\0");
+	env[2] = strdup("CONTENT_TYPE=\0");
+	env[3] = strdup("GATEWAY_INTERFACE=CGI/1.1");
+	env[4] = strdup("PATH_INFO=/cgi/bye");
+	env[5] = strdup("PATH_TRANSLATED=index.html");	// PATH_INFO의 변환. 스크립트의 가상경로를, 실제 호출 할 때 사용되는 경로로 맵핑. 요청 URI의 PATH_INFO 구성요소를 가져와, 적합한 가상 : 실제 변환을 수행하여 맵핑.
+	env[6] = strdup("QUERY_STRING=");	// 경로 뒤의 요청 URL에 포함된 조회 문자열.
+	env[7] = strdup("REMOTE_ADDR=127.0.0.1");	// 요청을 보낸 클라이언트 IP 주소.
+	env[8] = strdup("REMOTE_IDENT=");	// Identification. 클라이언트에서 GCI 프로그램을 실행시킨 사용자.
+	env[9] = strdup("REMOTE_USER=");	// 사용자가 인증된 경우 이 요청을 작성한 사용자의 로그인을 의미.	null (인증되지 않음)
+	env[10] = strdup("REQUEST_METHOD=GETq");	// 요청 HTTP 메소드 이름. (GET, POST, PUT)
+	env[11] = strdup("REQUEST_URI=/cgi/bye");	// 현재 페이지 주소에서 도메인을 제외한 값.
+	env[12] = strdup("SCRIPT_NAME=cgi");	// HTTP 요청의 첫 번째 라인에 있는 조회 문자열까지의 URL.
+	env[13] = strdup("SERVER_NAME=webserv");	// 요청을 수신한 서버의 호스트 이름.
+	env[14] = strdup("SERVER_PORT=4242");	// 요청을 수신한 서버의 포트 번호.
+	env[15] = strdup("SERVER_PROTOCOL=HTTP/1.1");	// 요청이 사용하는 프로토콜의 이름과 버전. 	protocol/majorVersion.minorVersion 양식
+	env[16] = strdup("SERVER_SOFTWARE=");	// 서블릿이 실행 중인 컨테이너의 이름과 버전.
+	env[17] = 0;
+}
+
 //=========================================
 // Make Response data here!
 //=========================================
 const char* make_response(Client& client, string& response)
 {
 	pid_t pid;
-	int m_pipe[2];
+	int to_child[2];
+	int to_parent[2];
 
 	// dummy data
 	string protocol = "HTTP/1.0 404 KO\r\n";
@@ -37,48 +60,63 @@ const char* make_response(Client& client, string& response)
 	{ // CGI 돌리기.
 		//env = (char**)malloc(sizeof(char*) * 18);
 		//make_env(env);
-		pipe(m_pipe);
-		pid = fork();
+		pipe(to_child);
+		pipe(to_parent);
+
+		char **env;
+		env = (char**)malloc(sizeof(char*) * 18);
+		make_env(env);
 		// 파이프 fd를 nonblock하면 어떻게 되는 거지?
-		fcntl(m_pipe[1], F_SETFL, O_NONBLOCK);
-		fcntl(m_pipe[0], F_SETFL, O_NONBLOCK);
+		// fcntl(m_pipe[1], F_SETFL, O_NONBLOCK);
+		// fcntl(m_pipe[0], F_SETFL, O_NONBLOCK);
 
-		char buf[1024];
-		memcpy(buf, client.getRequest().getContent().c_str(), sizeof(buf));
-		printf("Content: [%s]\n", client.getRequest().getContent().c_str());
+		// 자식(CGI)가 가져갈 표준입력 준비.
+		char buf[BUF_SIZE + 1];
+		memset(buf, 0, sizeof(buf));
+		const char *body = client.getRequest().getReqBody().c_str(); // 왜 warning?
+		memcpy(buf, body, strlen(body));
+		buf[strlen(body)] = 26;	// EOF값을 준다.
 		printf("Buf: [%s]\n", buf);
-		buf[0] = '\0';
+		write(to_child[1], buf, sizeof(buf));
 
+
+		pid = fork();
 		if (pid == 0) {	// child
-			dup2(m_pipe[1], 1);
-			dup2(m_pipe[0], 0);
-			close(m_pipe[1]);
-			close(m_pipe[0]);
+			printf("[child]Before Execve\n");
+			dup2(to_child[0], 0);	// 부모->자식파이프의 읽기fd == 자식의 표준입력
+			dup2(to_parent[1], 1);	// 자식->부모파이프 쓰기fd == 자식의 표준출력
+			close(to_child[1]);
+			close(to_child[0]);
+			close(to_parent[1]);
+			close(to_parent[0]);
 			//if (execve("./cgi_tester", 0, env) == -1) {
-			printf("Before Execve in Child!!\n");
-			if (execve("./cgi_tester", 0, 0) == -1) {
-				std::cout << "cgi error\n";
+			if (execve("./src/cgi_tester", 0, env) == -1) {
+				std::cerr << "[child]cgi error\n";
 				return NULL;
 			}
 		} else { // parent
-			dup2(m_pipe[0], 0);
-			dup2(m_pipe[1], 1);
-
-			// client가 보낸 body를 파이프의 입력에 넣는다.
-			write(m_pipe[1], buf, 1024);
-			close(m_pipe[1]);
-			close(m_pipe[0]);
-			//fcntl(0, F_SETFL, O_NONBLOCK);
+			close(to_child[0]);
+			close(to_child[1]);
 			int status;
-			printf("Waiting in Parent!!\n");
-			waitpid(pid, &status, 0);
-			while((status = read(0, buf, 1024)) > 0) {
-				write(1, buf, status);
+
+			// 실제론, 기다리지 않도록 구현할 것이다.
+			waitpid(-1, &status, 0);
+			// read하기.
+			close(to_parent[1]);	// 이게 없으면 EOF검출이 안된다?
+			string result = "";
+			while((status = read(to_parent[0], buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
+				buf[status] = '\0';
+				// 왜 ret, len이 다른거지...?
+				printf("\n%s[ret:%d, len:%d Loop...]\n", buf, status, strlen(buf));
+				string temp(buf);
+				result += temp;
 			}
-			printf("Read Done\n");
+			cout << "result: " << result << endl;
 		}
 	}
-	response = protocol+servName+cntLen+cntType+content;
+	// result로 response를 완성하시오.
+
+	//response = protocol+servName+cntLen+cntType+content;
 	return response.c_str();
 }
 
@@ -281,10 +319,10 @@ int main(int argc, char **argv)
 
 						Client *c_ptr = new Client(client_socket, client_addr, client_len, *(new Request(clients[curr_event->ident])));
 						cout << "fd : " << c_ptr->getFd() << endl;
-						cout << "path : " << c_ptr->getRequest().getPath() << endl;
-						cout << "version : " << c_ptr->getRequest().getVersion() << endl;
+						cout << "path : " << c_ptr->getRequest().getReqTarget() << endl;
+						cout << "version : " << c_ptr->getRequest().getHttpVersion() << endl;
 						string str = "Host";
-						cout << "host : " << c_ptr->getRequest().getHeaderByKey(str) << endl;
+						cout << "host : " << c_ptr->getRequest().getReqHeaderValue(str) << endl;
 						const char *res = make_response(*c_ptr, response);
 
 						// 클라이언트에게 write
@@ -297,7 +335,7 @@ int main(int argc, char **argv)
 						else
 						{
 							clients[curr_event->ident].clear();	// echo 이후 보낼 문자열을 지운다.
-							cout << "http response complete";
+							cout << "http response complete" << endl;
 						}
 						//SendErrorMSG(curr_event->ident);
 						disconnect_client(curr_event->ident, clients);
