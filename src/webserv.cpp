@@ -73,7 +73,8 @@ const char* make_response(Client& client, string& response)
 		// 자식(CGI)가 가져갈 표준입력 준비.
 		char buf[BUF_SIZE + 1];
 		memset(buf, 0, sizeof(buf));
-		const char *body = client.getRequest().getReqBody().c_str(); // 왜 warning?
+		const char *body = strdup(client.getRequest().getReqBody().c_str()); // 왜 warning?
+		// -> 이거 스트링이 저장되지 않아서 char로 변형하면 원본이 없으니까 문제생김
 		memcpy(buf, body, strlen(body));
 		buf[strlen(body)] = 26;	// EOF값을 준다.
 		printf("Buf: [%s]\n", buf);
@@ -107,7 +108,7 @@ const char* make_response(Client& client, string& response)
 			while((status = read(to_parent[0], buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
 				buf[status] = '\0';
 				// 왜 ret, len이 다른거지...?
-				printf("\n%s[ret:%d, len:%d Loop...]\n", buf, status, strlen(buf));
+				printf("\n%s[ret:%d, len:%lu Loop...]\n", buf, status, strlen(buf));
 				string temp(buf);
 				result += temp;
 			}
@@ -197,7 +198,7 @@ int main(int argc, char **argv)
 		address.sin_port = htons( atoi(argv[1]) );
 
 		// Bind
-		if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0)
+		if (bind(server_fd, (struct sockaddr *)&address, (socklen_t)sizeof(address)) < 0)
 		{
 			perror("In bind");
 			exit(EXIT_FAILURE);
