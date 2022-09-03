@@ -1,11 +1,14 @@
 #include "cgi.hpp"
 
-void make_env(char **env) {
+static char **make_env() {
+	char **env = (char**)malloc(sizeof(char*) * 18);
+	if (!env)
+		exit(1);
 	env[0] = strdup("AUTH_TYPE=");
-	env[1] = strdup("CONTENT_LENGTH=\0");
-	env[2] = strdup("CONTENT_TYPE=\0");
+	env[1] = strdup("CONTENT_LENGTH=1000");
+	env[2] = strdup("CONTENT_TYPE=html/text");
 	env[3] = strdup("GATEWAY_INTERFACE=CGI/1.1");
-	env[4] = strdup("PATH_INFO=/bye");
+	env[4] = strdup("PATH_INFO=/cgi/bye");
 	env[5] = strdup("PATH_TRANSLATED=index.html");	// PATH_INFO의 변환. 스크립트의 가상경로를, 실제 호출 할 때 사용되는 경로로 맵핑. 요청 URI의 PATH_INFO 구성요소를 가져와, 적합한 가상 : 실제 변환을 수행하여 맵핑.
 	env[6] = strdup("QUERY_STRING=");	// 경로 뒤의 요청 URL에 포함된 조회 문자열.
 	env[7] = strdup("REMOTE_ADDR=127.0.0.1");	// 요청을 보낸 클라이언트 IP 주소.
@@ -19,20 +22,25 @@ void make_env(char **env) {
 	env[15] = strdup("SERVER_PROTOCOL=HTTP/1.1");	// 요청이 사용하는 프로토콜의 이름과 버전. 	protocol/majorVersion.minorVersion 양식
 	env[16] = strdup("SERVER_SOFTWARE=");	// 서블릿이 실행 중인 컨테이너의 이름과 버전.
 	env[17] = 0;
+	return env;
 }
 
-char buf[1024];
+static void free_env(char **env) {
+	for (int i=0; i<17; ++i) {
+		free(env[i]);
+	}
+	free(env);
+}
 
-int main(int argc, char **argv, char **envp) {
+int run_cgi() {
 	pid_t pid;
 	int m_pipe[2];
 	int status;
-	char **env;
 	char *str = strdup("./cgi_tester");
+	char buf[1024] = {};
+	char **env;
 
-	env = (char**)malloc(sizeof(char*) * 18);
-	make_env(env);
-	//execve(str, str2, env);
+	env = make_env();
 	pipe(m_pipe);
 	pid = fork();
 	//fcntl(m_pipe[1], F_SETFL, O_NONBLOCK);
@@ -42,22 +50,23 @@ int main(int argc, char **argv, char **envp) {
 		close(m_pipe[1]);
 		close(m_pipe[0]);
 		if (execve(str, 0, env) == -1) {
-			std::cout << "cgi error\n";
+			write(2, "cgi error\n", 10);
 			return -1;
 		}
 	} else {
 		dup2(m_pipe[0], 0);
+		fcntl(0, F_SETFL, O_NONBLOCK);
 		close(m_pipe[1]);
 		close(m_pipe[0]);
-		//fcntl(0, F_SETFL, O_NONBLOCK);
-		waitpid(pid, &status, 0);
-		while((status = read(0, buf, 1024)) > 0) {
+		waitpid(pid, &status, WNOWAIT);
+		//read()
+		while ((status = read(0, buf, 1)) != 0) {
+			if (status != -1)
+				printf("status=%d\n", status);
 			write(1, buf, status);
 		}
 	}
-	//while (*env) {
-	//	std::cout << *env << "\n";
-	//	env++;
-	//}
+	free(str);
+	free_env(env);
 	return 0;
 }

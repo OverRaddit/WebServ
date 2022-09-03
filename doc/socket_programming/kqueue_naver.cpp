@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 						else
 						{
 							clients[curr_event->ident].clear();	// echo 이후 보낼 문자열을 지운다.
-							cout << "http response complete";
+							cout << "http response complete" << endl;
 						}
 						//SendErrorMSG(curr_event->ident);
 						disconnect_client(curr_event->ident, clients);

@@ -10,6 +10,8 @@
 
 ## 과제를 하며 궁금했던 개념
 
+- 허용함수 원형 + 설명하기.
+
 - Multiplexing
 	- Blocking I/O vs Non-blocking I/O
 	- 기본 socket 함수 in C language

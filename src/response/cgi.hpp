@@ -1,10 +1,11 @@
-#ifndef CGI_H
-# define CGI_H
+#ifndef CGI_HPP
+# define CGI_HPP
 
 #include <unistd.h>
 #include <cstring>
-#include <iostream>
 #include <string>
 #include <fcntl.h>
+
+int run_cgi();
 
 #endif
