@@ -11,6 +11,8 @@ using namespace std;
 class Request {
 public:
 	Request(string req_msg);
+	Request(const Request& a);
+	Request& operator=(const Request& a);
 
 	void	setReqBody(string req_body);
 	void	setReqHeader(string key, string value);
