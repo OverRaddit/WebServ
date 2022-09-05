@@ -12,9 +12,12 @@ Client::~Client()
 }
 
 int	Client::getFd(){ return fd; }
+int	Client::getPipeFd(){ return pipe_fd; }
 sockaddr_in	Client::getAddr(){ return addr; }
 socklen_t	Client::getLen(){ return len; }
 Request&	Client::getRequest(){ return req; }
+
+void		Client::setPipeFd(int _pipe_fd){ pipe_fd = _pipe_fd; }
 
 
 // std::vector<std::string>* Client::getCGIEnv()
