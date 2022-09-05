@@ -131,6 +131,9 @@ void disconnect_client(int client_fd, map<int, string>& clients)
 {
 	cout << "client disconnected: " << client_fd << endl;
 	close(client_fd);
+	// 연결해제한 클라이언트는 감시대상에서 제외.
+	change_events(change_list, client_fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	change_events(change_list, client_fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
 	clients.erase(client_fd);
 }
 
