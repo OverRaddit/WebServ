@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/08/30 22:50:49 by jinyoo           ###   ########.fr        #
+#    Updated: 2022/09/01 10:42:47 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,26 +37,30 @@ CDEBUG		=	-g -fsanitize=address
 NAME		=	webserv
 SRCS_DIR	=	./
 SRC_LIST	=	src/webserv.cpp			\
-				src/Request.cpp			\
 				src/Client/Client.cpp	\
 				src/Request/Request.cpp
+#				src/Request.cpp
 #				src/util.cpp
 
 SRCS		=	$(addprefix $(SRCS_DIR), $(SRC_LIST))
 OBJS		=	$(SRCS:.cpp=.o)
 
+GNL_NAME = gnl
+GNL_DIR = include/get_next_line
+
 # =============================================================================
 # Target Generating
 # =============================================================================
 $(NAME)			:	$(OBJS)
+	@$(MAKE) -C $(GNL_DIR) all
 	@echo $(GREEN) "Source files are compiled!\n" $(EOC)
 	@echo $(WHITE) "Building $(NAME) for" $(YELLOW) "Mandatory" $(WHITE) "..." $(EOC)
-	@$(CXX) $(CFLAGS) $^ -o $@
+	$(CXX) $(CFLAGS) -L$(GNL_DIR) -l$(GNL_NAME) $^ -o $@
 	@echo $(GREEN) "$(NAME) is created!\n" $(EOC)
 
 $(SRCS_DIR)/%.o	:	$(SRCS_DIR)/%.cpp
 	@echo $(YELLOW) "Compiling...\t" $< $(EOC) $(LINE_CLEAR)
-	@$(CXX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CFLAGS) -I$(GNL_DIR) -c $< -o $@
 
 # =============================================================================
 # Rules
@@ -66,11 +70,13 @@ all			: $(NAME)
 clean		:
 				@echo $(YELLOW) "Cleaning object files..." $(EOC)
 				@rm -rf $(OBJS)
+				$(MAKE) -C $(GNL_DIR) clean
 				@echo $(RED) "Object files are cleaned! 🧹 🧹\n" $(EOC)
 
 fclean		:
 				@echo $(YELLOW) "Removing $(NAME)..." $(EOC)
 				@rm -rf $(NAME) $(OBJS)
+				$(MAKE) -C $(GNL_DIR) fclean
 				@echo $(RED) "$(NAME) is removed! 🗑 🗑\n" $(EOC)
 
 re			: fclean all
