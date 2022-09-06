@@ -9,18 +9,25 @@ class Client
 {
 private:
 	int			fd;
+	int			pipe_fd;
 	sockaddr_in	addr;
 	socklen_t	len;
-	Request&	req;
+	Request		*req;
 public:
-	Client(int fd, sockaddr_in addr, socklen_t len, Request& req);
+	Client();
+	Client(int fd, sockaddr_in addr, socklen_t len);
 	~Client();
+	Client(const Client& a);
+	Client& operator=(const Client& a);
 
-	int			getFd();
-	sockaddr_in	getAddr();
-	socklen_t	getLen();
-	Request&	getRequest();
+	int			getFd() const;
+	int			getPipeFd() const;
+	sockaddr_in	getAddr() const;
+	socklen_t	getLen() const;
+	Request		*getRequest();
 
+	void		setPipeFd(int pipe_fd);
+	void		setRequest(Request *_req);
 	std::vector<std::string>**	getCGIEnv();
 };
 

@@ -2,6 +2,22 @@
 
 Request::Request() {}
 
+Request::Request(const Request& a)
+{
+	*this = a;
+}
+
+Request& Request::operator=(const Request& a)
+{
+	m_req_header = a.m_req_header;
+	m_http_version = a.m_http_version;
+	m_method = a.m_method;
+	m_req_body = a.m_req_body;
+	m_req_target = a.m_req_target;
+
+	return *this;
+}
+
 Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target("")
 {
 	string	line = "";
