@@ -58,86 +58,6 @@ void Response::setContent(string content) {
 	this->m_content = content;
 }
 
-void Response::makeStatus200(int code) {
-	if (code == 200) {
-
-	} else if (code == 201) {
-
-	} else if (code == 202) {
-
-	} else if (code == 203) {
-
-	} else if (code == 204) {
-
-	} else if (code == 205) {
-
-	} else if (code == 206) {
-	}
-}
-void Response::makeStatus300(int code) {
-	if (code == 300) {
-
-	} else if (code == 301) {
-
-	} else if (code == 302) {
-
-	} else if (code == 303) {
-
-	} else if (code == 304) {
-
-	} else if (code == 305) {
-
-	} else if (code == 306) {
-
-	} else if (code == 307) {
-
-	}
-
-}
-void Response::makeStatus400(int code) {
-	if (code == 400) {
-
-	} else if (code == 402) {
-
-	} else if (code == 403) {
-
-	} else if (code == 404) {
-
-	} else if (code == 404) {
-
-	} else if (code == 405) {
-
-	} else if (code == 406) {
-
-	} else if (code == 408) {
-	} else if (code == 409) {
-	} else if (code == 410) {
-	} else if (code == 411) {
-	} else if (code == 413) {
-	} else if (code == 414) {
-	} else if (code == 415) {
-	} else if (code == 417) {
-	} else if (code == 426) {
-
-	}
-
-}
-void Response::makeStatus500(int code) {
-	if (code == 500) {
-
-	} else if (code == 501) {
-
-	} else if (code == 502) {
-
-	} else if (code == 503) {
-
-	} else if (code == 504) {
-
-	} else if (code == 505) {
-
-	}
-}
-
 string Response::makeHeaders() {
 	string result = "";
 
@@ -164,6 +84,86 @@ string Response::makeContent() {
 
 string Response::getHttpResponse() {
 	string result = this->makeHeaders();
-	result += this->makeBody();
+	result += this->makeContent();
 	return result;
 }
+
+//void Response::makeStatus200(int code) {
+//	if (code == 200) {
+
+//	} else if (code == 201) {
+
+//	} else if (code == 202) {
+
+//	} else if (code == 203) {
+
+//	} else if (code == 204) {
+
+//	} else if (code == 205) {
+
+//	} else if (code == 206) {
+//	}
+//}
+//void Response::makeStatus300(int code) {
+//	if (code == 300) {
+
+//	} else if (code == 301) {
+
+//	} else if (code == 302) {
+
+//	} else if (code == 303) {
+
+//	} else if (code == 304) {
+
+//	} else if (code == 305) {
+
+//	} else if (code == 306) {
+
+//	} else if (code == 307) {
+
+//	}
+
+//}
+//void Response::makeStatus400(int code) {
+//	if (code == 400) {
+
+//	} else if (code == 402) {
+
+//	} else if (code == 403) {
+
+//	} else if (code == 404) {
+
+//	} else if (code == 404) {
+
+//	} else if (code == 405) {
+
+//	} else if (code == 406) {
+
+//	} else if (code == 408) {
+//	} else if (code == 409) {
+//	} else if (code == 410) {
+//	} else if (code == 411) {
+//	} else if (code == 413) {
+//	} else if (code == 414) {
+//	} else if (code == 415) {
+//	} else if (code == 417) {
+//	} else if (code == 426) {
+
+//	}
+
+//}
+//void Response::makeStatus500(int code) {
+//	if (code == 500) {
+
+//	} else if (code == 501) {
+
+//	} else if (code == 502) {
+
+//	} else if (code == 503) {
+
+//	} else if (code == 504) {
+
+//	} else if (code == 505) {
+
+//	}
+//}

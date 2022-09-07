@@ -19,10 +19,10 @@ private:
 
 	static bool				initFlag;
 
-	void		makeStatus200(int code);
-	void		makeStatus300(int code);
-	void		makeStatus400(int code);
-	void		makeStatus500(int code);
+	//void		makeStatus200(int code);
+	//void		makeStatus300(int code);
+	//void		makeStatus400(int code);
+	//void		makeStatus500(int code);
 
 	string		makeHeaders();
 	string		makeContent();
@@ -39,9 +39,10 @@ public:
 	string				getContent();
 
 	void		setStatusCode(int code);
-	void		setStatusDesc(int code, string desc);
+	//void		setStatusDesc(int code, string desc);
 	void		setHeaders(string key, string value);
-	void		setContent(string content);
+	void		setCgiResult(string ret);
+	//void		setContent(string content);
 
 	string		getHttpResponse();
 };
