@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 		// Listen
-		if (listen(server_fd, 10) < 0)
+		if (listen(server_fd, 48) < 0)
 		{
 			perror("In listen");
 			exit(EXIT_FAILURE);
@@ -227,7 +227,7 @@ int main(int argc, char **argv)
 	map<int, Client*> clients2;
 
 	vector<struct kevent> change_list; // kevent vector for changelist
-	struct kevent event_list[8]; // kevent array for eventlist
+	struct kevent event_list[16]; // kevent array for eventlist
 
 	/* add event for server socket */
 	change_events(change_list, server_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -340,6 +340,7 @@ int main(int argc, char **argv)
 
 					// 파이프 fd 닫아주기
 					close(pipe_fd);
+					pipes.erase(pipe_fd);
 
 					// ㅋ,ㅡㄹ라 write event activate
 					change_events(change_list, client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
