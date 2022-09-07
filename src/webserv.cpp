@@ -41,7 +41,7 @@ void make_env(char **env) {
 //=========================================
 // Make Response data here!
 //=========================================
-const char* make_response(Client& client, string& response)
+int	make_response(Client& client, map<int, int>& pipes)
 {
 	pid_t pid;
 	int to_child[2];
@@ -58,10 +58,9 @@ const char* make_response(Client& client, string& response)
 
 
 	{ // CGI 돌리기.
-		//env = (char**)malloc(sizeof(char*) * 18);
-		//make_env(env);
 		pipe(to_child);
 		pipe(to_parent);
+		pipes[to_parent[0]] = client.getFd();
 
 		char **env;
 		env = (char**)malloc(sizeof(char*) * 18);
@@ -73,7 +72,7 @@ const char* make_response(Client& client, string& response)
 		// 자식(CGI)가 가져갈 표준입력 준비.
 		char buf[BUF_SIZE + 1];
 		memset(buf, 0, sizeof(buf));
-		const char *body = strdup(client.getRequest().getReqBody().c_str()); // 왜 warning?
+		const char *body = strdup(client.getRequest()->getReqBody().c_str()); // 왜 warning?
 		// -> 이거 스트링이 저장되지 않아서 char로 변형하면 원본이 없으니까 문제생김
 		memcpy(buf, body, strlen(body));
 		buf[strlen(body)] = 26;	// EOF값을 준다.
@@ -90,35 +89,23 @@ const char* make_response(Client& client, string& response)
 			close(to_child[0]);
 			close(to_parent[1]);
 			close(to_parent[0]);
-			//if (execve("./cgi_tester", 0, env) == -1) {
 			if (execve("./src/cgi_tester", 0, env) == -1) {
 				std::cerr << "[child]cgi error\n";
-				return NULL;
+				return -1;
 			}
 		} else { // parent
 			close(to_child[0]);
 			close(to_child[1]);
-			int status;
 
-			// 실제론, 기다리지 않도록 구현할 것이다.
-			waitpid(-1, &status, 0);
-			// read하기.
-			close(to_parent[1]);	// 이게 없으면 EOF검출이 안된다?
-			string result = "";
-			while((status = read(to_parent[0], buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
-				buf[status] = '\0';
-				// 왜 ret, len이 다른거지...?
-				printf("\n%s[ret:%d, len:%lu Loop...]\n", buf, status, strlen(buf));
-				string temp(buf);
-				result += temp;
-			}
-			cout << "result: " << result << endl;
+			// kqueue에 파이프 등록해야 함.
+			return to_parent[0];
 		}
 	}
 	// result로 response를 완성하시오.
 
 	//response = protocol+servName+cntLen+cntType+content;
-	return response.c_str();
+	//return response.c_str();
+	return 0;
 }
 
 void exit_with_perror(const string& msg)
@@ -131,6 +118,9 @@ void disconnect_client(int client_fd, map<int, string>& clients)
 {
 	cout << "client disconnected: " << client_fd << endl;
 	close(client_fd);
+	// 연결해제한 클라이언트는 감시대상에서 제외.
+	// change_events(change_list, client_fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	// change_events(change_list, client_fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
 	clients.erase(client_fd);
 }
 
@@ -164,8 +154,6 @@ int main(int argc, char **argv)
 	int			client_socket;
 	sockaddr_in	client_addr;
 	socklen_t	client_len;
-
-
 
 	// for tcp/ip
 	int server_fd, new_socket; long valread;
@@ -233,7 +221,12 @@ int main(int argc, char **argv)
 			errx(EXIT_FAILURE,	"Event error: %s", strerror(event.data));
 	}
 
+	// Client의 정보목록을 저장하는데 map, vector중 어느것이 좋을까....
 	map<int, string> clients; // map for client socket:data
+	map<int, int> pipes; // map for pipe read fd : client fd
+	map<int, Request*> requests; // map for pipe read fd : client fd
+	map<int, Client*> clients2;
+
 	vector<struct kevent> change_list; // kevent vector for changelist
 	struct kevent event_list[8]; // kevent array for eventlist
 
@@ -275,9 +268,9 @@ int main(int argc, char **argv)
 				// 서버소켓의 이벤트라면 accept
 				if (curr_event->ident == server_fd)
 				{
-					// int			client_socket;
-					// sockaddr_in	client_addr;
-					// socklen_t	client_len;
+					int			client_socket;
+					sockaddr_in	client_addr;
+					socklen_t	client_len;
 					// 클소켓을 change_list에 읽쓰이벤트로 등록
 					if ((client_socket = accept(server_fd, (sockaddr*)&client_addr, &client_len)) == -1)
 						exit_with_perror("accept error");
@@ -286,6 +279,9 @@ int main(int argc, char **argv)
 					change_events(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 					// 클라이언트의 요청저장을 위해 map에 공간할당.
 					clients[client_socket] = "";
+					Client cli(client_socket, client_addr, client_len);
+					clients2[client_socket] = &cli;
+					std::cout << "[DEBUG]Fd is " << clients2[client_socket]->getFd() << std::endl;
 				}
 				// 클소켓의 이벤트라면
 				else if (clients.find(curr_event->ident) != clients.end())
@@ -305,7 +301,48 @@ int main(int argc, char **argv)
 						buf[n] = '\0';
 						clients[curr_event->ident] += buf;
 						cout << "received data from " << curr_event->ident << ": " << clients[curr_event->ident] << endl;
+
+						// 자식프로세스 생성
+						Client *cli = clients2[curr_event->ident];
+						cli->setRequest(new Request(clients[curr_event->ident]));
+						std::cout << "[DEBUG]Method is " << cli->getRequest()->getMethod() << std::endl;
+						int pipe_fd = make_response(*cli, pipes);
+						change_events(change_list, pipe_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 					}
+				}
+				// 자식프로세스의 파이프라면
+				// IF 조건문 필요.
+				else if (pipes.find(curr_event->ident) != pipes.end())
+				{
+					std::cout << "[DEBUG] Pipe fd: " << curr_event->ident << "is ready!" << std::endl;
+					int client_fd = pipes[curr_event->ident];
+					int pipe_fd = curr_event->ident;
+					int ret;
+					char buf[BUF_SIZE + 1];
+					string result = "";
+
+					// 파이프 fd를 닫는다.
+					close(pipe_fd);	// 이게 없으면 EOF검출이 안된다?
+
+					// read
+					while((ret = read(pipe_fd, buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
+						buf[ret] = '\0';
+						//printf("[DEBUG]%s[ret:%d, len:%lu Loop...]\n", buf, ret, strlen(buf));
+						string temp(buf);
+						result += temp;
+					}
+					cout << "[DEBUG]result: " << result << endl;
+
+					// Client의 Response 객체 생성하기
+					string protocol = "HTTP/1.0 404 KO\r\n";
+					string servName = "Server:simple web server\r\n";
+					string cntLen = "Content-length:2048\r\n";
+					string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
+					string content = "<html><head><title>Default Page</title></head><body>" + result + "</body></html>";
+					string response = protocol+servName+cntLen+cntType+content;
+
+					// 요청데이터 string을 응답데이터 string으로 교체
+					clients[client_fd] = response;
 				}
 			}
 			// 해당 이벤트가 쓰기이벤트라면
@@ -318,14 +355,12 @@ int main(int argc, char **argv)
 					{
 						string response;
 
-						Client *c_ptr = new Client(client_socket, client_addr, client_len, *(new Request(clients[curr_event->ident])));
-						cout << "fd : " << c_ptr->getFd() << endl;
-						cout << "path : " << c_ptr->getRequest().getReqTarget() << endl;
-						cout << "version : " << c_ptr->getRequest().getHttpVersion() << endl;
-						string str = "Host";
-						cout << "host : " << c_ptr->getRequest().getReqHeaderValue(str) << endl;
-						const char *res = make_response(*c_ptr, response);
-
+						// åClient *c_ptr = new Client(client_socket, client_addr, client_len, *(new Request(clients[curr_event->ident])));
+						// cout << "[DEBUG]" << *c_ptr << std::endl;
+						//const char *res = make_response(*c_ptr, response);
+						// make_response(*c_ptr, response);
+						const char *res = clients[curr_event->ident].c_str();
+						std::cout << "response: " << res << std::endl;
 						// 클라이언트에게 write
 						int n;
 						if ((n = write(curr_event->ident, res, strlen(res)) == -1))
