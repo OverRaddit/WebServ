@@ -224,7 +224,6 @@ int main(int argc, char **argv)
 	// Client의 정보목록을 저장하는데 map, vector중 어느것이 좋을까....
 	map<int, string> clients; // map for client socket:data
 	map<int, int> pipes; // map for pipe read fd : client fd
-	map<int, Request*> requests; // map for pipe read fd : client fd
 	map<int, Client*> clients2;
 
 	vector<struct kevent> change_list; // kevent vector for changelist
@@ -276,7 +275,7 @@ int main(int argc, char **argv)
 						exit_with_perror("accept error");
 					cout << "client socket[" << client_socket << "] just connected" << endl;
 					change_events(change_list, client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-					change_events(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+					//change_events(change_list, client_socket, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 					// 클라이언트의 요청저장을 위해 map에 공간할당.
 					clients[client_socket] = "";
 					Client cli(client_socket, client_addr, client_len);
@@ -311,7 +310,6 @@ int main(int argc, char **argv)
 					}
 				}
 				// 자식프로세스의 파이프라면
-				// IF 조건문 필요.
 				else if (pipes.find(curr_event->ident) != pipes.end())
 				{
 					std::cout << "[DEBUG] Pipe fd: " << curr_event->ident << "is ready!" << std::endl;
@@ -321,20 +319,16 @@ int main(int argc, char **argv)
 					char buf[BUF_SIZE + 1];
 					string result = "";
 
-					// 파이프 fd를 닫는다.
-					close(pipe_fd);	// 이게 없으면 EOF검출이 안된다?
-
 					// read
 					while((ret = read(pipe_fd, buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
 						buf[ret] = '\0';
-						//printf("[DEBUG]%s[ret:%d, len:%lu Loop...]\n", buf, ret, strlen(buf));
+						printf("[DEBUG]%s[ret:%d, len:%lu Loop...]\n", buf, ret, strlen(buf));
 						string temp(buf);
 						result += temp;
 					}
-					cout << "[DEBUG]result: " << result << endl;
 
 					// Client의 Response 객체 생성하기
-					string protocol = "HTTP/1.0 404 KO\r\n";
+					string protocol = "HTTP/1.0 200 OK\r\n";
 					string servName = "Server:simple web server\r\n";
 					string cntLen = "Content-length:2048\r\n";
 					string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
@@ -343,6 +337,13 @@ int main(int argc, char **argv)
 
 					// 요청데이터 string을 응답데이터 string으로 교체
 					clients[client_fd] = response;
+
+					// 파이프 fd 닫아주기
+					close(pipe_fd);
+
+					// ㅋ,ㅡㄹ라 write event activate
+					change_events(change_list, client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
 				}
 			}
 			// 해당 이벤트가 쓰기이벤트라면
@@ -354,11 +355,6 @@ int main(int argc, char **argv)
 					if (clients[curr_event->ident] != "") // 보낼문자열이 있을때만. -
 					{
 						string response;
-
-						// åClient *c_ptr = new Client(client_socket, client_addr, client_len, *(new Request(clients[curr_event->ident])));
-						// cout << "[DEBUG]" << *c_ptr << std::endl;
-						//const char *res = make_response(*c_ptr, response);
-						// make_response(*c_ptr, response);
 						const char *res = clients[curr_event->ident].c_str();
 						std::cout << "response: " << res << std::endl;
 						// 클라이언트에게 write
