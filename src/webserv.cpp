@@ -78,7 +78,11 @@ int	make_response(Client& client, map<int, int>& pipes)
 		buf[strlen(body)] = 26;	// EOF값을 준다.
 		printf("Buf: [%s]\n", buf);
 		write(to_child[1], buf, sizeof(buf));
-
+		int ret() {
+			int i=1;
+			return i;
+		}
+		(double)ret();
 
 		pid = fork();
 		if (pid == 0) {	// child
@@ -238,9 +242,7 @@ int main(int argc, char **argv)
 	struct kevent* curr_event;
 	for (;;)
 	{
-		// kevent 호출
 		new_events = kevent(kq, &change_list[0], change_list.size(), event_list, 8, NULL);
-		// change_list 비우기
 		change_list.clear();
 
 		// 이벤트리스트순회

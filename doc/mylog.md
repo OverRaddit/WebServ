@@ -231,3 +231,22 @@ makefile 기초가 이렇게 빈약했었나..
 
 - read의 반환값이 뭔가 이상하다. BUF_SIZE랑 같은 값이 반환된다....왜지?
 
+# 9/5(월) 14:21
+
+- 부모 자식간의 데이터 교환을 비동기적으로 만드는 작업을 하고있다.
+- to_parent 파이프를 kqueue에 등록하고 fd또한 클라이언트에 저장해두자.
+
+- Client의 정보들을 저장해둘 곳이 필요하다.
+	- socket관련	: fd, addr, len
+	- Request
+	- Response
+	- 그외			: pipe_fd
+
+최종적으로는 map<int, Client> 구조를 사용하는 것이 좋을 것 같다.
+
+소켓 연결 -> request 전송 -> 자식프로세스에 전달 -> 결과물 가져오기 -> response생성후 전송
+
+https://stackoverflow.com/questions/2281420/c-inserting-a-class-into-a-map-container
+
+### postman 대용 커커맨맨드드
+curl -X post localhost:2000 -d "gshim"
