@@ -55,8 +55,8 @@ int			Client::read_client_request()
 {
 	char buf[1024] = {0};
 	int n = read(fd, buf, sizeof(buf));
-	// read 결과가 0미만일시 disconnect
-	if (n < 0)
+	// read 결과가 0미만일시 disconnect, 등호인 경우??
+	if (n <= 0)
 	{
 		std::cerr << "client read error!" << std::endl;
 		return (-1);
@@ -110,9 +110,9 @@ int			Client::read_pipe_result()
 	// Client의 Response 객체 생성하기
 	std::string protocol = "HTTP/1.0 200 OK\r\n";
 	std::string servName = "Server:simple web server\r\n";
-	std::string cntLen = "Content-length:2048\r\n";
 	std::string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
 	std::string content = "<html><head><title>Default Page</title></head><body>" + result + "</body></html>";
+	std::string cntLen = "Content-length:" + to_string(content.length()) + "\r\n";
 	std::string response = protocol+servName+cntLen+cntType+content;
 
 	// 요청데이터 string을 응답데이터 string으로 교체

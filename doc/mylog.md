@@ -268,3 +268,44 @@ disconnect가 실행되지 않은 상태에서 요청을 보내서 그런가?
 int			Client::read_pipe_result()에 있는 로그가 계속해서 찍히는걸보니...
 파이프를 close해도 바로 kqueue에서 제거되는 게 아닌가보다.
 그렇다면 fd를 close할때는, kqueue에서 해당 관련 이벤트를 적절히 삭제해줘야 겠다.
+
+# 9/13(화) 19:22
+
+kevent 함수를 호출하자마자 change_list를 초기화 한다.
+이때 change_list를 초기화 하고 다시 kevent를 호출하면
+이전에 change_list에 담겨있는 fd들은 감시대상으로 유지되는지?
+예제 실험실에서 테스트해봐야겠다.
+=> close한 fd에 대해서는 kqueue에서 처리하지 않는다.
+
+# 9/13(화) 19:37
+
+======
+[DEBUG] ret was 708
+[DEBUG]Method is GET
+[DEBUG]Buf: []
+[DEBUG]client socket[6] just connected
+Client Constructor!
+[DEBUG]Fd is 6
+[child]Before Execve
+[DEBUG] Pipe fd: 8is ready!
+[DEBUG]Status: 200 OK
+Content-Type: text/html; charset=utf-8
+======
+
+
+브라우저로 테스트시, 한 요청을 보내는데 갑자기 서버에서 2번째 요청이 도착하는 오류가 발생함.
+오류가 발생하는 타이밍이 매번 같은데, 아무래도 cgi_init에서
+printf("[DEBUG]Buf: [%s]\n", buf);
+항목 이후로 어떤 일이 발생하고 2번째 요청을 감지하는 것 같다.
+정확히는 서버의 리스닝소켓에서 read이벤트가 발생한다...!
+
+문제 원인 예측
+1. fork시 서버의 리스닝소켓까지 복사하여 프로세스가 생성되면서 이벤트가 발생
+-> 객체지향모델로 옮기기전까지 이것 때문에 문제가 발생하진 않았음....
+
+# 9/13(화) 20:01
+
+net::ERR_CONTENT_LENGTH_MISMATCH 200
+브라우저의 개발자 도구를 통해 살펴본 결과 적절한 페이지를 반환하지만 위 에러가 발생했다고 나타났다.
+위 에러는 보내는 데이터와 헤더에 적힌 데이터의 길이가 달라서 발생한다.
+반환하는 데이터길이를 재서 헤더의 값에 적절하게 넣어주자.
