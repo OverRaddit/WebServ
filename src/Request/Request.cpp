@@ -18,6 +18,9 @@ Request& Request::operator=(const Request& a)
 	return *this;
 }
 
+Request::~Request(){}
+
+
 Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target("")
 {
 	string	line = "";

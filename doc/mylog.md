@@ -250,3 +250,21 @@ https://stackoverflow.com/questions/2281420/c-inserting-a-class-into-a-map-conta
 
 ### postman 대용 커커맨맨드드
 curl -X post localhost:2000 -d "gshim"
+
+# 9/10(토) 22:36
+
+C++스타일로 쪼개는중!
+함수별 리턴값을 편의상 0으로 주고 돌아가게 만들자.
+'
+클라이언트의 request객체는 언제 어디서 어떻게 생성되지?
+
+C++에서 int를 string으로 변환하는 방법
+
+가끔 postman으로 전송하면 무응답인 경우가 있다.
+그때 int Server::connect_new_client()까지는 로그가 찍히는데 그 이상 진행이 안됨...
+postman에서 요청중지하고 다시보내면 서버에서 로그가 엄청나게 나온다....
+disconnect가 실행되지 않은 상태에서 요청을 보내서 그런가?
+
+int			Client::read_pipe_result()에 있는 로그가 계속해서 찍히는걸보니...
+파이프를 close해도 바로 kqueue에서 제거되는 게 아닌가보다.
+그렇다면 fd를 close할때는, kqueue에서 해당 관련 이벤트를 적절히 삭제해줘야 겠다.

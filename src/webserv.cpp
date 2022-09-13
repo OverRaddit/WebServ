@@ -61,6 +61,8 @@ int	make_response(Client& client, map<int, int>& pipes)
 		pipe(to_child);
 		pipe(to_parent);
 		pipes[to_parent[0]] = client.getFd();
+		// 임시방편
+		to_parent1 = to_parent[1];
 
 		char **env;
 		env = (char**)malloc(sizeof(char*) * 18);
@@ -100,6 +102,13 @@ int	make_response(Client& client, map<int, int>& pipes)
 		} else { // parent
 			close(to_child[0]);
 			close(to_child[1]);
+
+			// waitpid(-1, 0, 0);
+			// while(1)
+			// {
+			// 	printf("child done\n");
+
+			// }
 
 			// kqueue에 파이프 등록해야 함.
 			return to_parent[0];
@@ -303,11 +312,15 @@ int main(int argc, char **argv)
 						clients[curr_event->ident] += buf;
 						cout << "received data from " << curr_event->ident << ": " << clients[curr_event->ident] << endl;
 
+						// Request URL에 따른 분기문 설정이 필요함.
+						// /cgi/~에 대해서는 cgi처리.
+
 						// 자식프로세스 생성
 						Client *cli = clients2[curr_event->ident];
 						cli->setRequest(new Request(clients[curr_event->ident]));
 						std::cout << "[DEBUG]Method is " << cli->getRequest()->getMethod() << std::endl;
 						int pipe_fd = make_response(*cli, pipes);
+						// 자식 프로세스의 결과물을 감지한다.
 						change_events(change_list, pipe_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 					}
 				}
@@ -329,13 +342,21 @@ int main(int argc, char **argv)
 						result += temp;
 					}
 
+					// 파이프 출구를 닫는다
+					close(pipe_fd);	// close를 안하면 kqueue가 계속 이벤트를 처리하려한다. Close를 하면 kqueue에서 자동 폐기되는 듯 하다.
+
 					// Client의 Response 객체 생성하기
 					string protocol = "HTTP/1.0 200 OK\r\n";
 					string servName = "Server:simple web server\r\n";
 					string cntLen = "Content-length:2048\r\n";
 					string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
-					string content = "<html><head><title>Default Page</title></head><body>" + result + "</body></html>";
+					string dummy = "Something";
+					string content = "<html><head><title>Default Page</title></head><body>cgi: <h1>" + result + "</h1></body></html>";
+
+
 					string response = protocol+servName+cntLen+cntType+content;
+
+					//response = "Something";	// 임시
 
 					// 요청데이터 string을 응답데이터 string으로 교체
 					clients[client_fd] = response;
@@ -359,6 +380,7 @@ int main(int argc, char **argv)
 						string response;
 						const char *res = clients[curr_event->ident].c_str();
 						std::cout << "response: " << res << std::endl;
+						std::cout << "len: " << strlen(res) << std::endl;
 						// 클라이언트에게 write
 						int n;
 						if ((n = write(curr_event->ident, res, strlen(res)) == -1))
@@ -369,7 +391,7 @@ int main(int argc, char **argv)
 						else
 						{
 							clients[curr_event->ident].clear();	// echo 이후 보낼 문자열을 지운다.
-							cout << "http response complete" << endl;
+							cout << "http response complete, n: " << n << endl;
 						}
 						//SendErrorMSG(curr_event->ident);
 						disconnect_client(curr_event->ident, clients);

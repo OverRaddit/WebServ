@@ -8,15 +8,15 @@
 # include <map>
 # include <vector>
 
-#include <sys/socket.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <sys/event.h>
-#include <err.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+# include <sys/socket.h>
+# include <unistd.h>
+# include <netinet/in.h>
+# include <sys/event.h>
+# include <err.h>
+# include <fcntl.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
 
 class Server {
 
@@ -30,6 +30,7 @@ private:
 	int addrlen;
 
 	// for kqueue
+	int kq_fd;
 	std::vector<struct kevent> change_list;		// kevent vector for changelist
 	struct kevent event_list[8];			// kevent array for eventlist
 
@@ -45,14 +46,15 @@ public:
 //=============================================================================
 //	Method
 //=============================================================================
-	init_socket();
-	init_multiplexing();
-	run();
+	int init_socket(int port);
+	int init_multiplexing();
+	int run();
 
 	int callback_error(int fd);
 	int callback_read(int fd);
 	int callback_write(int fd);
 
+	void exit_with_perror(const string& msg);
 	void disconnect_client(int client_fd);
 	void change_events(uintptr_t ident, int16_t filter,
 		uint16_t flags, uint32_t fflags, intptr_t data, void *udata);

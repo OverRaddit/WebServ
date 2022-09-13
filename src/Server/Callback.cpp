@@ -1,5 +1,11 @@
 #include "Server.hpp"
 
+void Server::exit_with_perror(const string& msg)
+{
+	std::cerr << msg << std::endl;
+	exit(EXIT_FAILURE);
+}
+
 int Server::callback_error(int fd)
 {
 	// 서버소켓의 이벤트라면 exit
@@ -9,8 +15,9 @@ int Server::callback_error(int fd)
 	else
 	{
 		std::cerr << "client socket[" << fd << "] got error" << std::endl;
-		disconnect_client(fd, clients);
+		disconnect_client(fd);
 	}
+	return 0;
 }
 
 int Server::callback_read(int fd)
@@ -19,23 +26,28 @@ int Server::callback_read(int fd)
 
 
 	if (fd == server_fd) // 서버소켓
+	{
 		connect_new_client();	// 서버의 동작
-	else if (clients_info.find(fd) != clients_info.end()) // 클라이언트
+		return (0);
+	}
+
+
+	if (clients_info.find(fd) != clients_info.end()) // 클라이언트
 	{
 		int ret;
 		cli = clients_info[fd];
 		if ((ret = cli->read_client_request()) < 0)
-			disconnect_client(client_fd);
-		pipe_to_client[ret] = cli.getFd();
+			disconnect_client(fd);
+		pipe_to_client[ret] = cli->getFd();
 		change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	}
 	else if (pipe_to_client.find(fd) != pipe_to_client.end()) // 파이프
 	{
-		cli = clients_info[fd];
+		cli = clients_info[pipe_to_client[fd]];
 		cli->read_pipe_result();
 		if (cli->getPipeFd() != -1)
 			pipe_to_client.erase(fd);
-		change_events(change_list, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	}
 }
 
@@ -45,7 +57,7 @@ int Server::callback_write(int fd)
 
 	// 클라이언트에게만 write합니다.
 	if (clients_info.find(fd) == clients_info.end())
-		return ;
+		return -1;
 
 	// write하기.
 	cli = clients_info[fd];
@@ -54,17 +66,17 @@ int Server::callback_write(int fd)
 	// 클라이언트에게 write
 	int n;
 	if ((n = write(fd, res, strlen(res)) == -1))
-		std::cerr << "client write error!" << std::endl;
+		std::cerr << "[DEBUG] client write error!" << std::endl;
 	else
-		std::cout << "http response complete" << std::endl;
+		std::cout << "[DEBUG] http response complete" << std::endl;
 	disconnect_client(fd);
 }
 
 void Server::disconnect_client(int client_fd)
 {
 	close(client_fd);
-	clients_info.erase(client_fd);
 	delete clients_info[client_fd];
+	clients_info.erase(client_fd);
 	std::cout << "[DEBUG]client disconnected: " << client_fd << std::endl;
 }
 

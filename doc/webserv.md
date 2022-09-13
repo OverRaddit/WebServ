@@ -13,6 +13,9 @@
 - 허용함수 원형 + 설명하기.
 
 - Multiplexing
+	- C10K Problem
+		- https://www.gpgstudy.com/forum/viewtopic.php?t=2097
+		- https://heeestorys.tistory.com/513
 	- Blocking I/O vs Non-blocking I/O
 	- 기본 socket 함수 in C language
 	- select(), poll(), epoll(), kqueue() 류와 같은 소켓함수

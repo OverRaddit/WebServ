@@ -61,22 +61,34 @@ int			Client::read_client_request()
 		std::cerr << "client read error!" << std::endl;
 		return (-1);
 	}
-	// 자식프로세스 생성
-	else if (n == 0)	// 더 이상 읽을 데이터가 없는 경우 -> 요청을 모두 읽은 경우.
-	{
-		int ret;
-		std::cout << "[DEBUG]Method is " << getRequest()->getMethod() << std::endl;
-		if ((ret = cgi_init(*cli)) < 0)
-			return -1;
-		return ret;
-	}
+	// // 자식프로세스 생성
+	// else if (n == 0)	// 더 이상 읽을 데이터가 없는 경우 -> 요청을 모두 읽은 경우.
+	// {
+	// 	int ret;
+	// 	std::cout << "[DEBUG]Method is " << getRequest()->getMethod() << std::endl;
+	// 	if ((ret = cgi_init()) < 0)
+	// 		return -1;
+	// 	return ret;
+	// }
 	// 그외 데이터 저장
 	else
 	{
 		buf[n] = '\0';
 		appendRawRequest(buf);
 		std::cout << "[DEBUG]received data from " << getFd() << ": " << getRawRequest() << std::endl;
+		std::cout << "[DEBUG] ret was " << n << std::endl;
+
+		int ret;
+
+		Request *req = new Request(getRawRequest());
+		setRequest(req);
+		std::cout << "[DEBUG]Method is " << getRequest()->getMethod() << std::endl;
+
+		if ((ret = cgi_init()) < 0)
+			return -1;
+		return ret;
 	}
+	return 0;
 }
 
 // 파이프fd, 클라이언트fd,
@@ -106,6 +118,7 @@ int			Client::read_pipe_result()
 	// 요청데이터 string을 응답데이터 string으로 교체
 	setRawRequest(response);
 	close(pipe_fd);
+	return (0);
 }
 
 void		Client::make_env(char **env)
@@ -155,7 +168,8 @@ int			Client::cgi_init()
 	memcpy(buf, body, strlen(body));
 	buf[strlen(body)] = 26;	// EOF값을 준다.
 	printf("[DEBUG]Buf: [%s]\n", buf);
-	write(to_child[1], buf, sizeof(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
+	//write(to_child[1], buf, sizeof(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
+	write(to_child[1], buf, strlen(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
 
 	pid = fork();
 	if (pid == 0)

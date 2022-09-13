@@ -1,9 +1,12 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-# include "../Request.hpp"
+# include "../Request/Request.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <unistd.h>
+
+# define BUF_SIZE 1024	// 수정필요
 
 class Client
 {
