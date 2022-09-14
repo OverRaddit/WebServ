@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/08/30 22:50:49 by jinyoo           ###   ########.fr        #
+#    Updated: 2022/09/10 22:33:52 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,10 +36,12 @@ CDEBUG		=	-g -fsanitize=address
 # =============================================================================
 NAME		=	webserv
 SRCS_DIR	=	./
-SRC_LIST	=	src/webserv.cpp			\
-				src/Request.cpp			\
+SRC_LIST	=	src/main.cpp			\
 				src/Client/Client.cpp	\
-				src/Request/Request.cpp
+				src/Request/Request.cpp \
+				src/Server/Server.cpp	\
+				src/Server/Callback.cpp
+#				src/webserv.cpp
 #				src/util.cpp
 
 SRCS		=	$(addprefix $(SRCS_DIR), $(SRC_LIST))
