@@ -106,17 +106,24 @@ int			Client::read_pipe_result()
 		std::string temp(buf);
 		result += temp;
 	}
-
+	res = new Response();
 	// Client의 Response 객체 생성하기
-	std::string protocol = "HTTP/1.0 200 OK\r\n";
-	std::string servName = "Server:simple web server\r\n";
-	std::string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
-	std::string content = "<html><head><title>Default Page</title></head><body>" + result + "</body></html>";
-	std::string cntLen = "Content-length:" + to_string(content.length()) + "\r\n";
-	std::string response = protocol+servName+cntLen+cntType+content;
+	Response::ResponseInit();
+	res->setStatusCode(200);
+	res->setHeaders("Content-type", "text/html; charset=UTF-8");
+	res->setCgiResult(result);
+	res->makeContent();
+	res->setHeaders("Content-length", to_string(res->getContent().length()));
+
+	// std::string protocol = "HTTP/1.0 200 OK\r\n";
+	// std::string servName = "Server:simple web server\r\n";
+	// std::string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
+	// std::string content = "<html><head><title>Default Page</title></head><body>" + result + "</body></html>";
+	// std::string cntLen = "Content-length:" + to_string(content.length()) + "\r\n";
+	// std::string response = protocol+servName+cntLen+cntType+content;
 
 	// 요청데이터 string을 응답데이터 string으로 교체
-	setRawRequest(response);
+	setRawRequest(res->getHttpResponse());
 	close(pipe_fd);
 	return (0);
 }

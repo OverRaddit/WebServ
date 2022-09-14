@@ -2,6 +2,7 @@
 # define CLIENT_HPP
 
 # include "../Request/Request.hpp"
+# include "../Response/Response.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <unistd.h>
@@ -17,6 +18,7 @@ private:
 	socklen_t	len;
 
 	Request		*req;
+	Response	*res;
 	std::string	raw_request;	// HTTP 요청 원본
 
 public:
