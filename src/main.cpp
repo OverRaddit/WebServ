@@ -16,13 +16,18 @@
 #include <iostream>
 
 #include "Request/Request.hpp"
+#include "Config/Config.hpp"
 #include "Server/Server.hpp"
 
 int main(int argc, char *argv[])
 {
 	Server server;
 
-	server.init_socket(atoi(argv[1]));
-	server.init_multiplexing();
-	server.run();
+	if (argc == 3)
+	{
+		Config	config(argv[2]);
+		server.init_socket(atoi(argv[1]));
+		server.init_multiplexing();
+		server.run();
+	}
 }
