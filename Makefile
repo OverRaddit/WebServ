@@ -6,7 +6,7 @@
 #    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/09/17 20:40:50 by jinyoo           ###   ########.fr        #
+#    Updated: 2022/09/18 00:55:17 by jinyoo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,7 +41,10 @@ SRC_LIST	=	src/main.cpp			\
 				src/Request/Request.cpp \
 				src/Server/Server.cpp	\
 				src/Server/Callback.cpp	\
-				src/Response/Response.cpp
+				src/Response/Response.cpp \
+				src/Config/Config.cpp \
+				src/Config/LocationBlock.cpp \
+				src/Config/ServerBlock.cpp
 #				src/webserv.cpp
 #				src/util.cpp
 
