@@ -23,11 +23,11 @@
 
 int main(int argc, char *argv[])
 {
-	Server server;
+	Server server(argv[2]);
 
 	if (argc == 3)
 	{
-		Config	config(argv[2]);
+		//Config	config(argv[2]);
 		server.init_socket(atoi(argv[1]));
 		server.init_multiplexing();
 		server.run();
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 		// 	cout << "root_dir : " << root_dir << endl;
 		// 	cout << "cgi_tester : " << cgi_tester << endl;
 		// 	cout << "index_file : " << index_file << endl;
-		// 	cout << "location : :" << l_b["/delete"].getValidMethod() << endl; 
+		// 	cout << "location : :" << l_b["/delete"].getValidMethod() << endl;
 		// 	cout << "----------------------------------------------\n";
 		// }
 	}

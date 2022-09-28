@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/09/10 22:33:36 by gshim            ###   ########.fr       */
+/*   Updated: 2022/09/28 22:16:37 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,11 @@
 //=============================================================================
 Server::Server()
 {
+}
+Server::Server(string config_filepath)
+{
 	// read config file.
-
-	// init Server config data
+	config = new Config(config_filepath);
 }
 Server::Server(const Server& a){ *this = a; }
 Server& Server::operator=(const Server& a){ return *this; }

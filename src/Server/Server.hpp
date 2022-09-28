@@ -2,6 +2,7 @@
 # define Server_HPP
 
 # include "../Client/Client.hpp"
+# include "../Config/Config.hpp"
 # include <iostream>
 # include <utility>
 # include <string>
@@ -24,6 +25,8 @@ private:
 	std::map<int, Client*>	clients_info;
 	std::map<int, int>		pipe_to_client;
 
+	Config					*config;
+
 	// for socket
 	int server_fd;
 	struct sockaddr_in address;
@@ -39,6 +42,7 @@ public:
 //	Orthodox Canonical Form
 //=============================================================================
 	Server();							// 기본생성자
+	Server(string config_filepath);		// 생성자
 	Server(const Server& a);			// 복사생성자
 	Server& operator=(const Server& a);	// 대입연산자
 	~Server();							// 소멸자
