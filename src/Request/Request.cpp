@@ -114,5 +114,7 @@ int		Request::getStatusCode(void) const {
 }
 
 string	Request::getReqHeaderValue(string key) {
-	return this->m_req_header[key];
+	if (this->m_req_header.find(key) != this->m_req_header.end())
+		return this->m_req_header[key];
+	return "";
 }
