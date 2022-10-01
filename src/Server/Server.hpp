@@ -38,6 +38,11 @@ private:
 	struct kevent event_list[8];			// kevent array for eventlist
 
 public:
+	// fd, port
+	map<int, int> fd_to_port;
+	// port, serverblock
+	map<int, vector<ServerBlock> > serverblock_info; // ㄴㅏ주ㅇ에 private옮기고 getter/setter
+
 //=============================================================================
 //	Orthodox Canonical Form
 //=============================================================================
@@ -64,21 +69,16 @@ public:
 		uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
 
 
-	int connect_new_client();
+	int connect_new_client(int fd);
 	int read_client_request();
 	int read_pipe_result();
+
+	int isListensocket(int fd);
 
 //=============================================================================
 //	Getter & Setter
 //=============================================================================
-	void	setReqBody(string req_body);
-	void	setReqHeader(string key, string value);
-
-	string	getReqHeaderValue(string key);
-	string	getMethod(void) const;
-	string	getReqTarget(void) const;
-	string	getHttpVersion(void) const;
-	string	getReqBody(void) const;
+	Config	*getConfig(void) const;
 
 };
 

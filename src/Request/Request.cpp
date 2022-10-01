@@ -1,5 +1,4 @@
 #include "Request.hpp"
-
 Request::Request() {}
 
 Request::Request(const Request& a)
@@ -70,20 +69,29 @@ void	Request::saveHeader(string header_line)
 	int		flag = 0;
 	int		i;
 
-	for (i = 0;i < header_line.length();i++)
+	// for (i = 0;i < header_line.length();i++)
+	// {
+	// 	if (header_line[i] == ':')
+	// 	{
+	// 		flag = 1;
+	// 		i++;
+	// 		continue ;
+	// 	}
+	// 	if (flag)
+	// 		value += header_line[i];
+	// 	else
+	// 		key += header_line[i];
+	// }
+	//this->setReqHeader(key, value);
+
+	for(int i=0;i<header_line.length();i++)
 	{
-		if (header_line[i] == ':')
-		{
-			flag = 1;
-			i++;
+		if (header_line[i] != ':')
 			continue ;
-		}
-		if (flag)
-			value += header_line[i];
-		else
-			key += header_line[i];
+
+		this->setReqHeader(header_line.substr(0, i), header_line.substr(i+2));
+		break;
 	}
-	this->setReqHeader(key, value);
 }
 
 void	Request::setReqBody(string body)

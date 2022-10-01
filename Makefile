@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/09/18 00:55:17 by jinyoo           ###   ########.fr        #
+#    Updated: 2022/10/01 15:38:21 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,8 +45,8 @@ SRC_LIST	=	src/main.cpp			\
 				src/Config/Config.cpp \
 				src/Config/LocationBlock.cpp \
 				src/Config/ServerBlock.cpp
-#				src/webserv.cpp
 #				src/util.cpp
+#				src/webserv.cpp
 
 SRCS		=	$(addprefix $(SRCS_DIR), $(SRC_LIST))
 OBJS		=	$(SRCS:.cpp=.o)

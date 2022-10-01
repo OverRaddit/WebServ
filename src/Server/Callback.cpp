@@ -1,5 +1,17 @@
 #include "Server.hpp"
 
+int Server::isListensocket(int fd)
+{
+	for (map<int, int>::iterator iter = fd_to_port.begin() ; iter !=  fd_to_port.end(); iter++)
+	{
+		if (fd == iter->first)
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void Server::exit_with_perror(const string& msg)
 {
 	std::cerr << msg << std::endl;
@@ -25,9 +37,14 @@ int Server::callback_read(int fd)
 	Client *cli;
 
 
-	if (fd == server_fd) // 서버소켓
+	// if (fd == server_fd) // 서버소켓
+	// {
+	// 	connect_new_client();	// 서버의 동작
+	// 	return (0);
+	// }
+	if (isListensocket(fd))
 	{
-		connect_new_client();	// 서버의 동작
+		connect_new_client(fd);	// 서버의 동작
 		return (0);
 	}
 
@@ -89,14 +106,14 @@ void Server::change_events(uintptr_t ident, int16_t filter,
 	change_list.push_back(temp_event);
 }
 
-int Server::connect_new_client()
+int Server::connect_new_client(int fd)
 {
 	int			client_socket;
 	sockaddr_in	client_addr;
 	socklen_t	client_len;
 
 	// 클소켓을 change_list에 읽쓰이벤트로 등록
-	if ((client_socket = accept(server_fd, (sockaddr*)&client_addr, &client_len)) == -1)
+	if ((client_socket = accept(fd, (sockaddr*)&client_addr, &client_len)) == -1)
 		exit_with_perror("accept error");
 	std::cout << "[DEBUG]client socket[" << client_socket << "] just connected" << std::endl;
 

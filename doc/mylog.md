@@ -309,3 +309,13 @@ net::ERR_CONTENT_LENGTH_MISMATCH 200
 브라우저의 개발자 도구를 통해 살펴본 결과 적절한 페이지를 반환하지만 위 에러가 발생했다고 나타났다.
 위 에러는 보내는 데이터와 헤더에 적힌 데이터의 길이가 달라서 발생한다.
 반환하는 데이터길이를 재서 헤더의 값에 적절하게 넣어주자.
+
+# 9/14(수) 17:37
+
+- invalid use of 'this' outside of a non-static member function
+
+- error: no template named 'map'
+        map<string, string>             m_headers;
+
+- error: invalid use of 'this' outside of a non-static member function
+        this->initFlag = true;

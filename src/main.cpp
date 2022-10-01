@@ -23,12 +23,12 @@
 
 int main(int argc, char *argv[])
 {
-	Server server(argv[2]);
+	Server server(argv[1]);
 
-	if (argc == 3)
+	if (argc == 2)
 	{
 		//Config	config(argv[2]);
-		server.init_socket(atoi(argv[1]));
+		//server.init_socket();
 		server.init_multiplexing();
 		server.run();
 		// config 파일 파싱 체크

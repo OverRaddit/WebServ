@@ -79,13 +79,21 @@ int			Client::read_client_request()
 		std::cout << "[DEBUG] ret was " << n << std::endl;
 
 		int ret;
+		// 1개의 HTTP Request 읽기가 끝나면 동작시켜야 함.
+		{
+			Request *req = new Request(getRawRequest());
+			setRequest(req);
+			std::cout << "[DEBUG]Method is " << getRequest()->getMethod() << std::endl;
+			std::cout << "[DEBUG]hostname is [" << getRequest()->getReqHeaderValue("Host") << "]" << std::endl;
 
-		Request *req = new Request(getRawRequest());
-		setRequest(req);
-		std::cout << "[DEBUG]Method is " << getRequest()->getMethod() << std::endl;
+			// 요청헤더에서 Host를 읽어 어떤 호스트의 몇번 포트에 접근하는지 확인한다.
 
-		if ((ret = cgi_init()) < 0)
-			return -1;
+			// 해당 정보로 적절한 서버블록을 꺼낸다.
+
+			if ((ret = cgi_init()) < 0)
+				return -1;
+
+		}
 		return ret;
 	}
 	return 0;

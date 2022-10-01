@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/09/28 22:16:37 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/01 15:16:35 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ int Server::init_socket(int port)
 		perror("In socket");
 		exit(EXIT_FAILURE);
 	}
+	printf("Open new Listening socket : %d on port %d\n", server_fd, port);
 
 	// 주소 구조체에 서버의 IP,PORT 저장
 	memset(address.sin_zero, 0, sizeof(address.sin_zero));
@@ -52,12 +53,15 @@ int Server::init_socket(int port)
 		perror("In bind");
 		exit(EXIT_FAILURE);
 	}
+	fd_to_port[server_fd] = port;
+
 	// Listen
 	if (listen(server_fd, 10) < 0)
 	{
 		perror("In listen");
 		exit(EXIT_FAILURE);
 	}
+
 	return (0);
 }
 
@@ -72,8 +76,50 @@ int Server::init_multiplexing()
 	if (kq_fd == -1)
 		err(EXIT_FAILURE, "kqueue() failed");
 
-	// flag에 0넣으면?
-	EV_SET(&event, server_fd, EVFILT_READ, EV_ADD | EV_CLEAR, flags, 0,	NULL);
+	{
+		vector<ServerBlock> v = getConfig()->getServerBlocks(); // reference로 받으면 좋을듯...!
+		for(int i=0;i<v.size();i++)
+		{
+			int curr_port = v[i].getPortNum();
+
+			// already registered port
+			if (serverblock_info.find(curr_port) != serverblock_info.end())
+			{
+				vector<ServerBlock> &blocks = serverblock_info[curr_port];
+				int flag = 0;
+				for(int j=0;j<blocks.size();j++)
+				{
+					if (blocks[j].getServerName() == v[i].getServerName())
+					{
+						flag = 1;
+						break;
+					}
+				}
+				if (!flag)
+					blocks.push_back(v[i]);
+			}
+			// open listen socket
+			// init_socket의 반환값을 EV_SET인자로 넣는 방식이 좋아보인다.
+			else
+			{
+				init_socket(curr_port); // 포트열기
+				// 포트에 해당하는 fd를 kqueue에 SET하기
+				EV_SET(&event, server_fd, EVFILT_READ, EV_ADD | EV_CLEAR, flags, 0,	NULL);
+				serverblock_info[curr_port].push_back(v[i]);
+			}
+		}
+
+		printf("DEBUG serverblock_info\n");
+
+		//인덱스기반
+		for (map<int, vector<ServerBlock> >::iterator iter = serverblock_info.begin() ; iter !=  serverblock_info.end(); iter++)
+		{
+			cout << iter->first << ":" << endl;
+			for(int i=0;i<iter->second.size();i++)
+				cout <<  "	[" << iter->second[i].getServerName() << "]" << endl;
+		}
+		cout << endl;
+	}
 
 	ret = kevent(kq_fd, &event, 1, NULL, 0, NULL);
 	if (ret == -1)
@@ -112,3 +158,9 @@ int Server::run()
 		}
 	}
 }
+
+//=============================================================================
+//	Getter & Setter
+//=============================================================================
+
+Config*	Server::getConfig(void) const { return config; }

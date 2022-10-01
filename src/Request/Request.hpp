@@ -35,5 +35,6 @@ private:
 	void	saveStartLine(string start_line);
 	void	saveHeader(string header_line);
 };
+void	split(const string& str, const string& delimiters , vector<string>& tokens);
 
 #endif
