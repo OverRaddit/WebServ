@@ -78,6 +78,11 @@ void	Request::saveHeader(string header_line)
 	}
 }
 
+void	Request::setStatusCode(int status_code)
+{
+	this->m_status_code = status_code;
+}
+
 void	Request::setReqBody(string body)
 {
 	this->m_req_body = body;
@@ -102,6 +107,10 @@ string	Request::getReqTarget(void) const {
 
 string	Request::getHttpVersion(void) const {
 	return this->m_http_version;
+}
+
+int		Request::getStatusCode(void) const {
+	return this->m_status_code;
 }
 
 string	Request::getReqHeaderValue(string key) {
