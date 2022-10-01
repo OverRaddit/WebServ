@@ -1,4 +1,5 @@
 #include "Request.hpp"
+
 Request::Request() {}
 
 Request::Request(const Request& a)
@@ -90,7 +91,18 @@ void	Request::setReqBody(string body)
 
 void	Request::setReqHeader(string key, string value)
 {
+	if (key == "Content-Length")
+		setContentLength(value);
 	this->m_req_header.insert(pair<string, string>(key, value));
+}
+
+void	Request::setContentLength(string content_length)
+{
+	this->m_content_length = stoll(content_length);
+}
+
+long long	Request::getContentLength(void) const {
+	return this->m_content_length;
 }
 
 string	Request::getReqBody(void) const {
