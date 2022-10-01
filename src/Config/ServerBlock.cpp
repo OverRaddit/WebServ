@@ -93,7 +93,7 @@ string ServerBlock::getServerName(void) const { return this->m_server_name; }
 
 int	ServerBlock::getPortNum(void) const { return this->m_port_num; }
 
-map<string, LocationBlock>	ServerBlock::getLocationBlocks(void) const {
+const map<string, LocationBlock>&	ServerBlock::getLocationBlocks(void) const {
 	return this->m_loc_blocks;
 }
 
