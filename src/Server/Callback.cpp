@@ -1,13 +1,5 @@
 #include "Server.hpp"
 
-int Server::isListensocket(int fd)
-{
-	for (map<int, int>::iterator iter = fd_to_port.begin() ; iter !=  fd_to_port.end(); iter++)
-		if (fd == iter->first)
-			return 1;
-	return 0;
-}
-
 void Server::exit_with_perror(const string& msg)
 {
 	std::cerr << msg << std::endl;
@@ -17,12 +9,17 @@ void Server::exit_with_perror(const string& msg)
 int Server::callback_error(int fd)
 {
 	// 서버소켓의 이벤트라면 exit
-	if (fd == server_fd)
+	if (is_listensocket(fd))
 		exit_with_perror("server socket error");
 	// 클라이언트소켓 이벤트라면 disconnect
-	else
+	else if (clients_info.find(fd) != clients_info.end())
 	{
-		std::cerr << "client socket[" << fd << "] got error" << std::endl;
+		std::cerr << "Client socket[" << fd << "] got error" << std::endl;
+		disconnect_client(fd);
+	}
+	else if (pipe_to_client.find(fd) != pipe_to_client.end())
+	{
+		std::cerr << "Pipe socket[" << fd << "] got error" << std::endl;
 		disconnect_client(fd);
 	}
 	return 0;
@@ -32,17 +29,22 @@ int Server::callback_read(int fd)
 {
 	Client *cli;
 
-	if (isListensocket(fd))
-		connect_new_client(fd);	// 서버의 동작
-	else if (clients_info.find(fd) != clients_info.end()) // 클라이언트
+	if (is_listensocket(fd))
+		connect_new_client(fd);
+	else if (is_client(fd))
 	{
 		int ret;
 		cli = clients_info[fd];
 		if ((ret = cli->read_client_request()) < 0)
 			disconnect_client(fd);
 		execute_client_request(cli->getFd());
+		// cgi요청을 처리해야 하는 경우
+		{
+			pipe_to_client[ret] = cli->getFd();
+			change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		}
 	}
-	else if (pipe_to_client.find(fd) != pipe_to_client.end()) // 파이프
+	else if (is_pipe(fd))
 	{
 		cli = clients_info[pipe_to_client[fd]];
 		cli->read_pipe_result();
@@ -58,7 +60,7 @@ int Server::callback_write(int fd)
 	Client *cli;
 
 	// 클라이언트에게만 write합니다.
-	if (clients_info.find(fd) == clients_info.end())
+	if (!is_client(fd))
 		return -1;
 
 	// write하기.

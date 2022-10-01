@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/01 18:18:28 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/01 18:33:32 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,17 +109,6 @@ int Server::init_multiplexing()
 				serverblock_info[curr_port].push_back(v[i]);
 			}
 		}
-
-		printf("DEBUG serverblock_info\n");
-
-		// //인덱스기반
-		// for (map<int, vector<ServerBlock> >::iterator iter = serverblock_info.begin() ; iter !=  serverblock_info.end(); iter++)
-		// {
-		// 	cout << iter->first << ":" << endl;
-		// 	for(int i=0;i<iter->second.size();i++)
-		// 		cout <<  "	[" << iter->second[i].getServerName() << "]" << endl;
-		// }
-		// cout << endl;
 	}
 
 	ret = kevent(kq_fd, &event, 1, NULL, 0, NULL);
@@ -132,10 +121,19 @@ int Server::init_multiplexing()
 
 int Server::run()
 {
-	//change_events(server_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
+	printf("DEBUG serverblock_info\n");
+	//인덱스기반
+	for (map<int, vector<ServerBlock> >::iterator iter = serverblock_info.begin() ; iter !=  serverblock_info.end(); iter++)
+	{
+		cout << iter->first << ":" << endl;
+		for(int i=0;i<iter->second.size();i++)
+			cout <<  "	[" << iter->second[i].getServerName() << "]" << endl;
+	}
+	cout << endl;
+
 	std::cout << "WebServer started" << std::endl;
 
-	// 통신.
 	int new_events;
 	struct kevent* curr_event;
 	for (;;)
@@ -214,11 +212,7 @@ int	Server::execute_client_request(int client_fd)
 
 	// 이곳에서 요청 처리를 한다.
 
-	// cgi요청을 처리해야 하는 경우
-	{
-		pipe_to_client[ret] = cli->getFd();
-		change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-	}
+
 }
 
 //=============================================================================
