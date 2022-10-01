@@ -66,23 +66,7 @@ void	Request::saveHeader(string header_line)
 {
 	string	key = "";
 	string	value = "";
-	int		flag = 0;
 	int		i;
-
-	// for (i = 0;i < header_line.length();i++)
-	// {
-	// 	if (header_line[i] == ':')
-	// 	{
-	// 		flag = 1;
-	// 		i++;
-	// 		continue ;
-	// 	}
-	// 	if (flag)
-	// 		value += header_line[i];
-	// 	else
-	// 		key += header_line[i];
-	// }
-	//this->setReqHeader(key, value);
 
 	for(int i=0;i<header_line.length();i++)
 	{
