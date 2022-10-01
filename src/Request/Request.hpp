@@ -17,18 +17,21 @@ public:
 
 	void	setReqBody(string req_body);
 	void	setReqHeader(string key, string value);
+	void	setStatusCode(int status_code);
 
 	string	getReqHeaderValue(string key);
 	string	getMethod(void) const;
 	string	getReqTarget(void) const;
 	string	getHttpVersion(void) const;
 	string	getReqBody(void) const;
+	int		getStatusCode(void) const;
 private:
 	map<string, string>	m_req_header;
 	string				m_method;
 	string				m_req_target;
 	string				m_http_version;
 	string				m_req_body;
+	int					m_status_code;
 
 	Request(void);
 
