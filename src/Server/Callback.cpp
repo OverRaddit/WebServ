@@ -3,12 +3,8 @@
 int Server::isListensocket(int fd)
 {
 	for (map<int, int>::iterator iter = fd_to_port.begin() ; iter !=  fd_to_port.end(); iter++)
-	{
 		if (fd == iter->first)
-		{
 			return 1;
-		}
-	}
 	return 0;
 }
 
@@ -36,27 +32,15 @@ int Server::callback_read(int fd)
 {
 	Client *cli;
 
-
-	// if (fd == server_fd) // 서버소켓
-	// {
-	// 	connect_new_client();	// 서버의 동작
-	// 	return (0);
-	// }
 	if (isListensocket(fd))
-	{
 		connect_new_client(fd);	// 서버의 동작
-		return (0);
-	}
-
-
-	if (clients_info.find(fd) != clients_info.end()) // 클라이언트
+	else if (clients_info.find(fd) != clients_info.end()) // 클라이언트
 	{
 		int ret;
 		cli = clients_info[fd];
 		if ((ret = cli->read_client_request()) < 0)
 			disconnect_client(fd);
-		pipe_to_client[ret] = cli->getFd();
-		change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		execute_client_request(cli->getFd());
 	}
 	else if (pipe_to_client.find(fd) != pipe_to_client.end()) // 파이프
 	{
@@ -66,6 +50,7 @@ int Server::callback_read(int fd)
 			pipe_to_client.erase(fd);
 		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	}
+	return (0);
 }
 
 int Server::callback_write(int fd)
