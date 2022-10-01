@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
+/*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/01 18:33:32 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/01 20:43:01 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,7 +176,6 @@ int	Server::execute_client_request(int client_fd)
 			break;
 		}
 	}
-
 	// 서버 블록 결정
 	vector<ServerBlock> v = serverblock_info[stoi(port)];
 	int flag = false;
@@ -194,25 +193,37 @@ int	Server::execute_client_request(int client_fd)
 		s_b = v[0];
 
 	// 서버 블록 디버그
-	int port_num = s_b.getPortNum();
-	cout << "Port Num : " << port_num << endl;
-	string	err_file_path = s_b.getErrorPage(404);
-	cout << "err_file_path : " << err_file_path << endl;
-	string	server_name = s_b.getServerName();
-	cout << "server_name : " << server_name << endl;
-	string	root_dir = s_b.getRootDir();
-	cout << "root_dir : " << root_dir << endl;
-	string	cgi_tester = s_b.getCgiTester();
-	cout << "cgi_tester : " << cgi_tester << endl;
-	string	index_file = s_b.getIndexFile();
-	cout << "index_file : " << index_file << endl;
-	map<string, LocationBlock> l_b = s_b.getLocationBlocks();
-	cout << "location : :" << l_b["/delete"].getValidMethod() << endl;
-	cout << "----------------------------------------------\n";
+	// int port_num = s_b.getPortNum();
+	// cout << "Port Num : " << port_num << endl;
+	// string	err_file_path = s_b.getErrorPage(404);
+	// cout << "err_file_path : " << err_file_path << endl;
+	// string	server_name = s_b.getServerName();
+	// cout << "server_name : " << server_name << endl;
+	// string	root_dir = s_b.getRootDir();
+	// cout << "root_dir : " << root_dir << endl;
+	// string	cgi_tester = s_b.getCgiTester();
+	// cout << "cgi_tester : " << cgi_tester << endl;
+	// string	index_file = s_b.getIndexFile();
+	// cout << "index_file : " << index_file << endl;
+	// map<string, LocationBlock> l_b = s_b.getLocationBlocks();
+	// cout << "location : :" << l_b["/delete"].getValidMethod() << endl;
+	// cout << "----------------------------------------------\n";
 
 	// 이곳에서 요청 처리를 한다.
+	std::string url = cli->getRequest()->getReqTarget();
+	std::map<string, LocationBlock>::const_iterator	it;
 
-
+	it = s_b.getLocationBlocks().find(url);
+	if (it != s_b.getLocationBlocks().end())
+	{
+		if (it->second.getValidMethod() == cli->getRequest()->getMethod())
+			cli->getRequest()->setStatusCode(200);
+		else
+			cli->getRequest()->setStatusCode(405);
+	}
+	else
+		cli->getRequest()->setStatusCode(404);
+	return 1;
 }
 
 //=============================================================================
