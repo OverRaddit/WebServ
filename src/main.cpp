@@ -1,6 +1,5 @@
 #include "Config/LocationBlock.hpp"
 #include "Config/ServerBlock.hpp"
-#include "webserv.hpp"
 
 // Server side C program to demonstrate Socket programming
 #include <sys/socket.h>

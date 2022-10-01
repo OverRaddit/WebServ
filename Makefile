@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
+#    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/10/01 15:38:21 by gshim            ###   ########.fr        #
+#    Updated: 2022/10/01 19:21:32 by jinyoo           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,6 +41,7 @@ SRC_LIST	=	src/main.cpp			\
 				src/Request/Request.cpp \
 				src/Server/Server.cpp	\
 				src/Server/Callback.cpp	\
+				src/Server/Condition.cpp \
 				src/Response/Response.cpp \
 				src/Config/Config.cpp \
 				src/Config/LocationBlock.cpp \
