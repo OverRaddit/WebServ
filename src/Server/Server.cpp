@@ -6,13 +6,11 @@
 /*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/01 21:49:05 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/10/02 01:32:04 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
-#include <sys/_types/_intptr_t.h>
-#include <vector>
 
 //=============================================================================
 //	Orthodox Canonical Form
@@ -214,7 +212,7 @@ int	Server::execute_client_request(int client_fd)
 	// 이곳에서 요청 처리를 한다.
 	std::string url = cli->getRequest()->getReqTarget();
 	std::map<string, LocationBlock>::const_iterator	it;
-	bool method_flag = 0;
+	bool is_valid_method = false;
 
 	it = s_b.getLocationBlocks().find(url);
 	if (it != s_b.getLocationBlocks().end())
@@ -224,17 +222,23 @@ int	Server::execute_client_request(int client_fd)
 		{
 			if (valid_method[i] == cli->getRequest()->getMethod())
 			{
-				method_flag = 1;
+				is_valid_method = true;
 				break;
 			}
 		}
-		if (method_flag)
-			cli->getRequest()->setStatusCode(200);
+		if (is_valid_method)
+		{
+			if (cli->getRequest()->getContentLength() <= it->second.getMaxBodySize() || \
+			it->second.getMaxBodySize() == 0)
+				cli->getRequest()->setStatusCode(200); // OK
+			else
+				cli->getRequest()->setStatusCode(413); // Body Size Too Large
+		}
 		else
-			cli->getRequest()->setStatusCode(405);
+			cli->getRequest()->setStatusCode(405); // Invalid Method
 	}
 	else
-		cli->getRequest()->setStatusCode(404);
+		cli->getRequest()->setStatusCode(404); // Not Found
 	// status code 디버깅용
 	// cout << "-----------" << cli->getRequest()->getStatusCode() << endl;
 	return 1;

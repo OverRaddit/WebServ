@@ -3,7 +3,7 @@
 #include <string>
 
 LocationBlock::LocationBlock(void)
-: m_max_body_size(""), m_root_dir(""), m_upload_dir(""), m_autoindex(false)
+: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false)
 {}
 
 void LocationBlock::setValidMethod(string loc_block, size_t pos)
@@ -28,14 +28,38 @@ void LocationBlock::setValidMethod(string loc_block, size_t pos)
 	}
 }
 
-void LocationBlock::setMaxBodySize(string loc_block, size_t pos)
+void	LocationBlock::setMaxBodySize(string loc_block, size_t pos)
 {
-	string	l_e = "client_max_body_size";
-	size_t	len = l_e.length();
+	string		max_body_size = "";
+	string		l_e = "client_max_body_size";
+	size_t		len = l_e.length();
+	int			flag = -1;
 
 	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
-		this->m_max_body_size += loc_block[i];
-	// int로 바꿀지 나중에 생각해보자
+	{
+		if (loc_block[i] == 'k' || loc_block[i] == 'K')
+			flag = 0;
+		else if (loc_block[i] == 'm' || loc_block[i] == 'M')
+			flag = 1;
+		else if (loc_block[i] == 'g' || loc_block[i] == 'G')
+			flag = 2;
+		else if (loc_block[i + 1] == ';' && loc_block[i] == '0' && max_body_size == "")
+			flag = 3;
+		max_body_size += loc_block[i];
+	}
+	if (flag == -1)
+	{
+		cerr << "[client_max_body_size] must have units!!\n";
+		exit(1);
+	}
+	else if (flag == 0)
+		this->m_max_body_size = stoll(max_body_size) * 1024;
+	else if (flag == 1)
+		this->m_max_body_size = stoll(max_body_size) * 1024 * 1024;
+	else if (flag == 2)
+		this->m_max_body_size = stoll(max_body_size) * 1024 * 1024 * 1024;
+	else if (flag == 3)
+		this->m_max_body_size = 0;
 }
 
 void LocationBlock::setUploadDirectory(string loc_block, size_t pos)
@@ -72,7 +96,7 @@ vector<string>	LocationBlock::getValidMethod(void) const {
 	return this->m_valid_method;
 }
 
-string	LocationBlock::getMaxBodySize(void) const {
+long long	LocationBlock::getMaxBodySize(void) const {
 	return this->m_max_body_size;
 }
 

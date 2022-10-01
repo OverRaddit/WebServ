@@ -19,13 +19,13 @@ public:
 	void	setAutoIndex(string loc_block, size_t pos);
 
 	vector<string>	getValidMethod(void) const;
-	string			getMaxBodySize(void) const;
 	string			getUploadDirectory(void) const;
 	string			getRootDir(void) const;
+	long long 		getMaxBodySize(void) const;
 	bool			getAutoIndex(void) const;
 private:
 	vector<string>	m_valid_method;
-	string			m_max_body_size; // int????
+	long long		m_max_body_size;
 	string			m_upload_dir;
 	string			m_root_dir;
 	bool			m_autoindex;
