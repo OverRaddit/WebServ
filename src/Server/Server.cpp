@@ -6,11 +6,13 @@
 /*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/01 20:43:01 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/10/01 21:49:05 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include <sys/_types/_intptr_t.h>
+#include <vector>
 
 //=============================================================================
 //	Orthodox Canonical Form
@@ -212,17 +214,29 @@ int	Server::execute_client_request(int client_fd)
 	// 이곳에서 요청 처리를 한다.
 	std::string url = cli->getRequest()->getReqTarget();
 	std::map<string, LocationBlock>::const_iterator	it;
+	bool method_flag = 0;
 
 	it = s_b.getLocationBlocks().find(url);
 	if (it != s_b.getLocationBlocks().end())
 	{
-		if (it->second.getValidMethod() == cli->getRequest()->getMethod())
+		vector<string>	valid_method = it->second.getValidMethod();
+		for (int i = 0;i < valid_method.size();i++)
+		{
+			if (valid_method[i] == cli->getRequest()->getMethod())
+			{
+				method_flag = 1;
+				break;
+			}
+		}
+		if (method_flag)
 			cli->getRequest()->setStatusCode(200);
 		else
 			cli->getRequest()->setStatusCode(405);
 	}
 	else
 		cli->getRequest()->setStatusCode(404);
+	// status code 디버깅용
+	// cout << "-----------" << cli->getRequest()->getStatusCode() << endl;
 	return 1;
 }
 
