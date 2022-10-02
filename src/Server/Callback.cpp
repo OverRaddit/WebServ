@@ -65,7 +65,7 @@ int Server::callback_write(int fd)
 
 	// write하기.
 	cli = clients_info[fd];
-	const char *res = strdup(cli->getRawRequest().c_str());
+	char *res = strdup(cli->getRawRequest().c_str());
 	std::cout << "response: " << res << std::endl;
 	// 클라이언트에게 write
 	int n;
@@ -73,6 +73,7 @@ int Server::callback_write(int fd)
 		std::cerr << "[DEBUG] client write error!" << std::endl;
 	else
 		std::cout << "[DEBUG] http response complete" << std::endl;
+	free(res);
 	disconnect_client(fd);
 }
 

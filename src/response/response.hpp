@@ -22,7 +22,7 @@ public:
 	~Response ();
 
 	static void	ResponseInit(); // Response 클래스를 초기화하는 한번만 실행 가능함수
-	void		makeContent();
+	void		makeContent(string ret);
 
 	int					getStatusCode();
 	map<int ,string>	getStatusDesc();

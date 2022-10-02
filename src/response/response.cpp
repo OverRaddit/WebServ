@@ -62,7 +62,7 @@ void Response::setCgiResult(string ret) {
 string Response::makeHeaders() {
 	string result = "";
 
-	result.append("HTTP/1.1 " + to_string(this->m_status_code) + " " + this->m_status_description[this->m_status_code] + "\r\n");
+	result.append("HTTP/1.1 " + this->m_status_description[this->m_status_code] + "\r\n");
 	for (map<string, string>::iterator i = this->m_headers.begin(); i != this->m_headers.end(); i++)
 		result.append((*i).first + ": " + (*i).second + "\r\n");
 	result.append("\r\n");
@@ -70,16 +70,33 @@ string Response::makeHeaders() {
 	return result;
 }
 
-void Response::makeContent() {
+void Response::makeContent(string ret) {
+	this->setCgiResult(ret);
 	string result = "";
-	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
-	result.append("<body>");
-	result.append("<h3>" + this->m_cgiResult + "</h3>");
-	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
-	result.append("</body></html>");
+	//result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
+	//result.append("<body>");
+	//result.append("<h3>" + this->m_cgiResult + "</h3>");
+	//result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
+	//result.append("</body></html>");
+	//result.append("Content-Disposition: attachment; filename=\"cool.html\"\r\n\r\n");
+	result.append("<HTML>Save me!</HTML>");
+
+	//result.append("HTTP/1.1 200 OK\r\n");
+	//result.append("Content-Type: multipart/form-data;boundary=\"boundary\"\r\n\r\n");
+
+	//result.append("--boundary\r\n");
+	//result.append("Content-Disposition: form-data; name=\"field1\"\r\n\r\n");
+
+	//result.append("value1\r\n");
+	//result.append("--boundary\r\n");
+	//result.append("Content-Disposition: form-data; name=\"field2\"; filename=\"example.txt\"\r\n\r\n");
+
+	//result.append("value2\r\n");
+	//result.append("--boundary--");
 
 	this->m_content.clear();
 	this->m_content = result;
+	this->setHeaders("Content-length", to_string(result.length()));
 }
 
 string Response::getHttpResponse() {
