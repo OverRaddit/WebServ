@@ -114,21 +114,15 @@ int			Client::read_pipe_result()
 		std::string temp(buf);
 		result += temp;
 	}
-	res = new Response();
-	// Client의 Response 객체 생성하기
-	Response::ResponseInit();
-	res->setStatusCode(200);
-	res->setHeaders("Content-type", "text/html; charset=UTF-8");
-	res->setCgiResult(result);
-	res->makeContent();
-	res->setHeaders("Content-length", to_string(res->getContent().length()));
 
-	// std::string protocol = "HTTP/1.0 200 OK\r\n";
-	// std::string servName = "Server:simple web server\r\n";
-	// std::string cntType = "Content-type:text/html; charset=UTF-8\r\n\r\n";
-	// std::string content = "<html><head><title>Default Page</title></head><body>" + result + "</body></html>";
-	// std::string cntLen = "Content-length:" + to_string(content.length()) + "\r\n";
-	// std::string response = protocol+servName+cntLen+cntType+content;
+	// Client의 Response 객체 생성하기
+	res = new Response();
+	Response::ResponseInit();
+	res->setStatusCode(req->getStatusCode());
+	res->setHeaders("Content-type", "text/html; charset=UTF-8");
+	// 파일 다운로드 응답인 경우에 아래 헤더 추가
+	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
+	res->makeContent(result);
 
 	// 요청데이터 string을 응답데이터 string으로 교체
 	setRawRequest(res->getHttpResponse());
@@ -179,7 +173,7 @@ int			Client::cgi_init()
 	// 버퍼 한번에 담을 수 없는 양이 들어오면 어떡해야 할 지 모르겠다.
 	char buf[BUF_SIZE + 1];
 	memset(buf, 0, sizeof(buf));
-	const char *body = strdup(getRequest()->getReqBody().c_str()); // 왜 warning?
+	char *body = strdup(getRequest()->getReqBody().c_str()); // 왜 warning?
 	memcpy(buf, body, strlen(body));
 	buf[strlen(body)] = 26;	// EOF값을 준다.
 	printf("[DEBUG]Buf: [%s]\n", buf);
@@ -205,6 +199,10 @@ int			Client::cgi_init()
 	close(to_child[0]);
 	close(to_child[1]);
 	close(to_parent[1]);
+	free(body);
+	for (int i=0; i<10; ++i)
+		free(env[i]);
+	free(env);
 
 	// kqueue에 파이프 등록해야 함.
 	return to_parent[0];
