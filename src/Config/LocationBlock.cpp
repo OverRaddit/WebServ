@@ -3,7 +3,7 @@
 #include <string>
 
 LocationBlock::LocationBlock(void)
-: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false)
+: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false), m_redirection_url("")
 {}
 
 void LocationBlock::setValidMethod(string loc_block, size_t pos)
@@ -80,6 +80,15 @@ void LocationBlock::setRootDir(string loc_block, size_t pos)
 		this->m_root_dir += loc_block[i];
 }
 
+void LocationBlock::setRedirectionURL(string loc_block, size_t pos)
+{
+	string	l_e = "return";
+	size_t	len = l_e.length();
+
+	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
+		this->m_redirection_url += loc_block[i];
+}
+
 void LocationBlock::setAutoIndex(string loc_block, size_t pos)
 {
 	string	l_e = "autoindex";
@@ -110,4 +119,8 @@ string	LocationBlock::getRootDir(void) const {
 
 bool	LocationBlock::getAutoIndex(void) const {
 	return this->m_autoindex;
+}
+
+string	LocationBlock::getRedirectionURL(void) const {
+	return this->m_redirection_url;
 }

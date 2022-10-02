@@ -6,7 +6,7 @@
 /*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/02 01:32:04 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/10/02 21:58:18 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,7 +230,15 @@ int	Server::execute_client_request(int client_fd)
 		{
 			if (cli->getRequest()->getContentLength() <= it->second.getMaxBodySize() || \
 			it->second.getMaxBodySize() == 0)
-				cli->getRequest()->setStatusCode(200); // OK
+			{
+				if (it->second.getRedirectionURL() == "")
+					cli->getRequest()->setStatusCode(200); // OK
+				else
+				{
+					cli->getRequest()->setRedirectionURL(it->second.getRedirectionURL());
+					cli->getRequest()->setStatusCode(301);
+				};
+			}
 			else
 				cli->getRequest()->setStatusCode(413); // Body Size Too Large
 		}
@@ -240,7 +248,8 @@ int	Server::execute_client_request(int client_fd)
 	else
 		cli->getRequest()->setStatusCode(404); // Not Found
 	// status code 디버깅용
-	// cout << "-----------" << cli->getRequest()->getStatusCode() << endl;
+	cout << "-----------" << cli->getRequest()->getStatusCode() << endl;
+	cout << "-----------" << cli->getRequest()->getRedirectionURL() << endl;
 	return 1;
 }
 

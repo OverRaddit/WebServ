@@ -89,6 +89,11 @@ void	Request::setReqBody(string body)
 	this->m_req_body = body;
 }
 
+void	Request::setRedirectionURL(string url)
+{
+	this->m_redirection_url = url;
+}
+
 void	Request::setReqHeader(string key, string value)
 {
 	if (key == "Content-Length")
@@ -119,6 +124,10 @@ string	Request::getReqTarget(void) const {
 
 string	Request::getHttpVersion(void) const {
 	return this->m_http_version;
+}
+
+string	Request::getRedirectionURL(void) const {
+	return this->m_redirection_url;
 }
 
 int		Request::getStatusCode(void) const {
