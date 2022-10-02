@@ -75,10 +75,13 @@ int			Client::read_client_request()
 	else
 	{
 		buf[n] = '\0';
-		appendRawRequest(buf);
-		// Debug Reading
-		// std::cout << "[DEBUG]received data from " << getFd() << ": " << getRawRequest() << std::endl;
-		// std::cout << "[DEBUG] ret was " << n << std::endl;
+		//appendRawRequest(buf); // 이거 append -> set으로 고쳐야함
+		setRawRequest(buf);
+
+		// DEBUG Request
+		std::cout << "====== Request start ======\n" << std::endl;
+		std::cout << getRawRequest() << std::endl << std::endl;
+		std::cout << "====== Request end ======" << std::endl;
 
 		int ret;
 		// 1개의 HTTP Request 읽기가 끝나면 동작시켜야 함.
