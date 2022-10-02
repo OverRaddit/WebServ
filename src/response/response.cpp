@@ -73,13 +73,13 @@ string Response::makeHeaders() {
 void Response::makeContent(string ret) {
 	this->setCgiResult(ret);
 	string result = "";
-	//result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
-	//result.append("<body>");
-	//result.append("<h3>" + this->m_cgiResult + "</h3>");
-	//result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
-	//result.append("</body></html>");
+	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
+	result.append("<body>");
+	result.append("<h3>" + this->m_cgiResult + "</h3>");
+	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
+	result.append("</body></html>");
 	//result.append("Content-Disposition: attachment; filename=\"cool.html\"\r\n\r\n");
-	result.append("<HTML>Save me!</HTML>");
+	//result.append("<HTML>Save me!</HTML>");
 
 	//result.append("HTTP/1.1 200 OK\r\n");
 	//result.append("Content-Type: multipart/form-data;boundary=\"boundary\"\r\n\r\n");

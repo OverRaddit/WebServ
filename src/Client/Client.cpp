@@ -121,7 +121,7 @@ int			Client::read_pipe_result()
 	res->setStatusCode(req->getStatusCode());
 	res->setHeaders("Content-type", "text/html; charset=UTF-8");
 	// 파일 다운로드 응답인 경우에 아래 헤더 추가
-	res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
+	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
 	res->makeContent(result);
 
 	// 요청데이터 string을 응답데이터 string으로 교체
