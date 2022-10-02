@@ -33,6 +33,7 @@ public:
 	sockaddr_in	getAddr() const;
 	socklen_t	getLen() const;
 	Request		*getRequest();
+	Response	*getResponse() const;
 	std::string	getRawRequest() const;
 
 	void		setPipeFd(int pipe_fd);

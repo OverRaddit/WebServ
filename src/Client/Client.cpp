@@ -9,12 +9,12 @@ Client::Client()
 Client::Client(int fd, sockaddr_in addr, socklen_t len)
 	: fd(fd), addr(addr), len(len), req(NULL), pipe_fd(-1), raw_request("")
 {
-	std::cout << "Client Constructor!" << std::endl;
+	//std::cout << "Client Constructor!" << std::endl;
 }
 
 Client::~Client()
 {
-	std::cout << "Client Destructor!" << std::endl;
+	//std::cout << "Client Destructor!" << std::endl;
 	if (req)
 		delete req;
 }
@@ -42,6 +42,7 @@ int	Client::getPipeFd() const { return pipe_fd; }
 sockaddr_in	Client::getAddr() const { return addr; }
 socklen_t	Client::getLen() const { return len; }
 Request*	Client::getRequest(){ return req; }
+Response*	Client::getResponse() const { return res };
 std::string	Client::getRawRequest() const {return raw_request; }
 
 void		Client::setPipeFd(int _pipe_fd){ pipe_fd = _pipe_fd; }
@@ -75,8 +76,9 @@ int			Client::read_client_request()
 	{
 		buf[n] = '\0';
 		appendRawRequest(buf);
-		std::cout << "[DEBUG]received data from " << getFd() << ": " << getRawRequest() << std::endl;
-		std::cout << "[DEBUG] ret was " << n << std::endl;
+		// Debug Reading
+		// std::cout << "[DEBUG]received data from " << getFd() << ": " << getRawRequest() << std::endl;
+		// std::cout << "[DEBUG] ret was " << n << std::endl;
 
 		int ret;
 		// 1개의 HTTP Request 읽기가 끝나면 동작시켜야 함.
@@ -119,8 +121,6 @@ int			Client::read_pipe_result()
 	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
 	res->makeContent(result);
 
-	// 요청데이터 string을 응답데이터 string으로 교체
-	setRawRequest(res->getHttpResponse());
 	close(pipe_fd);
 	return (0);
 }
