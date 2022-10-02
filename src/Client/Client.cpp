@@ -42,7 +42,7 @@ int	Client::getPipeFd() const { return pipe_fd; }
 sockaddr_in	Client::getAddr() const { return addr; }
 socklen_t	Client::getLen() const { return len; }
 Request*	Client::getRequest(){ return req; }
-Response*	Client::getResponse() const { return res };
+Response*	Client::getResponse() const { return res; }
 std::string	Client::getRawRequest() const {return raw_request; }
 
 void		Client::setPipeFd(int _pipe_fd){ pipe_fd = _pipe_fd; }
@@ -171,14 +171,12 @@ int			Client::cgi_init()
 	char *body = strdup(getRequest()->getReqBody().c_str()); // 왜 warning?
 	memcpy(buf, body, strlen(body));
 	buf[strlen(body)] = 26;	// EOF값을 준다.
-	printf("[DEBUG]Buf: [%s]\n", buf);
 	//write(to_child[1], buf, sizeof(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
 	write(to_child[1], buf, strlen(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
 
 	pid = fork();
 	if (pid == 0)
 	{	// child
-		printf("[child]Before Execve\n");
 		dup2(to_child[0], 0);	// 부모->자식파이프의 읽기fd == 자식의 표준입력
 		dup2(to_parent[1], 1);	// 자식->부모파이프 쓰기fd == 자식의 표준출력
 		close(to_child[1]);

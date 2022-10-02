@@ -65,8 +65,13 @@ int Server::callback_write(int fd)
 
 	// write하기.
 	cli = clients_info[fd];
-	char *res = strdup(cli->getRawRequest().c_str());
-	std::cout << "response: " << res << std::endl;
+	char *res = strdup(cli->getResponse()->getHttpResponse().c_str());
+
+	// DEBUG Response
+	std::cout << "====== response start ======\n" << std::endl;
+	std::cout << res << std::endl << std::endl;
+	std::cout << "====== response end ======" << std::endl;
+
 	// 클라이언트에게 write
 	int n;
 	if ((n = write(fd, res, strlen(res)) == -1))
@@ -74,7 +79,11 @@ int Server::callback_write(int fd)
 	else
 		std::cout << "[DEBUG] http response complete" << std::endl;
 	free(res);
-	disconnect_client(fd);
+	// 사용이 끝난 Response 객체를 삭제한다.
+	delete cli->getResponse();
+	// kqueue에서 write이벤트 감지를 해제한다.
+	change_events(fd, EVFILT_WRITE, EV_DELETE | EV_DISABLE, 0, 0, NULL);
+	//disconnect_client(fd);
 }
 
 void Server::disconnect_client(int client_fd)
