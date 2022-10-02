@@ -83,9 +83,6 @@ int			Client::read_client_request()
 		{
 			Request *req = new Request(getRawRequest());
 			setRequest(req);
-			std::cout << "[DEBUG]Method is " << getRequest()->getMethod() << std::endl;
-			std::cout << "[DEBUG]hostname is [" << getRequest()->getReqHeaderValue("Host") << "]" << std::endl;
-
 			// 요청헤더에서 Host를 읽어 어떤 호스트의 몇번 포트에 접근하는지 확인한다.
 
 			// 해당 정보로 적절한 서버블록을 꺼낸다.
@@ -106,11 +103,9 @@ int			Client::read_pipe_result()
 	char buf[BUF_SIZE + 1];
 	std::string result = "";
 
-	std::cout << "[DEBUG] Pipe fd: " << getPipeFd() << "is ready!" << std::endl;
 	// read
 	while((ret = read(getPipeFd(), buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
 		buf[ret] = '\0';
-		printf("[DEBUG]%s[ret:%d, len:%lu Loop...]\n", buf, ret, strlen(buf));
 		std::string temp(buf);
 		result += temp;
 	}

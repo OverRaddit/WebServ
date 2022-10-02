@@ -107,7 +107,7 @@ int Server::connect_new_client(int fd)
 
 	// client 정보 등록
 	clients_info[client_socket] = new Client(client_socket, client_addr, client_len);
-	std::cout << "[DEBUG]Fd is " << clients_info[client_socket]->getFd() << std::endl;
+	//std::cout << "[DEBUG]Fd is " << clients_info[client_socket]->getFd() << std::endl;
 
 	// kqueue로부터 읽기 이벤트 감지
 	change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);

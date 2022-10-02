@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/02 21:58:18 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/10/03 02:48:14 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ int Server::init_multiplexing()
 int Server::run()
 {
 
-	printf("DEBUG serverblock_info\n");
+	printf("[DEBUG] serverblock_info : \n");
 	//인덱스기반
 	for (map<int, vector<ServerBlock> >::iterator iter = serverblock_info.begin() ; iter !=  serverblock_info.end(); iter++)
 	{
@@ -191,23 +191,6 @@ int	Server::execute_client_request(int client_fd)
 	}
 	if (!flag)
 		s_b = v[0];
-
-	// 서버 블록 디버그
-	// int port_num = s_b.getPortNum();
-	// cout << "Port Num : " << port_num << endl;
-	// string	err_file_path = s_b.getErrorPage(404);
-	// cout << "err_file_path : " << err_file_path << endl;
-	// string	server_name = s_b.getServerName();
-	// cout << "server_name : " << server_name << endl;
-	// string	root_dir = s_b.getRootDir();
-	// cout << "root_dir : " << root_dir << endl;
-	// string	cgi_tester = s_b.getCgiTester();
-	// cout << "cgi_tester : " << cgi_tester << endl;
-	// string	index_file = s_b.getIndexFile();
-	// cout << "index_file : " << index_file << endl;
-	// map<string, LocationBlock> l_b = s_b.getLocationBlocks();
-	// cout << "location : :" << l_b["/delete"].getValidMethod() << endl;
-	// cout << "----------------------------------------------\n";
 
 	// 이곳에서 요청 처리를 한다.
 	std::string url = cli->getRequest()->getReqTarget();
