@@ -19,12 +19,14 @@ public:
 	void	setReqBody(string req_body);
 	void	setReqHeader(string key, string value);
 	void	setStatusCode(int status_code);
+	void	setRedirectionURL(string url);
 
 	string		getReqHeaderValue(string key);
 	string		getMethod(void) const;
 	string		getReqTarget(void) const;
 	string		getHttpVersion(void) const;
 	string		getReqBody(void) const;
+	string		getRedirectionURL(void) const;
 	int			getStatusCode(void) const;
 	long long	getContentLength(void) const;
 private:
@@ -35,6 +37,7 @@ private:
 	string				m_http_version;
 	string				m_req_body;
 	int					m_status_code;
+	string				m_redirection_url;
 
 	Request(void);
 
