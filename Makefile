@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/10/01 19:21:32 by jinyoo           ###   ########.fr        #
+#    Updated: 2022/10/03 03:20:21 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -58,12 +58,12 @@ OBJS		=	$(SRCS:.cpp=.o)
 $(NAME)			:	$(OBJS)
 	@echo $(GREEN) "Source files are compiled!\n" $(EOC)
 	@echo $(WHITE) "Building $(NAME) for" $(YELLOW) "Mandatory" $(WHITE) "..." $(EOC)
-	@$(CXX) $(CFLAGS) $^ -o $@
+	@$(CXX) $(CFLAGS) $(CDEBUG) $^ -o $@
 	@echo $(GREEN) "$(NAME) is created!\n" $(EOC)
 
 $(SRCS_DIR)/%.o	:	$(SRCS_DIR)/%.cpp
 	@echo $(YELLOW) "Compiling...\t" $< $(EOC) $(LINE_CLEAR)
-	@$(CXX) $(CFLAGS) -c $< -o $@
+	@$(CXX) $(CFLAGS) $(CDEBUG) -c $< -o $@
 
 # =============================================================================
 # Rules
