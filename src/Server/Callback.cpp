@@ -89,6 +89,8 @@ int Server::callback_write(int fd)
 void Server::disconnect_client(int client_fd)
 {
 	close(client_fd);
+	if (clients_info[client_fd]->getPipeFd() != -1)
+		pipe_to_client.erase(clients_info[client_fd]->getPipeFd());
 	delete clients_info[client_fd];
 	clients_info.erase(client_fd);
 	std::cout << "[DEBUG]client disconnected: " << client_fd << std::endl;
