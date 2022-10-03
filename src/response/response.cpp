@@ -1,4 +1,5 @@
 #include "./Response.hpp"
+#include <iostream>
 
 map<int, string> Response::m_status_description;
 bool Response::is_init = false;
@@ -129,11 +130,22 @@ string Response::parseHeader(string& sub_content) {
 	sub_content = sub_content.substr(i+2);  // 첫줄 지우기
 	i = sub_content.find("\r\n");  // 둘째줄 끝 읽기
 	string tmp = sub_content.substr(0, i);  // 둘쨰줄 읽기
-	i = tmp.find("filename=");  // 파일 이름 위치 읽기
-	string f_name = tmp.substr(i+9);  // 파일 이름 구하기
+	string name, f_name = "";
+
+	i = tmp.find("name=");  // 이름 위치 읽기
+	tmp = tmp.substr(i+6); // 이름부터 끝까지 자르기
+	i = tmp.find(";");
+	name = tmp.substr(0, i-1);  // 파일 이름 구하기
+
+	if (tmp.find("filename=") != string::npos) {  // 다른 파일인 경우
+		i = tmp.find("filename=");  // 파일 이름 위치 읽기
+		tmp = tmp.substr(i+10); // 파일 이름부터 끝까지 자르기
+		i = tmp.find(";");
+		f_name = tmp.substr(0, i-1);  // 파일 이름 구하기
+	}
 	i = sub_content.find("\r\n\r\n");  // 헤더 끝 위치 찾기
 	sub_content = sub_content.substr(i+4);  // 바디 위치부터 시작
-	return f_name;
+	return name + "_" + f_name;
 }
 
 string Response::getFileContent(string &sub_content) {
@@ -154,22 +166,22 @@ void Response::saveFile(string content_type, string content_body) {
 	string file_name;
 	string file_body;
 
-	while (sub_content.find(boundary + "--") != 0) {
+	while (sub_content.find("--" + boundary + "--") != 0) {
 		file_name = parseHeader(sub_content);
 		file_body = getFileContent(sub_content);
-		writeFile.open(file_name);
+		writeFile.open("./sudo/file_storage/" + file_name);
 		writeFile.write(file_body.c_str(), file_body.size());
 		writeFile.close();
 	}
 }
 
 void Response::cgiResponse(string cgi_result) {
-	this->setHeaders("Content-type", "text/html; charset=UTF-8");
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	this->makeCgiContent(cgi_result);
 }
 
 void Response::uploadResponse(string content_type, string content_body) {
-	this->setHeaders("Content-type", "text/html; charset=UTF-8");
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	this->saveFile(content_type, content_body);
 	this->makeUploadContent();
 }

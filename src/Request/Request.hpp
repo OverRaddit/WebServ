@@ -21,6 +21,8 @@ public:
 	void	setStatusCode(int status_code);
 	void	setRedirectionURL(string url);
 
+	int		saveOnlyBody(string req_body);
+
 	string		getReqHeaderValue(string key);
 	string		getMethod(void) const;
 	string		getReqTarget(void) const;
