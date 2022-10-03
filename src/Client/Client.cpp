@@ -57,8 +57,8 @@ void		Client::appendRawRequest(std::string _raw_request){ raw_request += _raw_re
 // 수정 필요!! 한번에 읽지않는경우.
 int			Client::read_client_request()
 {
-	char buf[40000] = {0};
-	int n = recv(fd, buf, 40000, 0);
+	char buf[65524] = {0};
+	int n = read(fd, buf, 65524);
 	// read 결과가 0미만일시 disconnect, 등호인 경우??
 	if (n < 0)
 	{
@@ -84,7 +84,7 @@ int			Client::read_client_request()
 	{
 		buf[n] = '\0';
 		//appendRawRequest(buf); // 이거 append -> set으로 고쳐야함
-		setRawRequest(buf);
+		setRawRequest(string(buf, n));
 
 		// DEBUG Request
 		std::cout << "====== Request start ======\n" << std::endl;
@@ -127,7 +127,7 @@ int			Client::read_pipe_result()
 	res = new Response(req->getStatusCode());
 	// 파일 다운로드 응답인 경우에 아래 헤더 추가
 	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
-	res->cgiResponse(result);  // cgi 응답인 경우
+	//res->cgiResponse(result);  // cgi 응답인 경우
 
 	// 파일 업로드 요청인 경우
 	res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());

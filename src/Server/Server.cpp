@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
+/*   By: minskim2 <minskim2@student.42seoul.kr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/03 18:57:43 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/03 21:07:41 by minskim2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,8 +225,13 @@ ServerBlock Server::find_serverblock(int client_fd)
 			break;
 		}
 	}
+	std::cout << host_header << "\n";
+	std::cout << "[" << port << "]\n";
+	std::cout << "[" << port << "]\n";
+	std::cout << "[" << hostname << "]\n";
 	// 서버 블록 결정
 	vector<ServerBlock> v = serverblock_info[stoi(port)];
+	std::cout << "b\n";
 	int flag = false;
 	ServerBlock s_b;
 	for(int i=0;i<v.size();i++)

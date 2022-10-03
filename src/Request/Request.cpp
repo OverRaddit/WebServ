@@ -45,6 +45,11 @@ Request::Request(string request_msg): m_req_header(), m_http_version(""), m_meth
 	}
 }
 
+int		Request::saveOnlyBody(string req_body)
+{
+	this->m_req_body.append(req_body);
+	return req_body.length();
+}
 
 void	Request::saveStartLine(string start_line)
 {
