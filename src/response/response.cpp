@@ -1,9 +1,18 @@
 #include "./Response.hpp"
 
+map<int, string> Response::m_status_description;
+bool Response::is_init = false;
+
 Response::Response() {
+	if (Response::is_init == false)
+		Response::ResponseInit();
 }
 
-map<int, string> Response::m_status_description;
+Response::Response(int status) {
+	if (Response::is_init == false)
+		Response::ResponseInit();
+	this->setStatusCode(status);
+}
 
 Response::~Response() {
 }
@@ -27,6 +36,8 @@ void Response::ResponseInit() {
 	Response::m_status_description[500] = "500 Internal Server Error";
 	Response::m_status_description[502] = "502 Bad Gateway";
 	Response::m_status_description[505] = "505 HTTP Version Not Supported";
+
+	Response::is_init = true;
 }
 
 int	Response::getStatusCode() {
@@ -52,6 +63,7 @@ void Response::setHeaders(string key, string value) {
 	this->m_headers[key] = value;
 }
 void Response::setContent(string content) {
+	this->m_content.clear();
 	this->m_content = content;
 }
 
@@ -70,7 +82,7 @@ string Response::makeHeaders() {
 	return result;
 }
 
-void Response::makeContent(string ret) {
+void Response::makeCgiContent(string ret) {
 	this->setCgiResult(ret);
 	string result = "";
 	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
@@ -94,9 +106,72 @@ void Response::makeContent(string ret) {
 	//result.append("value2\r\n");
 	//result.append("--boundary--");
 
-	this->m_content.clear();
-	this->m_content = result;
+	this->setContent(result);
 	this->setHeaders("Content-length", to_string(result.length()));
+}
+
+void Response::makeUploadContent() {
+	string result = "";
+	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
+	result.append("<body>");
+	result.append("<h3>Upload Success!</h3>");
+	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
+	result.append("</body></html>");
+
+	this->setContent(result);
+	this->setHeaders("Content-length", to_string(result.length()));
+}
+
+string Response::parseHeader(string& sub_content) {
+	size_t i;
+
+	i = sub_content.find("\r\n");  // 첫줄 바운더리 끝 찾기
+	sub_content = sub_content.substr(i+2);  // 첫줄 지우기
+	i = sub_content.find("\r\n");  // 둘째줄 끝 읽기
+	string tmp = sub_content.substr(0, i);  // 둘쨰줄 읽기
+	i = tmp.find("filename=");  // 파일 이름 위치 읽기
+	string f_name = tmp.substr(i+9);  // 파일 이름 구하기
+	i = sub_content.find("\r\n\r\n");  // 헤더 끝 위치 찾기
+	sub_content = sub_content.substr(i+4);  // 바디 위치부터 시작
+	return f_name;
+}
+
+string Response::getFileContent(string &sub_content) {
+	size_t i;
+
+	i = sub_content.find("\r\n");  // 바디 끝 찾기
+	string body = sub_content.substr(0, i);  // 원하는 파일의 바디 저장
+	sub_content = sub_content.substr(i+2);  // 바디 이후부터 다시 저장
+	return body;
+}
+
+void Response::saveFile(string content_type, string content_body) {
+	ofstream writeFile;
+
+	size_t i = content_type.find("boundary=");
+	string boundary = content_type.substr(i+9);
+	string sub_content = content_body;
+	string file_name;
+	string file_body;
+
+	while (sub_content.find(boundary + "--") != 0) {
+		file_name = parseHeader(sub_content);
+		file_body = getFileContent(sub_content);
+		writeFile.open(file_name);
+		writeFile.write(file_body.c_str(), file_body.size());
+		writeFile.close();
+	}
+}
+
+void Response::cgiResponse(string cgi_result) {
+	this->setHeaders("Content-type", "text/html; charset=UTF-8");
+	this->makeCgiContent(cgi_result);
+}
+
+void Response::uploadResponse(string content_type, string content_body) {
+	this->setHeaders("Content-type", "text/html; charset=UTF-8");
+	this->saveFile(content_type, content_body);
+	this->makeUploadContent();
 }
 
 string Response::getHttpResponse() {

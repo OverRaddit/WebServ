@@ -116,13 +116,13 @@ int			Client::read_pipe_result()
 	}
 
 	// Client의 Response 객체 생성하기
-	res = new Response();
-	Response::ResponseInit();
-	res->setStatusCode(req->getStatusCode());
-	res->setHeaders("Content-type", "text/html; charset=UTF-8");
+	res = new Response(req->getStatusCode());
 	// 파일 다운로드 응답인 경우에 아래 헤더 추가
 	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
-	res->makeContent(result);
+	res->cgiResponse(result);  // cgi 응답인 경우
+
+	// 파일 업로드 요청인 경우
+	//res->uploadResponse(req->getReqHeaderValue("Content-type"), req->getReqBody());
 
 	close(pipe_fd);
 	return (0);
