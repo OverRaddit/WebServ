@@ -98,6 +98,7 @@ int Server::callback_write(int fd)
 	// kqueue에서 write이벤트 감지를 해제한다.
 	change_events(fd, EVFILT_WRITE, EV_DELETE | EV_DISABLE, 0, 0, NULL);
 	//disconnect_client(fd);
+	return (0);
 }
 
 void Server::disconnect_client(int client_fd)
@@ -139,6 +140,7 @@ int Server::connect_new_client(int fd)
 
 	// kqueue로부터 읽기 이벤트 감지
 	change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	return (0);
 }
 
 
