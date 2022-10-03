@@ -54,8 +54,8 @@ void		Client::appendRawRequest(std::string _raw_request){ raw_request += _raw_re
 // 수정 필요!! 한번에 읽지않는경우.
 int			Client::read_client_request()
 {
-	char buf[1024] = {0};
-	int n = read(fd, buf, sizeof(buf));
+	char buf[40000] = {0};
+	int n = recv(fd, buf, 40000, 0);
 	// read 결과가 0미만일시 disconnect, 등호인 경우??
 	if (n <= 0)
 	{
@@ -122,7 +122,7 @@ int			Client::read_pipe_result()
 	res->cgiResponse(result);  // cgi 응답인 경우
 
 	// 파일 업로드 요청인 경우
-	//res->uploadResponse(req->getReqHeaderValue("Content-type"), req->getReqBody());
+	res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
 
 	close(pipe_fd);
 	return (0);

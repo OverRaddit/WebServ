@@ -32,7 +32,10 @@ Request::Request(string request_msg): m_req_header(), m_http_version(""), m_meth
 			if (m_method.empty())
 				this->saveStartLine(line);
 			else if (line.length() == 0)
+			{
 				this->setReqBody(request_msg.substr(i + 2));
+				break;
+			}
 			else
 				this->saveHeader(line);
 			line = "";
