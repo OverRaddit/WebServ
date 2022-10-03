@@ -57,9 +57,14 @@ int			Client::read_client_request()
 	char buf[1024] = {0};
 	int n = read(fd, buf, sizeof(buf));
 	// read 결과가 0미만일시 disconnect, 등호인 경우??
-	if (n <= 0)
+	if (n < 0)
 	{
 		std::cerr << "client read error!" << std::endl;
+		return (-1);
+	}
+	else if (n == 0)
+	{
+		std::cout << "client just disconnect socket\n" << std::endl;
 		return (-1);
 	}
 	// // 자식프로세스 생성

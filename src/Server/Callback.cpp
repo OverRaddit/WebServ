@@ -35,8 +35,13 @@ int Server::callback_read(int fd)
 	{
 		int ret;
 		cli = clients_info[fd];
-		if ((ret = cli->read_client_request()) < 0)
+		ret = cli->read_client_request();
+		if (ret < 0)
+		{
 			disconnect_client(fd);
+			return (-1);
+		}
+			
 		execute_client_request(cli->getFd());
 		// cgi요청을 처리해야 하는 경우
 		{
@@ -81,6 +86,7 @@ int Server::callback_write(int fd)
 	free(res);
 	// 사용이 끝난 Response 객체를 삭제한다.
 	delete cli->getResponse();
+	delete cli->getRequest();
 	// kqueue에서 write이벤트 감지를 해제한다.
 	change_events(fd, EVFILT_WRITE, EV_DELETE | EV_DISABLE, 0, 0, NULL);
 	//disconnect_client(fd);
