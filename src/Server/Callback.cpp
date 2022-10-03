@@ -44,7 +44,7 @@ int Server::callback_read(int fd)
 
 		execute_client_request(cli->getFd());
 		// if ( cli->request 요청 == CGI 요청)
-		if ( false )
+		if ( true )
 		{
 			pipe_to_client[ret] = cli->getFd();
 			change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);

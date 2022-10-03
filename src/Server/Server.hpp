@@ -74,7 +74,7 @@ public:
 	int	execute_client_request(int client_fd);
 	int read_pipe_result();
 
-	int isListensocket(int fd);
+	ServerBlock find_serverblock(int client_fd);
 
 //=============================================================================
 //	Getter & Setter
