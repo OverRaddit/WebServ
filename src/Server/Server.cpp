@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/03 02:48:14 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/03 18:57:43 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,36 +161,7 @@ int Server::run()
 int	Server::execute_client_request(int client_fd)
 {
 	Client *cli = clients_info[client_fd];
-
-	// Client의 request정보를 통해 어떤 서버블록을 사용할지 정한다.
-	std::string host_header = cli->getRequest()->getReqHeaderValue("Host");
-	std::string hostname, port;
-
-	// 헤더 정보 저장
-	for(int i=0;i<host_header.length();i++)
-	{
-		if (host_header[i] == ':')
-		{
-			hostname = host_header.substr(0, i);
-			port = host_header.substr(i + 1);
-			break;
-		}
-	}
-	// 서버 블록 결정
-	vector<ServerBlock> v = serverblock_info[stoi(port)];
-	int flag = false;
-	ServerBlock s_b;
-	for(int i=0;i<v.size();i++)
-	{
-		if (v[i].getServerName() == hostname)
-		{
-			s_b = v[i];
-			flag = true;
-			break;
-		}
-	}
-	if (!flag)
-		s_b = v[0];
+	ServerBlock s_b = find_serverblock(client_fd);
 
 	// 이곳에서 요청 처리를 한다.
 	std::string url = cli->getRequest()->getReqTarget();
@@ -234,6 +205,43 @@ int	Server::execute_client_request(int client_fd)
 	cout << "-----------" << cli->getRequest()->getStatusCode() << endl;
 	cout << "-----------" << cli->getRequest()->getRedirectionURL() << endl;
 	return 1;
+}
+
+ServerBlock Server::find_serverblock(int client_fd)
+{
+	Client *cli = clients_info[client_fd];
+
+	// Client의 request정보를 통해 어떤 서버블록을 사용할지 정한다.
+	std::string host_header = cli->getRequest()->getReqHeaderValue("Host");
+	std::string hostname, port;
+
+	// 헤더 정보 저장
+	for(int i=0;i<host_header.length();i++)
+	{
+		if (host_header[i] == ':')
+		{
+			hostname = host_header.substr(0, i);
+			port = host_header.substr(i + 1);
+			break;
+		}
+	}
+	// 서버 블록 결정
+	vector<ServerBlock> v = serverblock_info[stoi(port)];
+	int flag = false;
+	ServerBlock s_b;
+	for(int i=0;i<v.size();i++)
+	{
+		if (v[i].getServerName() == hostname)
+		{
+			s_b = v[i];
+			flag = true;
+			break;
+		}
+	}
+	if (!flag)
+		s_b = v[0];
+
+	return s_b;
 }
 
 //=============================================================================

@@ -35,13 +35,24 @@ int Server::callback_read(int fd)
 	{
 		int ret;
 		cli = clients_info[fd];
-		if ((ret = cli->read_client_request()) < 0)
+		ret = cli->read_client_request();
+		if (ret < 0)
+		{
 			disconnect_client(fd);
+			return (-1);
+		}
+
 		execute_client_request(cli->getFd());
-		// cgi요청을 처리해야 하는 경우
+		// if ( cli->request 요청 == CGI 요청)
+		if ( true )
 		{
 			pipe_to_client[ret] = cli->getFd();
 			change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		}
+		else
+		{
+			cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		}
 	}
 	else if (is_pipe(fd))
@@ -79,18 +90,25 @@ int Server::callback_write(int fd)
 	else
 		std::cout << "[DEBUG] http response complete" << std::endl;
 	free(res);
-	// 사용이 끝난 Response 객체를 삭제한다.
+	// 사용이 끝난 Res,Req 객체를 삭제한다.
 	delete cli->getResponse();
+	delete cli->getRequest();
+	cli->setRequest(0);
+	cli->setResponse(0);
 	// kqueue에서 write이벤트 감지를 해제한다.
 	change_events(fd, EVFILT_WRITE, EV_DELETE | EV_DISABLE, 0, 0, NULL);
 	//disconnect_client(fd);
+	return (0);
 }
 
 void Server::disconnect_client(int client_fd)
 {
 	close(client_fd);
 	if (clients_info[client_fd]->getPipeFd() != -1)
+	{
 		pipe_to_client.erase(clients_info[client_fd]->getPipeFd());
+		close(clients_info[client_fd]->getPipeFd());
+	}
 	delete clients_info[client_fd];
 	clients_info.erase(client_fd);
 	std::cout << "[DEBUG]client disconnected: " << client_fd << std::endl;
@@ -122,6 +140,7 @@ int Server::connect_new_client(int fd)
 
 	// kqueue로부터 읽기 이벤트 감지
 	change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	return (0);
 }
 
 

@@ -14,9 +14,11 @@ Client::Client(int fd, sockaddr_in addr, socklen_t len)
 
 Client::~Client()
 {
-	//std::cout << "Client Destructor!" << std::endl;
+	std::cout << "Client Destructor!" << std::endl;
 	if (req)
 		delete req;
+	if (res)
+		delete res;
 }
 
 Client::Client(const Client& a)
@@ -47,6 +49,7 @@ std::string	Client::getRawRequest() const {return raw_request; }
 
 void		Client::setPipeFd(int _pipe_fd){ pipe_fd = _pipe_fd; }
 void		Client::setRequest(Request *_req){ req = _req; }
+void		Client::setResponse(Response *_res){ res = _res; }
 void		Client::setRawRequest(std::string str){ raw_request = str; }
 
 void		Client::appendRawRequest(std::string _raw_request){ raw_request += _raw_request; }
@@ -57,9 +60,14 @@ int			Client::read_client_request()
 	char buf[40000] = {0};
 	int n = recv(fd, buf, 40000, 0);
 	// read 결과가 0미만일시 disconnect, 등호인 경우??
-	if (n <= 0)
+	if (n < 0)
 	{
 		std::cerr << "client read error!" << std::endl;
+		return (-1);
+	}
+	else if (n == 0)
+	{
+		std::cout << "client just disconnect socket\n" << std::endl;
 		return (-1);
 	}
 	// // 자식프로세스 생성
