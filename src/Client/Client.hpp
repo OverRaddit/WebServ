@@ -38,6 +38,7 @@ public:
 
 	void		setPipeFd(int pipe_fd);
 	void		setRequest(Request *_req);
+	void		setResponse(Response *_res);
 	void		setRawRequest(std::string str);
 	void		appendRawRequest(std::string _raw_request);
 
