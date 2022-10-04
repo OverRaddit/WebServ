@@ -28,8 +28,7 @@ public:
 	~Response ();
 
 	static void	ResponseInit(); // Response 클래스를 초기화하는 한번만 실행 가능함수
-	void		makeCgiContent(string ret);
-	void		makeUploadContent();
+	void		makeContent(string content);
 
 	int					getStatusCode();
 	map<int ,string>	getStatusDesc();
@@ -42,10 +41,14 @@ public:
 	void		setCgiResult(string ret);
 	void		setContent(string content);
 
-	void		saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
+	int			saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
+	int			serveFile(string file_name);
+	int			deleteFile(string file_name);
 
-	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답
-	void		uploadResponse(string content_type, string content_body);  // 파일 업로드 경우의 응답과 처리
+	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
+	void		uploadResponse(string content_type, string content_body);  // 파일 업로드 경우의 응답처리
+	void		downloadResponse(string file_name);  // 파일 다운로드 응답처리
+	void		deleteResponse(string file_name);  // 파일 삭제 응답처리
 
 	string		getHttpResponse();
 };
