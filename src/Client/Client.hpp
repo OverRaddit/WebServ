@@ -21,6 +21,8 @@ private:
 	Response	*res;
 	std::string	raw_request;	// HTTP 요청 원본
 
+	bool		m_pending;
+
 public:
 	Client();
 	Client(int fd, sockaddr_in addr, socklen_t len);

@@ -139,22 +139,30 @@ void Response::cgiResponse(string cgi_result) {
 int Response::saveFile(string content_type, string content_body) {
 	ofstream writeFile;
 
+	std::cout << "saveFile1\n";
 	size_t i = content_type.find("boundary=");
+	std::cout << "saveFile2\n";
+	std::cout << "content_type: " << content_type << std::endl;
 	string boundary = content_type.substr(i+9);
+	std::cout << "saveFile3\n";
 	string sub_content = content_body;
+	std::cout << "saveFile4\n";
 	string file_name;
 	string file_body;
 
 	while (sub_content.find("--" + boundary + "--") != 0) {
+		std::cout << "IN LOOP\n";
 		file_name = parseHeader(sub_content);
 		file_body = getFileContent(sub_content);
 		if (file_name[0] == '.')  // 이상한 파일 이름
 			return -1;
+		std::cout << "filename, filebody = " << file_name << ", " << file_body << endl;
 		writeFile.open("./sudo/file_storage/" + file_name);
 		writeFile.write(file_body.c_str(), file_body.size());
 		writeFile.close();
 	}
 	return 0;
+	std::cout << "saveFile5\n";
 }
 
 void Response::uploadResponse(string content_type, string content_body) {
@@ -201,6 +209,16 @@ void Response::deleteResponse(string file_name) {
 		this->makeContent("Delete Success");
 	else
 		this->makeContent("Delete Fail");
+}
+
+void Response::uploadResponse(string content_type, string content_body) {
+	std::cout << "uploadResponse 1 : " << content_type << endl;
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	std::cout << "uploadResponse 2\n";
+	this->saveFile(content_type, content_body);
+	std::cout << "uploadResponse 3\n";
+	this->makeUploadContent();
+	std::cout << "uploadResponse 4\n";
 }
 
 string Response::getHttpResponse() {

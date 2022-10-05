@@ -104,7 +104,7 @@ void	Request::setRedirectionURL(string url)
 
 void	Request::setReqHeader(string key, string value)
 {
-	if (key == "Content-Length")
+	if (key == "Content-Length" || key == "content-length")
 		setContentLength(value);
 	this->m_req_header.insert(pair<string, string>(key, value));
 }
@@ -143,7 +143,12 @@ int		Request::getStatusCode(void) const {
 }
 
 string	Request::getReqHeaderValue(string key) {
+	string	lower_key = "";
+	for (int i = 0;i < key.length();i++)
+		lower_key += tolower(key[i]);
 	if (this->m_req_header.find(key) != this->m_req_header.end())
 		return this->m_req_header[key];
+	if (this->m_req_header.find(lower_key) != this->m_req_header.end())
+		return this->m_req_header[lower_key];
 	return "";
 }

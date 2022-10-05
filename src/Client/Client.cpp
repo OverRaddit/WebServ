@@ -1,13 +1,14 @@
 #include "Client.hpp"
 
 Client::Client()
-	: fd(-1), len(0), req(NULL), pipe_fd(-1), raw_request("")
+	: fd(-1), len(0), req(NULL), pipe_fd(-1), raw_request(""), m_pending(false)
 {
 	//addr = -1;
 }
 
 Client::Client(int fd, sockaddr_in addr, socklen_t len)
 	: fd(fd), addr(addr), len(len), req(NULL), pipe_fd(-1), raw_request("")
+		, m_pending(false)
 {
 	//std::cout << "Client Constructor!" << std::endl;
 }
@@ -84,18 +85,32 @@ int			Client::read_client_request()
 	{
 		buf[n] = '\0';
 		//appendRawRequest(buf); // 이거 append -> set으로 고쳐야함
-		setRawRequest(string(buf, n));
 
-		// DEBUG Request
-		std::cout << "====== Request start ======\n" << std::endl;
-		std::cout << getRawRequest() << std::endl << std::endl;
-		std::cout << "====== Request end ======" << std::endl;
+
+
 
 		int ret;
 		// 1개의 HTTP Request 읽기가 끝나면 동작시켜야 함.
+		if (m_pending == false)
 		{
+			std::cout << "A1\n";
+			setRawRequest(string(buf, n));
+			std::cout << "A2\n";
+		std::cout << "====== Request start ======\n" << std::endl;
+		std::cout << getRawRequest() << std::endl << std::endl;
+		std::cout << "====== Request end ======" << std::endl;
 			Request *req = new Request(getRawRequest());
+			std::cout << "A3\n";
 			setRequest(req);
+			std::cout << "A4\n";
+			cout << "Content-Length: " << req->getContentLength() << " Len :" << req->getReqBody().length() << endl;
+			if (req->getContentLength() > req->getReqBody().length())
+			{
+				std::cout << "request uncomplete\n";
+				m_pending = true;
+				return 0;
+			}
+			std::cout << "A5\n";
 			// 요청헤더에서 Host를 읽어 어떤 호스트의 몇번 포트에 접근하는지 확인한다.
 
 			// 해당 정보로 적절한 서버블록을 꺼낸다.
@@ -104,6 +119,18 @@ int			Client::read_client_request()
 				return -1;
 
 		}
+		// ㄴㅏ머지 요청을 읽습니다.
+		else
+		{
+			std::cout << "====== Request start ======\n" << std::endl;
+			std::cout << getRawRequest() << std::endl << std::endl;
+			std::cout << "====== Request end ======" << std::endl;
+			if ( req->saveOnlyBody(string(buf, n)) == req->getContentLength())
+				m_pending = false;
+		}
+
+		// DEBUG Request
+
 		return ret;
 	}
 	return 0;
@@ -116,12 +143,15 @@ int			Client::read_pipe_result()
 	char buf[BUF_SIZE + 1];
 	std::string result = "";
 
+	std::cout << "read_pipe_result1" << std::endl;
+
 	// read
 	while((ret = read(getPipeFd(), buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
 		buf[ret] = '\0';
 		std::string temp(buf);
 		result += temp;
 	}
+	std::cout << "read_pipe_result2" << std::endl;
 
 	// Client의 Response 객체 생성하기
 	res = new Response(req->getStatusCode());
@@ -129,13 +159,18 @@ int			Client::read_pipe_result()
 	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
 	res->cgiResponse(result);  // cgi 응답인 경우
 
+	std::cout << "read_pipe_result3" << std::endl;
 	// 파일 업로드 요청인 경우
 	//res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
 
 	//res->downloadResponse(req->getReqBody());
 	//res->deleteResponse(req->getReqBody());
+	res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
+	//res->cgiResponse(result);
+	std::cout << "read_pipe_result4" << std::endl;
 
 	close(pipe_fd);
+	std::cout << "read_pipe_result5" << std::endl;
 	return (0);
 }
 

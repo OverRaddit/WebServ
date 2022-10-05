@@ -29,39 +29,56 @@ int Server::callback_read(int fd)
 {
 	Client *cli;
 
+	std::cout << fd << ": callback_read" << std::endl;
+
 	if (is_listensocket(fd))
+	{
+		std::cout << "socket event\n";
 		connect_new_client(fd);
+	}
 	else if (is_client(fd))
 	{
+		std::cout << "socket event\n";
 		int ret;
 		cli = clients_info[fd];
 		ret = cli->read_client_request();
 		if (ret < 0)
 		{
+			cout << "before diconnect\n";
 			disconnect_client(fd);
 			return (-1);
 		}
+		else if (ret == 0)
+			return (0);
 
-		execute_client_request(cli->getFd());
-		// if ( cli->request 요청 == CGI 요청)
-		if ( true )
 		{
-			pipe_to_client[ret] = cli->getFd();
-			change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-		}
-		else
-		{
-			cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
+			execute_client_request(cli->getFd());
+			// if ( cli->request 요청 == CGI 요청)
+			if ( true )
+			{
+				pipe_to_client[ret] = cli->getFd();
+				change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			}
+			else
+			{
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			}
 		}
 	}
 	else if (is_pipe(fd))
 	{
+		std::cout << "pipe event\n";
 		cli = clients_info[pipe_to_client[fd]];
+		std::cout << "pipe event2\n";
 		cli->read_pipe_result();
+		std::cout << "pipe event3\n";
 		if (cli->getPipeFd() != -1)
 			pipe_to_client.erase(fd);
+		std::cout << "pipe event4\n";
 		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		std::cout << "pipe event end\n";
 	}
 	return (0);
 }
