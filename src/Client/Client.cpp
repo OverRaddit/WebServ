@@ -127,10 +127,13 @@ int			Client::read_pipe_result()
 	res = new Response(req->getStatusCode());
 	// 파일 다운로드 응답인 경우에 아래 헤더 추가
 	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
-	//res->cgiResponse(result);  // cgi 응답인 경우
+	res->cgiResponse(result);  // cgi 응답인 경우
 
 	// 파일 업로드 요청인 경우
-	res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
+	//res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
+
+	//res->downloadResponse(req->getReqBody());
+	//res->deleteResponse(req->getReqBody());
 
 	close(pipe_fd);
 	return (0);
