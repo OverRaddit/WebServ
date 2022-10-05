@@ -66,6 +66,7 @@ void Response::setHeaders(string key, string value) {
 void Response::setContent(string content) {
 	this->m_content.clear();
 	this->m_content = content;
+	this->setHeaders("Content-length", to_string(content.length()));
 }
 
 void Response::setCgiResult(string ret) {
@@ -83,44 +84,15 @@ string Response::makeHeaders() {
 	return result;
 }
 
-void Response::makeCgiContent(string ret) {
-	this->setCgiResult(ret);
+void Response::makeContent(string content) {
 	string result = "";
 	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
 	result.append("<body>");
-	result.append("<h3>" + this->m_cgiResult + "</h3>");
-	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
-	result.append("</body></html>");
-	//result.append("Content-Disposition: attachment; filename=\"cool.html\"\r\n\r\n");
-	//result.append("<HTML>Save me!</HTML>");
-
-	//result.append("HTTP/1.1 200 OK\r\n");
-	//result.append("Content-Type: multipart/form-data;boundary=\"boundary\"\r\n\r\n");
-
-	//result.append("--boundary\r\n");
-	//result.append("Content-Disposition: form-data; name=\"field1\"\r\n\r\n");
-
-	//result.append("value1\r\n");
-	//result.append("--boundary\r\n");
-	//result.append("Content-Disposition: form-data; name=\"field2\"; filename=\"example.txt\"\r\n\r\n");
-
-	//result.append("value2\r\n");
-	//result.append("--boundary--");
-
-	this->setContent(result);
-	this->setHeaders("Content-length", to_string(result.length()));
-}
-
-void Response::makeUploadContent() {
-	string result = "";
-	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
-	result.append("<body>");
-	result.append("<h3>Upload Success!</h3>");
+	result.append("<h3>" + content + "</h3>");
 	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
 	result.append("</body></html>");
 
 	this->setContent(result);
-	this->setHeaders("Content-length", to_string(result.length()));
 }
 
 string Response::parseHeader(string& sub_content) {
@@ -145,7 +117,9 @@ string Response::parseHeader(string& sub_content) {
 	}
 	i = sub_content.find("\r\n\r\n");  // 헤더 끝 위치 찾기
 	sub_content = sub_content.substr(i+4);  // 바디 위치부터 시작
-	return name + "_" + f_name;
+	if (f_name != "")
+		return name + "_" + f_name;
+	return name;
 }
 
 string Response::getFileContent(string &sub_content) {
@@ -157,7 +131,12 @@ string Response::getFileContent(string &sub_content) {
 	return body;
 }
 
-void Response::saveFile(string content_type, string content_body) {
+void Response::cgiResponse(string cgi_result) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContent(cgi_result);
+}
+
+int Response::saveFile(string content_type, string content_body) {
 	ofstream writeFile;
 
 	size_t i = content_type.find("boundary=");
@@ -169,21 +148,59 @@ void Response::saveFile(string content_type, string content_body) {
 	while (sub_content.find("--" + boundary + "--") != 0) {
 		file_name = parseHeader(sub_content);
 		file_body = getFileContent(sub_content);
+		if (file_name[0] == '.')  // 이상한 파일 이름
+			return -1;
 		writeFile.open("./sudo/file_storage/" + file_name);
 		writeFile.write(file_body.c_str(), file_body.size());
 		writeFile.close();
 	}
-}
-
-void Response::cgiResponse(string cgi_result) {
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeCgiContent(cgi_result);
+	return 0;
 }
 
 void Response::uploadResponse(string content_type, string content_body) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->saveFile(content_type, content_body);
-	this->makeUploadContent();
+	if (this->saveFile(content_type, content_body) == 0)
+		this->makeContent("Upload Success");
+	else
+		this->makeContent("Upload Fail");
+}
+
+int Response::serveFile(string file_name) {
+	ifstream readFile;
+	string data = "", buf;
+
+	if (file_name[0] == '.')  // 이상한 파일 이름
+		return -1;
+	readFile.open("./sudo/file_storage/" + file_name);
+	if (!readFile.is_open())
+		return -1;
+	while (!readFile.eof()) {
+		getline(readFile, buf);
+		data += buf;
+	}
+	readFile.close();
+	this->setContent(data);
+	return 0;
+}
+
+void Response::downloadResponse(string file_name) {
+	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_name + "\"");
+	if (this->serveFile(file_name) != 0)
+		this->makeContent("Download Fail");
+}
+
+int Response::deleteFile(string file_name) {
+	if (file_name[0] == '.')  // 이상한 파일 이름
+		return -1;
+	unlink(("./sudo/file_storage/" + file_name).c_str());
+	return 0;
+}
+
+void Response::deleteResponse(string file_name) {
+	if (deleteFile(file_name) == 0)
+		this->makeContent("Delete Success");
+	else
+		this->makeContent("Delete Fail");
 }
 
 string Response::getHttpResponse() {
