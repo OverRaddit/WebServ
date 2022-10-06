@@ -95,7 +95,8 @@ int			Client::read_client_request()
 			{
 				std::cout << "request uncomplete\n";
 				m_pending = true;
-				return 0;
+				// 쪼개진 요청에도 응답을 하도록 변경
+				return ret;
 			}
 			// 요청헤더에서 Host를 읽어 어떤 호스트의 몇번 포트에 접근하는지 확인한다.
 
