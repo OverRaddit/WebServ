@@ -59,7 +59,7 @@ void		Client::appendRawRequest(std::string _raw_request){ raw_request += _raw_re
 int			Client::read_client_request()
 {
 	char buf[65524] = {0};
-	int n = read(fd, buf, 65524);
+	int n = read(fd, buf, 65524 - 1);	// null문자까지 포함해서 읽기위해.
 	// read 결과가 0미만일시 disconnect, 등호인 경우??
 	if (n < 0)
 	{
