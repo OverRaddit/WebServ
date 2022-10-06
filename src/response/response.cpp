@@ -122,12 +122,12 @@ string Response::parseHeader(string& sub_content) {
 	return name;
 }
 
-string Response::getFileContent(string &sub_content) {
+string Response::getFileContent(string &sub_content, string boundary) {
 	size_t i;
 
-	i = sub_content.find("\r\n");  // 바디 끝 찾기
+	i = sub_content.find(boundary);  // 바디 끝 찾기
 	string body = sub_content.substr(0, i);  // 원하는 파일의 바디 저장
-	sub_content = sub_content.substr(i+2);  // 바디 이후부터 다시 저장
+	sub_content = sub_content.substr(i);  // 바디 이후부터 다시 저장
 	return body;
 }
 
@@ -151,18 +151,19 @@ int Response::saveFile(string content_type, string content_body) {
 	string file_body;
 
 	while (sub_content.find("--" + boundary + "--") != 0) {
-		std::cout << "IN LOOP\n";
+		std::cout << "LOOP START\n";
 		file_name = parseHeader(sub_content);
-		file_body = getFileContent(sub_content);
+		file_body = getFileContent(sub_content, "--" + boundary);
 		if (file_name[0] == '.')  // 이상한 파일 이름
 			return -1;
-		std::cout << "filename, filebody = " << file_name << ", " << file_body << endl;
+		//std::cout << "filename, filebody = " << file_name << ", " << file_body << endl;
 		writeFile.open("./sudo/file_storage/" + file_name);
 		writeFile.write(file_body.c_str(), file_body.size());
 		writeFile.close();
+		std::cout << "LOOP END\n";
 	}
-	return 0;
 	std::cout << "saveFile5\n";
+	return 0;
 }
 
 void Response::uploadResponse(string content_type, string content_body) {
@@ -171,6 +172,7 @@ void Response::uploadResponse(string content_type, string content_body) {
 		this->makeContent("Upload Success");
 	else
 		this->makeContent("Upload Fail");
+	std::cout << "Upload end\n";
 }
 
 int Response::serveFile(string file_name) {
