@@ -19,7 +19,7 @@ private:
 
 	string		makeHeaders();
 	string		parseHeader(string& content_type);
-	string		getFileContent(string& content_type);
+	string		getFileContent(string& content_type, string last_boundary);
 
 public:
 	// 왜 private??
