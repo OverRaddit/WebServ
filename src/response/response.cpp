@@ -139,14 +139,9 @@ void Response::cgiResponse(string cgi_result) {
 int Response::saveFile(string content_type, string content_body) {
 	ofstream writeFile;
 
-	std::cout << "saveFile1\n";
 	size_t i = content_type.find("boundary=");
-	std::cout << "saveFile2\n";
-	std::cout << "content_type: " << content_type << std::endl;
 	string boundary = content_type.substr(i+9);
-	std::cout << "saveFile3\n";
 	string sub_content = content_body;
-	std::cout << "saveFile4\n";
 	string file_name;
 	string file_body;
 

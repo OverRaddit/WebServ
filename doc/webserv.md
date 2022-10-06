@@ -50,3 +50,10 @@ https://qaos.com/sections.php?op=viewarticle&artid=194
    1. 듣기 소켓을 열때 이미 열린 소켓인지 검사해야 함.
 2. 이벤트가 발생한 소켓이 어떤 서버블록에 해당하는지 알아낸다.
 3. 요청을 읽고 해당 서버블록의 룰에 위반되는지 확인한다.
+
+임시
+
+- read_client_reqeust에서 pending이 true일떄 ret값 반환이 모호함.
+
+- Content-Type: multipart/form-data; boundary=--------------------------911677640024699020355582
+에 대한 이해가 필요함

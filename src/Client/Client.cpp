@@ -71,15 +71,6 @@ int			Client::read_client_request()
 		std::cout << "client just disconnect socket\n" << std::endl;
 		return (-1);
 	}
-	// // 자식프로세스 생성
-	// else if (n == 0)	// 더 이상 읽을 데이터가 없는 경우 -> 요청을 모두 읽은 경우.
-	// {
-	// 	int ret;
-	// 	std::cout << "[DEBUG]Method is " << getRequest()->getMethod() << std::endl;
-	// 	if ((ret = cgi_init()) < 0)
-	// 		return -1;
-	// 	return ret;
-	// }
 	// 그외 데이터 저장
 	else
 	{
@@ -93,16 +84,12 @@ int			Client::read_client_request()
 		// 1개의 HTTP Request 읽기가 끝나면 동작시켜야 함.
 		if (m_pending == false)
 		{
-			std::cout << "A1\n";
 			setRawRequest(string(buf, n));
-			std::cout << "A2\n";
-		std::cout << "====== Request start ======\n" << std::endl;
-		std::cout << getRawRequest() << std::endl << std::endl;
-		std::cout << "====== Request end ======" << std::endl;
+			std::cout << "====== Request start ======\n" << std::endl;
+			std::cout << getRawRequest() << std::endl << std::endl;
+			std::cout << "====== Request end ======" << std::endl;
 			Request *req = new Request(getRawRequest());
-			std::cout << "A3\n";
 			setRequest(req);
-			std::cout << "A4\n";
 			cout << "Content-Length: " << req->getContentLength() << " Len :" << req->getReqBody().length() << endl;
 			if (req->getContentLength() > req->getReqBody().length())
 			{
@@ -110,7 +97,6 @@ int			Client::read_client_request()
 				m_pending = true;
 				return 0;
 			}
-			std::cout << "A5\n";
 			// 요청헤더에서 Host를 읽어 어떤 호스트의 몇번 포트에 접근하는지 확인한다.
 
 			// 해당 정보로 적절한 서버블록을 꺼낸다.
@@ -143,15 +129,12 @@ int			Client::read_pipe_result()
 	char buf[BUF_SIZE + 1];
 	std::string result = "";
 
-	std::cout << "read_pipe_result1" << std::endl;
-
 	// read
 	while((ret = read(getPipeFd(), buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
 		buf[ret] = '\0';
 		std::string temp(buf);
 		result += temp;
 	}
-	std::cout << "read_pipe_result2" << std::endl;
 
 	// Client의 Response 객체 생성하기
 	res = new Response(req->getStatusCode());
@@ -159,18 +142,15 @@ int			Client::read_pipe_result()
 	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
 	res->cgiResponse(result);  // cgi 응답인 경우
 
-	std::cout << "read_pipe_result3" << std::endl;
 	// 파일 업로드 요청인 경우
 	//res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
-
 	//res->downloadResponse(req->getReqBody());
 	//res->deleteResponse(req->getReqBody());
-	res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
-	//res->cgiResponse(result);
-	std::cout << "read_pipe_result4" << std::endl;
 
+	// 요청이 완전하고 upload 요청일때만 처리한다
+	if (m_pending == false && req->getReqTarget() == "/upload")
+		res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
 	close(pipe_fd);
-	std::cout << "read_pipe_result5" << std::endl;
 	return (0);
 }
 
