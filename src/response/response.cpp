@@ -106,14 +106,14 @@ string Response::parseHeader(string& sub_content) {
 
 	i = tmp.find("name=");  // 이름 위치 읽기
 	tmp = tmp.substr(i+6); // 이름부터 끝까지 자르기
-	i = tmp.find(";");
-	name = tmp.substr(0, i-1);  // 파일 이름 구하기
+	i = tmp.find("\"");
+	name = tmp.substr(0, i);  // 파일 이름 구하기
 
-	if (tmp.find("filename=") != string::npos) {  // 다른 파일인 경우
+	if (tmp.find("filename=") != string::npos) {  // 파일 이름이 있는 경우
 		i = tmp.find("filename=");  // 파일 이름 위치 읽기
 		tmp = tmp.substr(i+10); // 파일 이름부터 끝까지 자르기
-		i = tmp.find(";");
-		f_name = tmp.substr(0, i-1);  // 파일 이름 구하기
+		i = tmp.find("\"");
+		f_name = tmp.substr(0, i);  // 파일 이름 구하기
 	}
 	i = sub_content.find("\r\n\r\n");  // 헤더 끝 위치 찾기
 	sub_content = sub_content.substr(i+4);  // 바디 위치부터 시작
@@ -209,16 +209,6 @@ void Response::deleteResponse(string file_name) {
 		this->makeContent("Delete Success");
 	else
 		this->makeContent("Delete Fail");
-}
-
-void Response::uploadResponse(string content_type, string content_body) {
-	std::cout << "uploadResponse 1 : " << content_type << endl;
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	std::cout << "uploadResponse 2\n";
-	this->saveFile(content_type, content_body);
-	std::cout << "uploadResponse 3\n";
-	this->makeUploadContent();
-	std::cout << "uploadResponse 4\n";
 }
 
 string Response::getHttpResponse() {
