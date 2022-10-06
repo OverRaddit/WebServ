@@ -64,6 +64,7 @@ public:
 	int callback_write(int fd);
 
 	void exit_with_perror(const string& msg);
+	void disconnect_pipe(int pipe_fd);
 	void disconnect_client(int client_fd);
 	void change_events(uintptr_t ident, int16_t filter,
 		uint16_t flags, uint32_t fflags, intptr_t data, void *udata);

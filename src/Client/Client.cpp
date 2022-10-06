@@ -151,7 +151,8 @@ int			Client::read_pipe_result()
 	// 요청이 완전하고 upload 요청일때만 처리한다
 	if (m_pending == false && req->getReqTarget() == "/upload")
 		res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
-	close(pipe_fd);
+
+	// 파이프 종료는 서버에서 담당한다.
 	return (0);
 }
 

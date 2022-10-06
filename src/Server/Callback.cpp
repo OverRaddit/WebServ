@@ -20,7 +20,7 @@ int Server::callback_error(int fd)
 	else if (pipe_to_client.find(fd) != pipe_to_client.end())
 	{
 		std::cerr << "Pipe socket[" << fd << "] got error" << std::endl;
-		disconnect_client(fd);
+		disconnect_pipe(fd);
 	}
 	return 0;
 }
@@ -73,6 +73,7 @@ int Server::callback_read(int fd)
 		cli = clients_info[pipe_to_client[fd]];
 		std::cout << "pipe event2\n";
 		cli->read_pipe_result();
+		disconnect_pipe(cli->getPipeFd());
 		std::cout << "pipe event3\n";
 		if (cli->getPipeFd() != -1)
 			pipe_to_client.erase(fd);
@@ -118,15 +119,23 @@ int Server::callback_write(int fd)
 	return (0);
 }
 
+void Server::disconnect_pipe(int pipe_fd)
+{
+	pipe_to_client.erase(pipe_fd);
+	close(pipe_fd);
+}
+
 void Server::disconnect_client(int client_fd)
 {
+	std::cout << "disconnect 1\n";
 	close(client_fd);
+	std::cout << "disconnect 2\n";
+	Client *cli = clients_info[client_fd];
 	if (clients_info[client_fd]->getPipeFd() != -1)
-	{
-		pipe_to_client.erase(clients_info[client_fd]->getPipeFd());
-		close(clients_info[client_fd]->getPipeFd());
-	}
+		disconnect_pipe(clients_info[client_fd]->getPipeFd());
+	std::cout << "disconnect 3\n";
 	delete clients_info[client_fd];
+	std::cout << "disconnect 4\n";
 	clients_info.erase(client_fd);
 	std::cout << "[DEBUG]client disconnected: " << client_fd << std::endl;
 }
