@@ -1,9 +1,10 @@
 #include "LocationBlock.hpp"
+#include <atomic>
 #include <iterator>
 #include <string>
 
 LocationBlock::LocationBlock(void)
-: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false), m_redirection_url("")
+: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false), m_redirection_url(""), m_request_type(2)
 {}
 
 void LocationBlock::setValidMethod(string loc_block, size_t pos)
@@ -25,6 +26,30 @@ void LocationBlock::setValidMethod(string loc_block, size_t pos)
 			method = "";
 			flag = false;
 		}
+	}
+}
+
+void	LocationBlock::setRequestType(string loc_block, size_t pos)
+{
+	string	l_e = "type";
+	size_t	len = l_e.length();
+	string	type = "";
+	bool	flag = false;
+
+	if (this->m_request_type != 2)
+		flag = true;
+	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
+		type += loc_block[i];
+	if (type == "cgi")
+		this->m_request_type = CGI;
+	else if (type == "upload")
+		this->m_request_type = UPLOAD;
+	else
+		flag = true;
+	if (flag)
+	{
+		cerr << "Invalid Config File\n";
+		exit(1);
 	}
 }
 
@@ -60,6 +85,10 @@ void	LocationBlock::setMaxBodySize(string loc_block, size_t pos)
 		this->m_max_body_size = stoll(max_body_size) * 1024 * 1024 * 1024;
 	else if (flag == 3)
 		this->m_max_body_size = 0;
+}
+
+int		LocationBlock::getRequestType(void) {
+	return this->m_request_type;
 }
 
 void LocationBlock::setUploadDirectory(string loc_block, size_t pos)

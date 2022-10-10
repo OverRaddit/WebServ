@@ -23,6 +23,8 @@ void	ServerBlock::setLocationBlock(string loc_block)
 		this->m_loc_blocks[route].setRootDir(loc_block, pos);
 	if ((pos = loc_block.find("return")) != string::npos)
 		this->m_loc_blocks[route].setRedirectionURL(loc_block, pos);
+	if ((pos = loc_block.find("type")) != string::npos)
+		this->m_loc_blocks[route].setRequestType(loc_block, pos);
 }
 
 void	ServerBlock::setErrorPage(string error_page_info)
