@@ -31,7 +31,7 @@ public:
 	long long 		getMaxBodySize(void) const;
 	bool			getAutoIndex(void) const;
 	string			getRedirectionURL(void) const;
-	int				getRequestType(void);
+	int				getRequestType(void) const;
 private:
 	vector<string>	m_valid_method;
 	long long		m_max_body_size;

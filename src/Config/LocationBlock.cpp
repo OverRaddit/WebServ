@@ -87,7 +87,7 @@ void	LocationBlock::setMaxBodySize(string loc_block, size_t pos)
 		this->m_max_body_size = 0;
 }
 
-int		LocationBlock::getRequestType(void) {
+int		LocationBlock::getRequestType(void) const {
 	return this->m_request_type;
 }
 
