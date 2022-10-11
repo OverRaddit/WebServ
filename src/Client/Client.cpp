@@ -60,7 +60,6 @@ int			Client::read_client_request()
 {
 	char buf[65524] = {0};
 	int n = read(fd, buf, 65524 - 1);	// null문자까지 포함해서 읽기위해.
-	// read 결과가 0미만일시 disconnect, 등호인 경우??
 	if (n < 0)
 	{
 		std::cerr << "client read error!" << std::endl;
@@ -75,12 +74,7 @@ int			Client::read_client_request()
 	else
 	{
 		buf[n] = '\0';
-		//appendRawRequest(buf); // 이거 append -> set으로 고쳐야함
 
-
-
-
-		int ret;
 		// 1개의 HTTP Request 읽기가 끝나면 동작시켜야 함.
 		if (m_pending == false)
 		{
@@ -91,34 +85,33 @@ int			Client::read_client_request()
 			Request *req = new Request(getRawRequest());
 			setRequest(req);
 			cout << "Content-Length: " << req->getContentLength() << " Len :" << req->getReqBody().length() << endl;
-			if (req->getContentLength() > req->getReqBody().length())
-			{
-				std::cout << "request uncomplete\n";
-				m_pending = true;
-				// 쪼개진 요청에도 응답을 하도록 변경
-				return ret;
-			}
-			// 요청헤더에서 Host를 읽어 어떤 호스트의 몇번 포트에 접근하는지 확인한다.
-
-			// 해당 정보로 적절한 서버블록을 꺼낸다.
-
-			if ((ret = cgi_init()) < 0)
-				return -1;
-
 		}
 		// ㄴㅏ머지 요청을 읽습니다.
 		else
 		{
-			std::cout << "====== Request start ======\n" << std::endl;
-			std::cout << getRawRequest() << std::endl << std::endl;
+			std::cout << "====== ing Request start ======" << std::endl;
+			std::cout << string(buf, n) << std::endl;
 			std::cout << "====== Request end ======" << std::endl;
 			if ( req->saveOnlyBody(string(buf, n)) == req->getContentLength())
 				m_pending = false;
 		}
 
-		// DEBUG Request
+		// 현재 요청이 완성되었는지 확인한다. 1571,
+		if (req->getContentLength() > req->getReqBody().length())
+		{
+			std::cout << "request uncomplete\n";
+			m_pending = true;
+			// 쪼개진 요청에 응답을 안한다.
+			return 0;
+		}
+		else
+			m_pending = false;
 
-		return ret;
+		// int ret;
+		// if ((ret = cgi_init()) < 0)
+		// 	return -1;
+		// return ret;
+		return 1;
 	}
 	return 0;
 }
@@ -127,17 +120,34 @@ int			Client::read_client_request()
 int			Client::read_pipe_result()
 {
 	int ret;
-	char buf[BUF_SIZE + 1];
+	char buf[65524];
 	std::string result = "";
 
 	// read
-	while((ret = read(getPipeFd(), buf, BUF_SIZE)) > 0 && strlen(buf) != 0) {
+	// 비동기방식으로 바꿔야 함.
+	while((ret = read(getPipeFd(), buf, 65524 - 1)) > 0 && strlen(buf) != 0) {
 		buf[ret] = '\0';
 		std::string temp(buf);
 		result += temp;
 	}
 
+	std::cout << "====== pipe result start ======" << std::endl;
+	std::cout << result << std::endl;
+	std::cout << "====== pipe result end ======" << std::endl;
+
 	// Client의 Response 객체 생성하기
+	if (!req)
+	{
+		std::cout << "Request gone....!\n";
+		return (0);
+	}
+
+	// CGI의 응답을 한번에 읽지 못하면 문제가 발생할 수 있다.
+	// if (result.length() != 1)
+	// {
+	// 	return 0;
+	// }
+
 	res = new Response(req->getStatusCode());
 	// 파일 다운로드 응답인 경우에 아래 헤더 추가
 	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
@@ -150,7 +160,11 @@ int			Client::read_pipe_result()
 
 	// 요청이 완전하고 upload 요청일때만 처리한다
 	if (m_pending == false && req->getReqTarget() == "/upload")
+	{
+		std::cout << "Before upload Response\n";
 		res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
+		std::cout << "After upload Response\n";
+	}
 
 	// 파이프 종료는 서버에서 담당한다.
 	return (0);

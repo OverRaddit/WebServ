@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/03 22:25:48 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/11 16:56:43 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,6 +177,7 @@ int	Server::execute_client_request(int client_fd)
 			if (valid_method[i] == cli->getRequest()->getMethod())
 			{
 				is_valid_method = true;
+				cli->getRequest()->setReqType(it->second.getRequestType());
 				break;
 			}
 		}

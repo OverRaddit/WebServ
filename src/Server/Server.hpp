@@ -19,6 +19,10 @@
 # include <stdlib.h>
 # include <string.h>
 
+# define CGI_REQUEST 0
+# define UPLOAD_REQUEST 1
+# define OTHER_REQUEST 2
+
 class Server {
 
 private:

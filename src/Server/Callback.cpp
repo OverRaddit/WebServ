@@ -8,16 +8,14 @@ void Server::exit_with_perror(const string& msg)
 
 int Server::callback_error(int fd)
 {
-	// 서버소켓의 이벤트라면 exit
 	if (is_listensocket(fd))
 		exit_with_perror("server socket error");
-	// 클라이언트소켓 이벤트라면 disconnect
-	else if (clients_info.find(fd) != clients_info.end())
+	else if (is_client(fd))
 	{
 		std::cerr << "Client socket[" << fd << "] got error" << std::endl;
 		disconnect_client(fd);
 	}
-	else if (pipe_to_client.find(fd) != pipe_to_client.end())
+	else if (is_pipe(fd))
 	{
 		std::cerr << "Pipe socket[" << fd << "] got error" << std::endl;
 		disconnect_pipe(fd);
@@ -32,13 +30,10 @@ int Server::callback_read(int fd)
 	std::cout << fd << ": callback_read" << std::endl;
 
 	if (is_listensocket(fd))
-	{
-		std::cout << "socket event\n";
 		connect_new_client(fd);
-	}
 	else if (is_client(fd))
 	{
-		std::cout << "socket event\n";
+		std::cout << "client socket event\n";
 		int ret;
 		cli = clients_info[fd];
 		ret = cli->read_client_request();
@@ -52,34 +47,46 @@ int Server::callback_read(int fd)
 			return (0);
 
 		{
-
+			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
-			// if ( cli->request 요청 == CGI 요청)
-			if ( true )
+			switch (cli->getRequest()->getReqType())
 			{
-				pipe_to_client[ret] = cli->getFd();
-				change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-			}
-			else
-			{
+			case CGI_REQUEST:
+				std::cout << "Req type: CGI" << std::endl;
+				if ((ret = cli->cgi_init()) < 0)
+					return -1;
+				pipe_to_client[cli->getPipeFd()] = cli->getFd();
+				change_events(cli->getPipeFd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
+			case UPLOAD_REQUEST:
+				std::cout << "Req type: UPLOAD" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
+			case OTHER_REQUEST:
+				std::cout << "Req type: OTHER" << std::endl;
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->makeContent("OTHER REQUEST");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
+			default:
+				std::cout << "Req type: " << cli->getRequest()->getReqType() << std::endl;
+				break;
 			}
 		}
 	}
 	else if (is_pipe(fd))
 	{
-		std::cout << "pipe event\n";
+		std::cout << "pipe socket event\n";
 		cli = clients_info[pipe_to_client[fd]];
-		std::cout << "pipe event2\n";
 		cli->read_pipe_result();
+		// 파이프를 제거해주지 않는다면?
 		disconnect_pipe(cli->getPipeFd());
-		std::cout << "pipe event3\n";
-		if (cli->getPipeFd() != -1)
-			pipe_to_client.erase(fd);
-		std::cout << "pipe event4\n";
+		// if (cli->getPipeFd() != -1)
+		// 	pipe_to_client.erase(fd);
 		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-		std::cout << "pipe event end\n";
+		std::cout << "DEBUG1\n";
 	}
 	return (0);
 }
@@ -94,6 +101,7 @@ int Server::callback_write(int fd)
 
 	// write하기.
 	cli = clients_info[fd];
+	// 가끔 이미 처리한 요청을 또 write해서 req,res가 없다.
 	char *res = strdup(cli->getResponse()->getHttpResponse().c_str());
 
 	// DEBUG Response
@@ -121,6 +129,18 @@ int Server::callback_write(int fd)
 
 void Server::disconnect_pipe(int pipe_fd)
 {
+	if (pipe_to_client.find(pipe_fd) == pipe_to_client.end())
+	{
+		std::cout << "There's no pipe that you want to delete!\n";
+		return ;
+	}
+	else if (clients_info.find(pipe_to_client[pipe_fd]) == clients_info.end())
+	{
+		std::cout << "There's no client that owns that pipe!\n";
+		return ;
+	}
+	// 클라이언트의 파이프fd를 유효하지 않게 바꾼다.
+	clients_info[pipe_to_client[pipe_fd]]->setPipeFd(-1);
 	pipe_to_client.erase(pipe_fd);
 	close(pipe_fd);
 }
