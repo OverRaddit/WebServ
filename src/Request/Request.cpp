@@ -21,7 +21,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0)
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(-1)
 {
 	string	line = "";
 
@@ -114,6 +114,11 @@ void	Request::setContentLength(string content_length)
 	this->m_content_length = stoll(content_length);
 }
 
+void	Request::setReqType(int type)
+{
+	this->m_req_type = type;
+}
+
 long long	Request::getContentLength(void) const {
 	return this->m_content_length;
 }
@@ -151,4 +156,9 @@ string	Request::getReqHeaderValue(string key) {
 	if (this->m_req_header.find(lower_key) != this->m_req_header.end())
 		return this->m_req_header[lower_key];
 	return "";
+}
+
+int		Request::getReqType(void) const
+{
+	return m_req_type;
 }

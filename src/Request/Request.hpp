@@ -20,6 +20,7 @@ public:
 	void	setReqHeader(string key, string value);
 	void	setStatusCode(int status_code);
 	void	setRedirectionURL(string url);
+	void	setReqType(int type);
 
 	int		saveOnlyBody(string req_body);
 
@@ -31,6 +32,7 @@ public:
 	string		getRedirectionURL(void) const;
 	int			getStatusCode(void) const;
 	long long	getContentLength(void) const;
+	int			getReqType(void) const;
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;
@@ -40,6 +42,7 @@ private:
 	string				m_req_body;
 	int					m_status_code;
 	string				m_redirection_url;
+	int					m_req_type;
 
 	Request(void);
 
