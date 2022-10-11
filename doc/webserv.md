@@ -57,3 +57,5 @@ https://qaos.com/sections.php?op=viewarticle&artid=194
 
 - Content-Type: multipart/form-data; boundary=--------------------------911677640024699020355582
 에 대한 이해가 필요함
+
+왜 upload요청 처리한다음에 요청보내면 터짐?

@@ -319,3 +319,14 @@ net::ERR_CONTENT_LENGTH_MISMATCH 200
 
 - error: invalid use of 'this' outside of a non-static member function
         this->initFlag = true;
+
+# 10/9(일) 14:12
+
+업로드 요청을 한 소켓으로 1번밖에 동작하지 않음.
+한 소켓에서 2번째 요청을 날리면 파이프소켓 에러가 발생함.
+1. 이전 요청의 일부가 남아서 영향을 준다.
+2. 파이프 fd를 잘못 설정한다.
+
+오늘의 할일 목록
+- 쪼개진 요청에도 응답을 해야 하는데,,, 어떻게 응답할 것인가?
+	- 아 설마 응답을 안해도 요청이 나뉘어서 도착했었던 건가? ㅅㅂ
