@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/11 16:56:43 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/14 02:39:27 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,6 +178,9 @@ int	Server::execute_client_request(int client_fd)
 			{
 				is_valid_method = true;
 				cli->getRequest()->setReqType(it->second.getRequestType());
+				// 좀더 확장성 있는 방법을 강구해야 할듯...
+				if (valid_method[i] == DELETE_HTTP_METHOD)
+					cli->getRequest()->setReqType(3);
 				break;
 			}
 		}

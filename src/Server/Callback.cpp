@@ -70,6 +70,15 @@ int Server::callback_read(int fd)
 				cli->getResponse()->makeContent("OTHER REQUEST");
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
+			case DELETE_REQUEST:
+				std::cout << "Req type: DELETE" << std::endl;
+				/*
+				*		이곳에서 DELETE 요청을 처리합니다!
+				*/
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->makeContent("DELETE REQUEST");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
 			default:
 				std::cout << "Req type: " << cli->getRequest()->getReqType() << std::endl;
 				break;

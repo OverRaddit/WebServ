@@ -22,6 +22,9 @@
 # define CGI_REQUEST 0
 # define UPLOAD_REQUEST 1
 # define OTHER_REQUEST 2
+# define DELETE_REQUEST 3
+
+# define DELETE_HTTP_METHOD "DELETE"
 
 class Server {
 
