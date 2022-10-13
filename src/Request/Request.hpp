@@ -33,6 +33,7 @@ public:
 	int			getStatusCode(void) const;
 	long long	getContentLength(void) const;
 	int			getReqType(void) const;
+	string		getDelFileName(void) const;
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;
@@ -43,7 +44,7 @@ private:
 	int					m_status_code;
 	string				m_redirection_url;
 	int					m_req_type;
-
+	string				m_del_file_name;
 	Request(void);
 
 	void	saveStartLine(string start_line);

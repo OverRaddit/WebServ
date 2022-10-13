@@ -1,4 +1,6 @@
 #include "Request.hpp"
+#include <cstddef>
+#include <string>
 
 Request::Request() {}
 
@@ -21,7 +23,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2)
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name("")
 {
 	string	line = "";
 
@@ -53,7 +55,8 @@ int		Request::saveOnlyBody(string req_body)
 
 void	Request::saveStartLine(string start_line)
 {
-	int	cnt = 0;
+	int		cnt = 0;
+	size_t	pos;
 
 	for (int i = 0;i < start_line.length();i++)
 	{
@@ -68,6 +71,14 @@ void	Request::saveStartLine(string start_line)
 		}
 		else
 			cnt++;
+	}
+	if (this->m_del_file_name == "" && this->m_method == "DELETE")
+	{
+		if ((pos = this->m_req_target.find("delete")) != string::npos)
+		{
+			for (size_t i = pos + 7;i < m_req_target.length();i++)
+				this->m_del_file_name += this->m_req_target[i]; 
+		}
 	}
 }
 
@@ -145,6 +156,10 @@ string	Request::getRedirectionURL(void) const {
 
 int		Request::getStatusCode(void) const {
 	return this->m_status_code;
+}
+
+string		Request::getDelFileName(void) const {
+	return this->m_del_file_name;
 }
 
 string	Request::getReqHeaderValue(string key) {
