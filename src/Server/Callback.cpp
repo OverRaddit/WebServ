@@ -156,15 +156,11 @@ void Server::disconnect_pipe(int pipe_fd)
 
 void Server::disconnect_client(int client_fd)
 {
-	std::cout << "disconnect 1\n";
 	close(client_fd);
-	std::cout << "disconnect 2\n";
 	Client *cli = clients_info[client_fd];
 	if (clients_info[client_fd]->getPipeFd() != -1)
 		disconnect_pipe(clients_info[client_fd]->getPipeFd());
-	std::cout << "disconnect 3\n";
 	delete clients_info[client_fd];
-	std::cout << "disconnect 4\n";
 	clients_info.erase(client_fd);
 	std::cout << "[DEBUG]client disconnected: " << client_fd << std::endl;
 }
