@@ -6,7 +6,7 @@
 /*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/14 11:36:05 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/10/14 11:58:09 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,8 +170,8 @@ int	Server::execute_client_request(int client_fd)
 	bool is_valid_method = false;
 	size_t pos;
 
-	pos = url.find("delete");
-	if (pos == 1)
+	pos = url.find("/delete/");
+	if (pos == 0)
 		url = "/delete";
 	it = s_b.getLocationBlocks().find(url);
 	if (it != s_b.getLocationBlocks().end())
