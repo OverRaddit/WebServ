@@ -5,6 +5,7 @@
 # include <map>
 # include <fstream>
 # include <unistd.h>
+# include <cctype>
 
 using namespace std;
 
@@ -20,6 +21,10 @@ private:
 	string		makeHeaders();
 	string		parseHeader(string& content_type);
 	string		getFileContent(string& content_type, string last_boundary);
+
+	int			saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
+	int			serveFile(string file_name);
+	int			deleteFile(string file_name);
 
 public:
 	// 왜 private??
@@ -41,10 +46,6 @@ public:
 	void		setCgiResult(string ret);
 	void		setContent(string content);
 
-	int			saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
-	int			serveFile(string file_name);
-	int			deleteFile(string file_name);
-
 	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
 	void		uploadResponse(string content_type, string content_body);  // 파일 업로드 경우의 응답처리
 	void		downloadResponse(string file_name);  // 파일 다운로드 응답처리
@@ -52,5 +53,11 @@ public:
 
 	string		getHttpResponse();
 };
+
+// encode와 decode관련 비멤버 함수
+char hex2int(char input);
+char int2hex(char input);
+string URLEncoding(const char *pIn);
+string URLDecoding(const char *pIn);
 
 #endif

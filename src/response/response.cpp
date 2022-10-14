@@ -191,9 +191,11 @@ void Response::downloadResponse(string file_name) {
 }
 
 int Response::deleteFile(string file_name) {
-	if (file_name[0] == '.')  // 이상한 파일 이름
+	if (file_name.find("./") != string::npos)  // 이상한 파일 이름
 		return -1;
-	unlink(("./sudo/file_storage/" + file_name).c_str());
+	string full_name = "./sudo/file_storage/" + URLDecoding(file_name.c_str());
+	cout << "Decode file name: " << full_name << "\n";
+	unlink(full_name.c_str());
 	return 0;
 }
 
@@ -207,5 +209,87 @@ void Response::deleteResponse(string file_name) {
 string Response::getHttpResponse() {
 	string result = this->makeHeaders();
 	result += this->getContent();
+	return result;
+}
+
+/*
+	여기부터 비 멤버함수
+*/
+
+// 16진수 문자값을 10진수 문자값으로 변환
+char hex2int(char input) {
+	// 숫자
+	if (input >= '0' && input <= '9') {
+		return input - '0';
+	}
+	// 대문자
+	else if (input >= 'A' && input <= 'Z') {
+		return input - 'A' + 10;
+	}
+	// 소문자
+	else if (input >= 'a' && input <= 'z') {
+		return input - 'a' + 10;
+	}
+	return 0;
+}
+
+// 10진수 문자값을 16진수 문자값으로 변환
+char int2hex(char input) {
+	char hex[17] = "0123456789abcdef";
+	return hex[0x0f & input];
+}
+
+// URL 인코딩 한다.
+string URLEncoding(const char *pIn) {
+	if (pIn == 0) {
+		return 0;
+	}
+	string result;
+	char temp = 0;
+	while (*pIn != 0) {
+		temp = *pIn;
+		// ASCII 대소문자와 숫자인 경우만 그대로 저장
+		if (std::isprint(temp) != 0) {
+			result += temp;
+		}
+		// % 와 2자리 16진수 문자값으로 만들어 저장
+		else {
+			result += "%";
+			result += int2hex(temp >> 4);
+			result += int2hex(temp);
+		}
+		pIn++;
+	}
+	return result;
+}
+
+// URL 디코딩 한다.
+string URLDecoding(const char *pIn) {
+	if (pIn == 0) {
+		return 0;
+	}
+	string result;
+	char temp = 0;
+	while (*pIn != 0) {
+		temp = *pIn;
+		// % 로 시작되면 % 빼고 2자리 16진수 문자값을 10진수 문자값으로 변경하여 저장
+		if (temp == '%') {
+			char buf = 0;
+			pIn++;
+			temp = *pIn;
+			buf = hex2int(temp);
+
+			pIn++;
+			temp = *pIn;
+			buf = buf << 4 | hex2int(temp);
+
+			result += buf;
+		}
+		// 출력 가능한 경우 그대로 저장
+		else if (std::isprint(temp) != 0) {
+			result += temp;
+		}
+		pIn++;
+	}
 	return result;
 }
