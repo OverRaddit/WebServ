@@ -148,7 +148,7 @@ int Response::saveFile(string content_type, string content_body) {
 	while (sub_content.find("--" + boundary + "--") != 0) {
 		file_name = parseHeader(sub_content);
 		file_body = getFileContent(sub_content, "--" + boundary);
-		if (file_name[0] == '.')  // 이상한 파일 이름
+		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
 			return -1;
 		writeFile.open("./sudo/file_storage/" + file_name);
 		writeFile.write(file_body.c_str(), file_body.size());
@@ -170,7 +170,7 @@ int Response::serveFile(string file_name) {
 	ifstream readFile;
 	string data = "", buf;
 
-	if (file_name[0] == '.')  // 이상한 파일 이름
+	if (file_name.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
 	readFile.open("./sudo/file_storage/" + file_name);
 	if (!readFile.is_open())
@@ -191,15 +191,15 @@ void Response::downloadResponse(string file_name) {
 }
 
 int Response::deleteFile(string file_name) {
-	if (file_name.find("./") != string::npos)  // 이상한 파일 이름
+	if (file_name.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
 	string full_name = "./sudo/file_storage/" + URLDecoding(file_name.c_str());
 	cout << "Decode file name: " << full_name << "\n";
-	unlink(full_name.c_str());
-	return 0;
+	return unlink(full_name.c_str());
 }
 
 void Response::deleteResponse(string file_name) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	if (deleteFile(file_name) == 0)
 		this->makeContent("Delete Success");
 	else
