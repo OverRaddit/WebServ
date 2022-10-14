@@ -74,7 +74,8 @@ void	Request::saveStartLine(string start_line)
 	}
 	if (this->m_del_file_name == "" && this->m_method == "DELETE")
 	{
-		if ((pos = this->m_req_target.find("delete")) != string::npos)
+		pos = this->m_req_target.find("delete");
+		if (pos == 1)
 		{
 			for (size_t i = pos + 7;i < m_req_target.length();i++)
 				this->m_del_file_name += this->m_req_target[i]; 

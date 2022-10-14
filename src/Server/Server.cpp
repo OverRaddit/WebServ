@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/14 02:39:27 by gshim            ###   ########.fr       */
+/*   Updated: 2022/10/14 11:36:05 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include <sys/_types/_size_t.h>
 
 //=============================================================================
 //	Orthodox Canonical Form
@@ -167,7 +168,11 @@ int	Server::execute_client_request(int client_fd)
 	std::string url = cli->getRequest()->getReqTarget();
 	std::map<string, LocationBlock>::const_iterator	it;
 	bool is_valid_method = false;
+	size_t pos;
 
+	pos = url.find("delete");
+	if (pos == 1)
+		url = "/delete";
 	it = s_b.getLocationBlocks().find(url);
 	if (it != s_b.getLocationBlocks().end())
 	{
@@ -206,8 +211,7 @@ int	Server::execute_client_request(int client_fd)
 	else
 		cli->getRequest()->setStatusCode(404); // Not Found
 	// status code 디버깅용
-	cout << "-----------" << cli->getRequest()->getStatusCode() << endl;
-	cout << "-----------" << cli->getRequest()->getRedirectionURL() << endl;
+	cout << "Status Code : " << cli->getRequest()->getStatusCode() << endl;
 	return 1;
 }
 
@@ -231,11 +235,9 @@ ServerBlock Server::find_serverblock(int client_fd)
 	}
 	std::cout << host_header << "\n";
 	std::cout << "[" << port << "]\n";
-	std::cout << "[" << port << "]\n";
 	std::cout << "[" << hostname << "]\n";
 	// 서버 블록 결정
 	vector<ServerBlock> v = serverblock_info[stoi(port)];
-	std::cout << "b\n";
 	int flag = false;
 	ServerBlock s_b;
 	for(int i=0;i<v.size();i++)
