@@ -77,6 +77,7 @@ int Server::callback_read(int fd)
 				*/
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 				cli->getResponse()->makeContent("DELETE REQUEST");
+				cli->getResponse()->deleteResponse(cli->getRequest()->getDelFileName());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			default:
