@@ -74,11 +74,12 @@ void	Request::saveStartLine(string start_line)
 	}
 	if (this->m_del_file_name == "" && this->m_method == "DELETE")
 	{
-		pos = this->m_req_target.find("delete");
-		if (pos == 1)
+		pos = this->m_req_target.find("/delete/");
+		if (pos == 0)
 		{
 			for (size_t i = pos + 7;i < m_req_target.length();i++)
-				this->m_del_file_name += this->m_req_target[i]; 
+				this->m_del_file_name += this->m_req_target[i];
+			cout << "DEL_FILE_NAME : " << m_del_file_name << endl;
 		}
 	}
 }
