@@ -230,9 +230,10 @@ int Response::makeAutoIndex(const char *dir_path) {
 	if (getFileList(li, dir_path) == -1)
 		return -1;
 	result.append("<ul>\n");
-	for (int i=0; i<li.size(); ++i) {
-		result.append("<li>");
+	for (int i=2; i<li.size(); ++i) {
+		result.append("<li><a href=\"/download/" + li[i] + "\" download>");
 		result.append(li[i]);
+		result.append("</a>");
 		result.append("</li>");
 	}
 	result.append("\n</ul>\n");
