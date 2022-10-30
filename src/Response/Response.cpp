@@ -166,17 +166,18 @@ void Response::uploadResponse(string content_type, string content_body) {
 	std::cout << "Upload end\n";
 }
 
-int Response::serveFile(string file_name) {
+int Response::serveFile(string file_path) {
 	ifstream readFile;
-	string data = "", buf;
+	string data = "";
+	unsigned char buf;
 
-	if (file_name.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
+	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
-	readFile.open("./sudo/file_storage/" + file_name);
+	readFile.open(file_path);
 	if (!readFile.is_open())
 		return -1;
 	while (!readFile.eof()) {
-		getline(readFile, buf);
+		readFile.read(&buf, 1);
 		data += buf;
 	}
 	readFile.close();
@@ -184,23 +185,23 @@ int Response::serveFile(string file_name) {
 	return 0;
 }
 
-void Response::downloadResponse(string file_name) {
-	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_name + "\"");
-	if (this->serveFile(file_name) != 0)
+void Response::downloadResponse(string file_path) {
+	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
+	if (this->serveFile(file_path) != 0)
 		this->makeContent("Download Fail");
 }
 
-int Response::deleteFile(string file_name) {
-	if (file_name.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
+int Response::deleteFile(string file_path) {
+	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
-	string full_name = "./sudo/file_storage/" + URLDecoding(file_name.c_str());
+	string full_name = URLDecoding(file_path.c_str());
 	cout << "Decode file name: " << full_name << "\n";
 	return unlink(full_name.c_str());
 }
 
-void Response::deleteResponse(string file_name) {
+void Response::deleteResponse(string file_path) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (deleteFile(file_name) == 0)
+	if (deleteFile(file_path) == 0)
 		this->makeContent("Delete Success");
 	else
 		this->makeContent("Delete Fail");

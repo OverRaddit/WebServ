@@ -76,12 +76,14 @@ int Server::callback_read(int fd)
 				break;
 			case DELETE_REQUEST:
 				std::cout << "Req type: DELETE" << std::endl;
+				// root 폴더 파싱을 안해서 임시로 만듬
+				std::string root_path = "sudo/file_storage/"
 				/*
 				*		이곳에서 DELETE 요청을 처리합니다!
 				*/
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 				cli->getResponse()->makeContent("DELETE REQUEST");
-				cli->getResponse()->deleteResponse(cli->getRequest()->getDelFileName());
+				cli->getResponse()->deleteResponse(root_path + cli->getRequest()->getDelFileName());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case AUTOINDEX_REQUEST:
