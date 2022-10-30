@@ -169,7 +169,9 @@ void Response::uploadResponse(string content_type, string content_body) {
 int Response::serveFile(string file_path) {
 	ifstream readFile;
 	string data = "";
-	unsigned char buf;
+	unsigned int i = 0;
+	vector<char> d;
+	char buf;
 
 	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
@@ -177,8 +179,12 @@ int Response::serveFile(string file_path) {
 	if (!readFile.is_open())
 		return -1;
 	while (!readFile.eof()) {
-		readFile.read(&buf, 1);
-		data += buf;
+		readFile.read(&buf, sizeof(buf));
+		d.push_back(buf);
+	}
+	data.reserve(d.size());
+	for (unsigned int i=0; i<d.size(); ++i) {
+		data += d[i];
 	}
 	readFile.close();
 	this->setContent(data);
