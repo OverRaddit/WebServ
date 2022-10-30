@@ -195,7 +195,7 @@ int		Request::getCgiPid(void) const
 	return m_cgi_pid;
 }
 
-string		getCgiResult(void) const
+string	Request::getCgiResult(void) const
 {
 	return m_cgi_result;
 }
