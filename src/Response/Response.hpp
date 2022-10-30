@@ -3,9 +3,12 @@
 
 # include <string>
 # include <map>
+# include <vector>
 # include <fstream>
 # include <unistd.h>
 # include <cctype>
+# include <dirent.h>
+# include <sys/types.h>
 
 using namespace std;
 
@@ -25,6 +28,9 @@ private:
 	int			saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
 	int			serveFile(string file_name);
 	int			deleteFile(string file_name);
+
+	int			getFileList(vector<string>& li, const char *dir_path);
+	int			makeAutoIndex(const char *dir_path);
 
 public:
 	// 왜 private??
@@ -50,6 +56,7 @@ public:
 	void		uploadResponse(string content_type, string content_body);  // 파일 업로드 경우의 응답처리
 	void		downloadResponse(string file_name);  // 파일 다운로드 응답처리
 	void		deleteResponse(string file_name);  // 파일 삭제 응답처리
+	void		autoIndexResponse(const char *dir_path);
 
 	string		getHttpResponse();
 };
