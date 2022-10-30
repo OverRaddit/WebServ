@@ -220,6 +220,7 @@ int			Client::cgi_init()
 	write(to_child[1], buf, strlen(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
 
 	pid = fork();
+	getRequest()->setCgiPid(pid);	// 자식 프로세스 종료상태를 수거하기 위해 pid를 저장해둔다.
 	if (pid == 0)
 	{	// child
 		dup2(to_child[0], 0);	// 부모->자식파이프의 읽기fd == 자식의 표준입력
