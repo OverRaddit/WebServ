@@ -49,6 +49,10 @@ int Server::callback_read(int fd)
 		{
 			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
+
+			// for debug
+			cli->getRequest()->setReqType(DOWNLOAD_REQUEST);
+
 			switch (cli->getRequest()->getReqType())
 			{
 			case CGI_REQUEST:
@@ -80,6 +84,24 @@ int Server::callback_read(int fd)
 				cli->getResponse()->deleteResponse(cli->getRequest()->getDelFileName());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
+			case AUTOINDEX_REQUEST:
+				std::cout << "Req type: AUTOINDEX" << std::endl;
+				/*
+				*		이곳에서 DELETE 요청을 처리합니다!
+				*/
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->autoIndexResponse("sudo/file_storage/");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
+			case DOWNLOAD_REQUEST:
+				std::cout << "Req type: DOWNLOAD" << std::endl;
+				/*
+				*		이곳에서 DELETE 요청을 처리합니다!
+				*/
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->downloadResponse("asdf.jpeg");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
 			default:
 				std::cout << "Req type: " << cli->getRequest()->getReqType() << std::endl;
 				break;
@@ -91,6 +113,10 @@ int Server::callback_read(int fd)
 		std::cout << "pipe socket event\n";
 		cli = clients_info[pipe_to_client[fd]];
 		cli->read_pipe_result();
+
+		// CGI 프로세스의 종료상태를 회수한다.
+		//waitpid(child_pid)
+
 		// 파이프를 제거해주지 않는다면?
 		disconnect_pipe(cli->getPipeFd());
 		// if (cli->getPipeFd() != -1)
