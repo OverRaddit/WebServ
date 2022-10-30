@@ -137,6 +137,11 @@ void	Request::setCgiPid(int cgi_pid)
 	this->m_cgi_pid = cgi_pid;
 }
 
+void	Request::setCgiResult(string cgi_result)
+{
+	this->m_cgi_result = cgi_result;
+}
+
 long long	Request::getContentLength(void) const {
 	return this->m_content_length;
 }
@@ -188,4 +193,9 @@ int		Request::getReqType(void) const
 int		Request::getCgiPid(void) const
 {
 	return m_cgi_pid;
+}
+
+string		getCgiResult(void) const
+{
+	return m_cgi_result;
 }

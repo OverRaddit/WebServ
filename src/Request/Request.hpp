@@ -22,6 +22,7 @@ public:
 	void	setRedirectionURL(string url);
 	void	setReqType(int type);
 	void	setCgiPid(int cgi_pid);
+	void	setCgiResult(string cgi_result);
 
 	int		saveOnlyBody(string req_body);
 
@@ -36,6 +37,7 @@ public:
 	int			getReqType(void) const;
 	string		getDelFileName(void) const;
 	int			getCgiPid(void) const;
+	string		getCgiResult(void) const;
 
 private:
 	map<string, string>	m_req_header;
@@ -49,6 +51,7 @@ private:
 	int					m_req_type;
 	string				m_del_file_name;
 	int					m_cgi_pid;
+	string				m_cgi_result;
 	Request(void);
 
 	void	saveStartLine(string start_line);
