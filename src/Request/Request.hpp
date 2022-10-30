@@ -21,6 +21,7 @@ public:
 	void	setStatusCode(int status_code);
 	void	setRedirectionURL(string url);
 	void	setReqType(int type);
+	void	setCgiPid(int cgi_pid);
 
 	int		saveOnlyBody(string req_body);
 
@@ -34,6 +35,8 @@ public:
 	long long	getContentLength(void) const;
 	int			getReqType(void) const;
 	string		getDelFileName(void) const;
+	int			getCgiPid(void) const;
+
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;
@@ -45,6 +48,7 @@ private:
 	string				m_redirection_url;
 	int					m_req_type;
 	string				m_del_file_name;
+	int					m_cgi_pid;
 	Request(void);
 
 	void	saveStartLine(string start_line);

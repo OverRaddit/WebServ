@@ -23,7 +23,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name("")
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name(""), m_cgi_pid(-1)
 {
 	string	line = "";
 
@@ -132,6 +132,11 @@ void	Request::setReqType(int type)
 	this->m_req_type = type;
 }
 
+void	Request::setCgiPid(int cgi_pid)
+{
+	this->m_cgi_pid = cgi_pid;
+}
+
 long long	Request::getContentLength(void) const {
 	return this->m_content_length;
 }
@@ -178,4 +183,9 @@ string	Request::getReqHeaderValue(string key) {
 int		Request::getReqType(void) const
 {
 	return m_req_type;
+}
+
+int		Request::getCgiPid(void) const
+{
+	return m_cgi_pid;
 }
