@@ -23,8 +23,12 @@
 # define UPLOAD_REQUEST 1
 # define OTHER_REQUEST 2
 # define DELETE_REQUEST 3
+# define AUTOINDEX_REQUEST 4
+# define DOWNLOAD_REQUEST 5
 
 # define DELETE_HTTP_METHOD "DELETE"
+# define AUTOINDEX_URL "/autoindex"
+# define DOWNLOAD_URL "/download"
 
 class Server {
 
