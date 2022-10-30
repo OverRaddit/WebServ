@@ -106,7 +106,11 @@ int Server::callback_read(int fd)
 	{
 		std::cout << "pipe socket event\n";
 		cli = clients_info[pipe_to_client[fd]];
-		cli->read_pipe_result();
+		if (cli->read_pipe_result() == 0 )
+		{
+			// pipe 결과물을 모두 가져오기 전까지 진행하지 않는다.
+			return (0);
+		}
 
 		// 파이프를 제거해주지 않는다면?
 		disconnect_pipe(cli->getPipeFd());
