@@ -79,8 +79,8 @@ int			Client::read_client_request()
 		if (m_pending == false)
 		{
 			setRawRequest(string(buf, n));
-			std::cout << "====== Request start ======\n" << std::endl;
-			std::cout << getRawRequest() << std::endl << std::endl;
+			std::cout << "====== Request start ======" << std::endl;
+			std::cout << getRawRequest() << std::endl;
 			std::cout << "====== Request end ======" << std::endl;
 			Request *req = new Request(getRawRequest());
 			setRequest(req);
@@ -101,16 +101,11 @@ int			Client::read_client_request()
 		{
 			std::cout << "request uncomplete\n";
 			m_pending = true;
-			// 쪼개진 요청에 응답을 안한다.
 			return 0;
 		}
 		else
 			m_pending = false;
 
-		// int ret;
-		// if ((ret = cgi_init()) < 0)
-		// 	return -1;
-		// return ret;
 		return 1;
 	}
 	return 0;
@@ -135,38 +130,13 @@ int			Client::read_pipe_result()
 	std::cout << result << std::endl;
 	std::cout << "====== pipe result end ======" << std::endl;
 
-	// Client의 Response 객체 생성하기
-	if (!req)
-	{
-		std::cout << "Request gone....!\n";
-		return (0);
-	}
-
-	// CGI의 응답을 한번에 읽지 못하면 문제가 발생할 수 있다.
-	// if (result.length() != 1)
-	// {
-	// 	return 0;
-	// }
-
 	res = new Response(req->getStatusCode());
-	// 파일 다운로드 응답인 경우에 아래 헤더 추가
-	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
-	res->cgiResponse(result);  // cgi 응답인 경우
-
-	// 파일 업로드 요청인 경우
-	//res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
-	//res->downloadResponse(req->getReqBody());
-	//res->deleteResponse(req->getReqBody());
+	res->cgiResponse(result);
 
 	// 요청이 완전하고 upload 요청일때만 처리한다
 	if (m_pending == false && req->getReqTarget() == "/upload")
-	{
-		std::cout << "Before upload Response\n";
 		res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
-		std::cout << "After upload Response\n";
-	}
 
-	// 파이프 종료는 서버에서 담당한다.
 	return (0);
 }
 
