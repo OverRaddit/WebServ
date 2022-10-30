@@ -116,28 +116,39 @@ int			Client::read_pipe_result()
 {
 	int ret;
 	char buf[65524];
-	std::string result = "";
 
 	// read
 	// 비동기방식으로 바꿔야 함.
-	while((ret = read(getPipeFd(), buf, 65524 - 1)) > 0 && strlen(buf) != 0) {
+	// while((ret = read(getPipeFd(), buf, 65524 - 1)) > 0 && strlen(buf) != 0) {
+	// 	buf[ret] = '\0';
+	// 	std::string temp(buf);
+	// 	result += temp;
+	// }
+	ret = read(getPipeFd(), buf, 65524 - 1);	// 마지막에 NULL을 넣어야 seg fault 방지가능
+	if (ret > 0)
+	{
 		buf[ret] = '\0';
-		std::string temp(buf);
-		result += temp;
+		std::string temp(buf, ret);
+		getRequest()->setCgiResult(getRequest()->getCgiResult() + temp);
 	}
+	else
+		std::cerr << "Read Error!!" << std::endl;
 
 	std::cout << "====== pipe result start ======" << std::endl;
-	std::cout << result << std::endl;
+	std::cout << getRequest()->getCgiResult() << std::endl;
 	std::cout << "====== pipe result end ======" << std::endl;
 
+	if (ret != 0)
+		return (0);
+
 	res = new Response(req->getStatusCode());
-	res->cgiResponse(result);
+	res->cgiResponse(getRequest()->getCgiResult());
 
 	// 요청이 완전하고 upload 요청일때만 처리한다
 	if (m_pending == false && req->getReqTarget() == "/upload")
 		res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
 
-	return (0);
+	return (1);
 }
 
 void		Client::make_env(char **env)
@@ -176,8 +187,8 @@ int			Client::cgi_init()
 	env = (char**)malloc(sizeof(char*) * 11);
 	make_env(env);
 	// 파이프 fd를 nonblock하면 어떻게 되는 거지?
-	// fcntl(m_pipe[1], F_SETFL, O_NONBLOCK);
-	// fcntl(m_pipe[0], F_SETFL, O_NONBLOCK);
+	fcntl(to_parent[1], F_SETFL, O_NONBLOCK);
+	fcntl(to_parent[0], F_SETFL, O_NONBLOCK);
 
 	// 자식(CGI)가 가져갈 표준입력 준비.
 	// 버퍼 한번에 담을 수 없는 양이 들어오면 어떡해야 할 지 모르겠다.
