@@ -59,8 +59,19 @@ void	ServerBlock::setIndexFile(string file_name)
 
 void	ServerBlock::setCgiTester(string cgi_tester)
 {
-	// 지심과 얘기
-	this->m_cgi_tester = cgi_tester;
+	bool flag = false;
+
+	this->m_cgi_tester = "";
+	this->m_cgi_extension = "";
+	for (int i = 0;i < cgi_tester.length();i++)
+	{
+		if (cgi_tester[i] == ' ')
+			flag = true;
+		if (!flag)
+			this->m_cgi_tester += cgi_tester[i];
+		else
+			this->m_cgi_extension += cgi_tester[i];
+	}
 }
 
 void	ServerBlock::setRootDir(string root_dir)
@@ -84,6 +95,8 @@ string	ServerBlock::getErrorPage(int error_code) const { return this->m_error_pa
 string ServerBlock::getIndexFile(void) const { return this->m_index_file; }
 
 string ServerBlock::getCgiTester(void) const { return this->m_cgi_tester; }
+
+string ServerBlock::getCgiExtension(void) const { return this->m_cgi_extension; }
 
 string ServerBlock::getRootDir(void) const { return this->m_root_dir; }
 

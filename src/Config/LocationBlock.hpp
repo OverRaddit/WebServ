@@ -8,7 +8,8 @@
 
 # define CGI 0
 # define UPLOAD 1
-# define DEFAULT 2
+# define DOWNLOAD 2
+# define DEFAULT 3
 
 
 using namespace std;
