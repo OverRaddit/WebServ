@@ -23,7 +23,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name(""), m_is_incomplete(false)
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name(""), m_is_incomplete(false), m_cgi_pid(-1)
 {
 	string	line = "";
 	size_t	len = request_msg.length();
@@ -167,6 +167,16 @@ void	Request::setReqType(int type)
 	this->m_req_type = type;
 }
 
+void	Request::setCgiPid(int cgi_pid)
+{
+	this->m_cgi_pid = cgi_pid;
+}
+
+void	Request::setCgiResult(string cgi_result)
+{
+	this->m_cgi_result = cgi_result;
+}
+
 long long	Request::getContentLength(void) const {
 	return this->m_content_length;
 }
@@ -223,4 +233,14 @@ bool		Request::getIsIncomplete(void) const
 string		Request::getIncompleteMessage(void) const
 {
 	return this->m_incomplete_message;
+}
+
+int		Request::getCgiPid(void) const
+{
+	return m_cgi_pid;
+}
+
+string	Request::getCgiResult(void) const
+{
+	return m_cgi_result;
 }

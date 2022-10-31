@@ -113,16 +113,11 @@ int			Client::read_client_request()
 		{
 			std::cout << "request uncomplete\n";
 			m_pending = true;
-			// 쪼개진 요청에 응답을 안한다.
 			return 0;
 		}
 		else
 			m_pending = false;
 
-		// int ret;
-		// if ((ret = cgi_init()) < 0)
-		// 	return -1;
-		// return ret;
 		return 1;
 	}
 	return 0;
@@ -133,53 +128,39 @@ int			Client::read_pipe_result()
 {
 	int ret;
 	char buf[65524];
-	std::string result = "";
 
 	// read
 	// 비동기방식으로 바꿔야 함.
-	while((ret = read(getPipeFd(), buf, 65524 - 1)) > 0 && strlen(buf) != 0) {
+	// while((ret = read(getPipeFd(), buf, 65524 - 1)) > 0 && strlen(buf) != 0) {
+	// 	buf[ret] = '\0';
+	// 	std::string temp(buf);
+	// 	result += temp;
+	// }
+	ret = read(getPipeFd(), buf, 65524 - 1);	// 마지막에 NULL을 넣어야 seg fault 방지가능
+	if (ret > 0)
+	{
 		buf[ret] = '\0';
-		std::string temp(buf);
-		result += temp;
+		std::string temp(buf, ret);
+		getRequest()->setCgiResult(getRequest()->getCgiResult() + temp);
 	}
+	else
+		std::cerr << "Read Error!!" << std::endl;
 
 	std::cout << "====== pipe result start ======" << std::endl;
-	std::cout << result << std::endl;
+	std::cout << getRequest()->getCgiResult() << std::endl;
 	std::cout << "====== pipe result end ======" << std::endl;
 
-	// Client의 Response 객체 생성하기
-	if (!req)
-	{
-		std::cout << "Request gone....!\n";
+	if (ret != 0)
 		return (0);
-	}
-
-	// CGI의 응답을 한번에 읽지 못하면 문제가 발생할 수 있다.
-	// if (result.length() != 1)
-	// {
-	// 	return 0;
-	// }
 
 	res = new Response(req->getStatusCode());
-	// 파일 다운로드 응답인 경우에 아래 헤더 추가
-	//res->setHeaders("Content-Disposition", "attachment; filename=\"cool.html\"");
-	res->cgiResponse(result);  // cgi 응답인 경우
-
-	// 파일 업로드 요청인 경우
-	//res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
-	//res->downloadResponse(req->getReqBody());
-	//res->deleteResponse(req->getReqBody());
+	res->cgiResponse(getRequest()->getCgiResult());
 
 	// 요청이 완전하고 upload 요청일때만 처리한다
 	if (m_pending == false && req->getReqTarget() == "/upload")
-	{
-		std::cout << "Before upload Response\n";
 		res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
-		std::cout << "After upload Response\n";
-	}
 
-	// 파이프 종료는 서버에서 담당한다.
-	return (0);
+	return (1);
 }
 
 void		Client::make_env(char **env)
@@ -218,8 +199,8 @@ int			Client::cgi_init()
 	env = (char**)malloc(sizeof(char*) * 11);
 	make_env(env);
 	// 파이프 fd를 nonblock하면 어떻게 되는 거지?
-	// fcntl(m_pipe[1], F_SETFL, O_NONBLOCK);
-	// fcntl(m_pipe[0], F_SETFL, O_NONBLOCK);
+	fcntl(to_parent[1], F_SETFL, O_NONBLOCK);
+	fcntl(to_parent[0], F_SETFL, O_NONBLOCK);
 
 	// 자식(CGI)가 가져갈 표준입력 준비.
 	// 버퍼 한번에 담을 수 없는 양이 들어오면 어떡해야 할 지 모르겠다.
@@ -232,6 +213,7 @@ int			Client::cgi_init()
 	write(to_child[1], buf, strlen(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
 
 	pid = fork();
+	getRequest()->setCgiPid(pid);	// 자식 프로세스 종료상태를 수거하기 위해 pid를 저장해둔다.
 	if (pid == 0)
 	{	// child
 		dup2(to_child[0], 0);	// 부모->자식파이프의 읽기fd == 자식의 표준입력

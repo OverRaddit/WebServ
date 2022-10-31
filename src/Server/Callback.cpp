@@ -49,6 +49,13 @@ int Server::callback_read(int fd)
 		{
 			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
+
+			// for debug
+			//cli->getRequest()->setReqType(DOWNLOAD_REQUEST);
+
+			// root 폴더 파싱을 안해서 임시로 만듬
+			std::string root_path = "sudo/file_storage/";
+
 			switch (cli->getRequest()->getReqType())
 			{
 			case CGI_REQUEST:
@@ -72,12 +79,21 @@ int Server::callback_read(int fd)
 				break;
 			case DELETE_REQUEST:
 				std::cout << "Req type: DELETE" << std::endl;
-				/*
-				*		이곳에서 DELETE 요청을 처리합니다!
-				*/
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 				cli->getResponse()->makeContent("DELETE REQUEST");
-				cli->getResponse()->deleteResponse(cli->getRequest()->getDelFileName());
+				cli->getResponse()->deleteResponse(root_path + cli->getRequest()->getDelFileName());
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
+			case AUTOINDEX_REQUEST:
+				std::cout << "Req type: AUTOINDEX" << std::endl;
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->autoIndexResponse("sudo/file_storage/");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				break;
+			case DOWNLOAD_REQUEST:
+				std::cout << "Req type: DOWNLOAD" << std::endl;
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->downloadResponse(root_path + "asdf.jpeg");
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			default:
@@ -90,7 +106,12 @@ int Server::callback_read(int fd)
 	{
 		std::cout << "pipe socket event\n";
 		cli = clients_info[pipe_to_client[fd]];
-		cli->read_pipe_result();
+		if (cli->read_pipe_result() == 0 )
+		{
+			// pipe 결과물을 모두 가져오기 전까지 진행하지 않는다.
+			return (0);
+		}
+
 		// 파이프를 제거해주지 않는다면?
 		disconnect_pipe(cli->getPipeFd());
 		// if (cli->getPipeFd() != -1)
@@ -109,8 +130,16 @@ int Server::callback_write(int fd)
 	if (!is_client(fd))
 		return -1;
 
-	// write하기.
 	cli = clients_info[fd];
+	// CGI process 종료상태 회수
+	if (cli->getRequest()->getReqType() == CGI_REQUEST)
+	{
+		cout << "start collect CGI process status" << endl;
+		waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
+		cout << "end collect CGI process status" << endl;
+	}
+
+	// write하기.
 	// 가끔 이미 처리한 요청을 또 write해서 req,res가 없다.
 	char *res = strdup(cli->getResponse()->getHttpResponse().c_str());
 

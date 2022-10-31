@@ -88,7 +88,7 @@ void Response::makeContent(string content) {
 	string result = "";
 	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
 	result.append("<body>");
-	result.append("<h3>" + content + "</h3>");
+	result.append(content);
 	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
 	result.append("</body></html>");
 
@@ -148,7 +148,7 @@ int Response::saveFile(string content_type, string content_body) {
 	while (sub_content.find("--" + boundary + "--") != 0) {
 		file_name = parseHeader(sub_content);
 		file_body = getFileContent(sub_content, "--" + boundary);
-		if (file_name[0] == '.')  // 이상한 파일 이름
+		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
 			return -1;
 		writeFile.open("./sudo/file_storage/" + file_name);
 		writeFile.write(file_body.c_str(), file_body.size());
@@ -166,44 +166,92 @@ void Response::uploadResponse(string content_type, string content_body) {
 	std::cout << "Upload end\n";
 }
 
-int Response::serveFile(string file_name) {
+int Response::serveFile(string file_path) {
 	ifstream readFile;
-	string data = "", buf;
+	string data = "";
+	unsigned int i = 0;
+	vector<char> d;
+	char buf;
 
-	if (file_name[0] == '.')  // 이상한 파일 이름
+	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
-	readFile.open("./sudo/file_storage/" + file_name);
+	readFile.open(file_path);
 	if (!readFile.is_open())
 		return -1;
 	while (!readFile.eof()) {
-		getline(readFile, buf);
-		data += buf;
+		readFile.read(&buf, sizeof(buf));
+		d.push_back(buf);
+	}
+	data.reserve(d.size());
+	for (unsigned int i=0; i<d.size(); ++i) {
+		data += d[i];
 	}
 	readFile.close();
 	this->setContent(data);
 	return 0;
 }
 
-void Response::downloadResponse(string file_name) {
-	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_name + "\"");
-	if (this->serveFile(file_name) != 0)
+void Response::downloadResponse(string file_path) {
+	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
+	if (this->serveFile(file_path) != 0)
 		this->makeContent("Download Fail");
 }
 
-int Response::deleteFile(string file_name) {
-	if (file_name.find("./") != string::npos)  // 이상한 파일 이름
+int Response::deleteFile(string file_path) {
+	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
-	string full_name = "./sudo/file_storage/" + URLDecoding(file_name.c_str());
+	string full_name = URLDecoding(file_path.c_str());
 	cout << "Decode file name: " << full_name << "\n";
-	unlink(full_name.c_str());
-	return 0;
+	return unlink(full_name.c_str());
 }
 
-void Response::deleteResponse(string file_name) {
-	if (deleteFile(file_name) == 0)
+void Response::deleteResponse(string file_path) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (deleteFile(file_path) == 0)
 		this->makeContent("Delete Success");
 	else
 		this->makeContent("Delete Fail");
+}
+
+int Response::getFileList(vector<string>& li, const char *dir_path) {
+	struct dirent	*file    = NULL;
+	DIR				*dir_ptr = NULL;
+
+	// 목록을 읽을 디렉토리명으로 DIR *를 return
+	if((dir_ptr = opendir(dir_path)) == NULL)
+		return -1;
+
+	// 디렉토리의 처음부터 파일 또는 디렉토리명을 순서대로 한개씩 읽기r.
+	while((file = readdir(dir_ptr)) != NULL) {
+		li.push_back(file->d_name);
+	}
+	// open된 directory 정보를 close.
+
+	closedir(dir_ptr);
+	return 0;
+}
+
+int Response::makeAutoIndex(const char *dir_path) {
+	vector<string> li;
+	string result = "";
+	if (getFileList(li, dir_path) == -1)
+		return -1;
+	result.append("<ul>\n");
+	for (int i=2; i<li.size(); ++i) {
+		result.append("<li><a href=\"/download/" + li[i] + "\" download>");
+		result.append(li[i]);
+		result.append("</a>");
+		result.append("</li>");
+	}
+	result.append("\n</ul>\n");
+	this->setContent(result);
+	return 0;
+}
+
+void Response::autoIndexResponse(const char *dir_path) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (this->makeAutoIndex(dir_path) == -1)
+		this->makeContent("Auto Index Fail");
 }
 
 string Response::getHttpResponse() {

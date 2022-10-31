@@ -21,6 +21,8 @@ public:
 	void	setStatusCode(int status_code);
 	void	setRedirectionURL(string url);
 	void	setReqType(int type);
+	void	setCgiPid(int cgi_pid);
+	void	setCgiResult(string cgi_result);
 
 	int		saveOnlyBody(string req_body);
 	void	saveRequestAgain(string req_msg);
@@ -37,6 +39,9 @@ public:
 	string		getDelFileName(void) const;
 	bool		getIsIncomplete(void) const;
 	string		getIncompleteMessage(void) const;
+	int			getCgiPid(void) const;
+	string		getCgiResult(void) const;
+
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;
@@ -50,6 +55,9 @@ private:
 	string				m_del_file_name;
 	bool				m_is_incomplete;
 	string				m_incomplete_message;
+	int					m_cgi_pid;
+	string				m_cgi_result;
+  
 	Request(void);
 
 	void	saveStartLine(string start_line);
