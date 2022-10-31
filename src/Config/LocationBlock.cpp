@@ -4,7 +4,7 @@
 #include <string>
 
 LocationBlock::LocationBlock(void)
-: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false), m_redirection_url(""), m_request_type(2)
+: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false), m_redirection_url(""), m_request_type(DEFAULT)
 {}
 
 void LocationBlock::setValidMethod(string loc_block, size_t pos)
@@ -44,6 +44,8 @@ void	LocationBlock::setRequestType(string loc_block, size_t pos)
 		this->m_request_type = CGI;
 	else if (type == "upload")
 		this->m_request_type = UPLOAD;
+	else if (type == "download")
+		this->m_request_type = DOWNLOAD;
 	else
 		flag = true;
 	if (flag)
@@ -68,8 +70,11 @@ void	LocationBlock::setMaxBodySize(string loc_block, size_t pos)
 			flag = 1;
 		else if (loc_block[i] == 'g' || loc_block[i] == 'G')
 			flag = 2;
-		else if (loc_block[i + 1] == ';' && loc_block[i] == '0' && max_body_size == "")
+		else if (loc_block[i + 1] == ';')
+		{
+			max_body_size += loc_block[i];
 			flag = 3;
+		}
 		max_body_size += loc_block[i];
 	}
 	if (flag == -1)
@@ -84,7 +89,7 @@ void	LocationBlock::setMaxBodySize(string loc_block, size_t pos)
 	else if (flag == 2)
 		this->m_max_body_size = stoll(max_body_size) * 1024 * 1024 * 1024;
 	else if (flag == 3)
-		this->m_max_body_size = 0;
+		this->m_max_body_size = stoll(max_body_size);
 }
 
 int		LocationBlock::getRequestType(void) const {
