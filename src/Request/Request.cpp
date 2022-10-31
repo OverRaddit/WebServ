@@ -23,10 +23,10 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name("")
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name(""), m_is_incomplete(false)
 {
 	string	line = "";
-
+	size_t	len = request_msg.length();
 	for (int i = 0;request_msg[i];i++)
 	{
 		if (request_msg[i] == '\r')
@@ -35,7 +35,8 @@ Request::Request(string request_msg): m_req_header(), m_http_version(""), m_meth
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
-				this->setReqBody(request_msg.substr(i + 2));
+				if (i + 2 != len)
+					this->setReqBody(request_msg.substr(i + 2));
 				break;
 			}
 			else
@@ -45,6 +46,41 @@ Request::Request(string request_msg): m_req_header(), m_http_version(""), m_meth
 		else if (request_msg[i] != '\n')
 			line += request_msg[i];
 	}
+	if (line.length() != 0)
+	{
+		this->m_incomplete_message = line;
+		this->m_is_incomplete = true;
+	}
+}
+
+void	Request::saveRequestAgain(string req_msg)
+{
+	string	line = "";
+	size_t	len = req_msg.length();
+
+	for (int i = 0;req_msg[i];i++)
+	{
+		if (req_msg[i] == '\r')
+		{
+			if (m_method.empty())
+				this->saveStartLine(line);
+			else if (line.length() == 0)
+			{
+				if (i + 2 < len)
+					this->setReqBody(req_msg.substr(i + 2));
+				break;
+			}
+			else
+				this->saveHeader(line);
+			line = "";
+		}
+		else if (req_msg[i] != '\n')
+			line += req_msg[i];
+	}
+	if (line.length() != 0)
+		this->m_incomplete_message = line;
+	else
+		this->m_is_incomplete = false;
 }
 
 int		Request::saveOnlyBody(string req_body)
@@ -94,7 +130,6 @@ void	Request::saveHeader(string header_line)
 	{
 		if (header_line[i] != ':')
 			continue ;
-
 		this->setReqHeader(header_line.substr(0, i), header_line.substr(i+2));
 		break;
 	}
@@ -177,5 +212,15 @@ string	Request::getReqHeaderValue(string key) {
 
 int		Request::getReqType(void) const
 {
-	return m_req_type;
+	return this->m_req_type;
+}
+
+bool		Request::getIsIncomplete(void) const
+{
+	return this->m_is_incomplete;
+}
+
+string		Request::getIncompleteMessage(void) const
+{
+	return this->m_incomplete_message;
 }
