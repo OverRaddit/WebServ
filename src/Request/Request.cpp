@@ -23,7 +23,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(2), m_del_file_name(""), m_is_incomplete(false), m_cgi_pid(-1)
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(OTHER_REQUEST), m_del_file_name(""), m_is_incomplete(false), m_cgi_pid(-1)
 {
 	string	line = "";
 	size_t	len = request_msg.length();

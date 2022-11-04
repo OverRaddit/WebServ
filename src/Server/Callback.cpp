@@ -93,7 +93,7 @@ int Server::callback_read(int fd)
 			case DOWNLOAD_REQUEST:
 				std::cout << "Req type: DOWNLOAD" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->downloadResponse(root_path + "asdf.jpeg");
+				cli->getResponse()->downloadResponse(root_path + "a.txt");
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			default:

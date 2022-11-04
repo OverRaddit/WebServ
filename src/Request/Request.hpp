@@ -6,6 +6,8 @@
 # include <string>
 # include <map>
 
+# include "../Server/RequestType.hpp"
+
 using namespace std;
 
 class Request {
@@ -57,7 +59,7 @@ private:
 	string				m_incomplete_message;
 	int					m_cgi_pid;
 	string				m_cgi_result;
-  
+
 	Request(void);
 
 	void	saveStartLine(string start_line);
