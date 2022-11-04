@@ -20,6 +20,9 @@ private:
 	map<string, string>		m_headers;
 	string					m_content;
 	string					m_cgiResult;
+	string					m_rootPath;
+	string					m_indexFile;
+	string					m_ErrorFile;
 
 	string		makeHeaders();
 	string		parseHeader(string& content_type);
@@ -31,6 +34,9 @@ private:
 
 	int			getFileList(vector<string>& li, const char *dir_path);
 	int			makeAutoIndex(const char *dir_path);
+
+	int			makeContentError(string error_path);
+	int			makeContentIndex(string root_path);
 
 public:
 	// 왜 private??
@@ -52,11 +58,16 @@ public:
 	void		setCgiResult(string ret);
 	void		setContent(string content);
 
+	void		setRootPath(string path);
+	void		setIndexFile(string path);
+	void		setErrorFile(string path);
+
 	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
 	void		uploadResponse(string content_type, string content_body);  // 파일 업로드 경우의 응답처리
 	void		downloadResponse(string file_path);  // 파일 다운로드 응답처리
 	void		deleteResponse(string file_path);  // 파일 삭제 응답처리
 	void		autoIndexResponse(const char *dir_path);
+	void		defaultResponse();
 
 	string		getHttpResponse();
 };

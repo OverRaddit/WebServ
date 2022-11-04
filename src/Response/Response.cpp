@@ -254,6 +254,47 @@ void Response::autoIndexResponse(const char *dir_path) {
 		this->makeContent("Auto Index Fail");
 }
 
+int Response::makeContentError() {
+	ifstream readFile;
+	string data = "";
+	char buf;
+
+	readFile.open(this->m_rootPath + "/" + this->m_ErrorFile);
+	if (!readFile.is_open())
+		return -1;
+	while (!readFile.eof()) {
+		readFile.read(&buf, sizeof(buf));
+		data.append(buf);
+	}
+	readFile.close();
+	this->setStatusCode(404);
+	this->setContent(data);
+	return 0;
+}
+
+int Response::makeContentIndex(string file) {
+	ifstream readFile;
+	string data = "";
+	char buf;
+
+	readFile.open(this->m_rootPath + "/" + file);
+	if (!readFile.is_open())
+		return -1;
+	while (!readFile.eof()) {
+		readFile.read(&buf, sizeof(buf));
+		data.append(buf);
+	}
+	readFile.close();
+	this->setContent(data);
+	return 0;
+}
+
+void Response::defaultResponse() {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (this->makeContentIndex(this->m_indexFile) == -1)
+		this->makeContentError();
+}
+
 string Response::getHttpResponse() {
 	string result = this->makeHeaders();
 	result += this->getContent();
