@@ -71,12 +71,13 @@ int			Client::read_client_request()
 	else
 	{
 		buf[n] = '\0';
-
 		if (m_pending == false)
 		{
+			if (buf[0] < 'A' || buf[0] > 'Z')
+				return 0;
 			setRawRequest(string(buf, n));
 			std::cout << "====== Request start ======" << std::endl;
-			std::cout << getRawRequest() << std::endl;
+			std::cout << "[" << getRawRequest() << "]" << std::endl;
 			std::cout << "====== Request end ======" << std::endl;
 			Request *req = new Request(getRawRequest());
 			setRequest(req);
@@ -87,11 +88,21 @@ int			Client::read_client_request()
 			std::cout << "====== ing Request start ======" << std::endl;
 			std::cout << string(buf, n) << std::endl;
 			std::cout << "====== Request end ======" << std::endl;
-			if ( req->saveOnlyBody(string(buf, n)) == req->getContentLength())
+			if (req->getIsIncomplete())
+			{
+				string msg = req->getIncompleteMessage();
+				cout << "Incomplete Message : " << msg << endl;
+				msg.append(string(buf, n));
+				cout << "Append Message : " << msg << endl;
+				req->saveRequestAgain(msg);
+				cout << "---------------------" << endl;
+			}
+			else if (req->saveOnlyBody(string(buf, n)) == req->getContentLength())
 				m_pending = false;
 		}
 
-		if (req->getContentLength() > req->getReqBody().length())
+		// 현재 요청이 완성되었는지 확인한다. 1571,
+		if (req->getContentLength() > req->getReqBody().length() || req->getIsIncomplete())
 		{
 			m_pending = true;
 			return 0;

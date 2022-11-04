@@ -2,6 +2,7 @@
 # define SERVER_BLOCK_HPP
 
 # include <map>
+#include <string>
 # include "LocationBlock.hpp"
 
 using namespace std;
@@ -23,6 +24,7 @@ public:
 	string	getServerName(void) const;
 	string	getRootDir(void) const;
 	string	getCgiTester(void) const;
+	string	getCgiExtension(void) const;
 	string	getIndexFile(void) const;
 	const map<string, LocationBlock>&	getLocationBlocks(void) const;
 private:
@@ -32,6 +34,7 @@ private:
 	string						m_server_name;
 	string						m_root_dir;
 	string						m_cgi_tester;
+	string						m_cgi_extension;
 	string						m_index_file;
 };
 
