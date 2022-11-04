@@ -40,6 +40,7 @@ public:
 	long long	getContentLength(void) const;
 	int			getReqType(void) const;
 	string		getDelFileName(void) const;
+	string		getDownloadFileName(void) const;
 	bool		getIsIncomplete(void) const;
 	string		getIncompleteMessage(void) const;
 	int			getCgiPid(void) const;
@@ -57,6 +58,7 @@ private:
 	string				m_redirection_url;
 	int					m_req_type;
 	string				m_del_file_name;
+	string				m_download_file_name;
 	bool				m_is_incomplete;
 	string				m_incomplete_message;
 	int					m_cgi_pid;

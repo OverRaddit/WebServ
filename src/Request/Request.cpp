@@ -118,6 +118,16 @@ void	Request::saveStartLine(string start_line)
 			cout << "DEL_FILE_NAME : " << m_del_file_name << endl;
 		}
 	}
+	// else if (this->m_download_file_name == "" && this->m_req_type == DOWNLOAD_REQUEST)
+	// {
+	// 	pos = this->m_req_target.find("/download/");
+	// 	if (pos != string::npos)
+	// 	{
+	// 		for (size_t i = pos + 10;i < m_req_target.length();i++)
+	// 			this->m_download_file_name += this->m_req_target[i];
+	// 		cout << "DEL_FILE_NAME : " << m_download_file_name << endl;
+	// 	}
+	// }
 }
 
 void	Request::saveHeader(string header_line)
@@ -211,6 +221,10 @@ int		Request::getStatusCode(void) const {
 
 string		Request::getDelFileName(void) const {
 	return this->m_del_file_name;
+}
+
+string		Request::getDownloadFileName(void) const {
+	return this->m_download_file_name;
 }
 
 string	Request::getReqHeaderValue(string key) {
