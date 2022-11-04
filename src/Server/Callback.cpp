@@ -44,9 +44,7 @@ int Server::callback_read(int fd)
 		{
 			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
-
-			// root 폴더 파싱을 안해서 임시로 만듬
-			std::string root_path = "sudo/file_storage/";
+			std::string root_path = cli->getRequest()->getSudoDir();
 
 			switch (cli->getRequest()->getReqType())
 			{
@@ -79,7 +77,7 @@ int Server::callback_read(int fd)
 			case AUTOINDEX_REQUEST:
 				std::cout << "Req type: AUTOINDEX" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->autoIndexResponse("sudo/file_storage/");
+				cli->getResponse()->autoIndexResponse(root_path.c_str());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case DOWNLOAD_REQUEST:

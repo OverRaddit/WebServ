@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/04 21:53:30 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/05 00:59:44 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,6 +168,9 @@ int	Server::execute_client_request(int client_fd)
 	pos = url.find("/delete/");
 	if (pos == 0)
 		url = "/delete";
+	// 필요해보여서 넣음
+	else if ((pos = url.find("/download/")) != string::npos)
+		url = "/download";
 	it = s_b.getLocationBlocks().find(url);
 	if (it != s_b.getLocationBlocks().end())
 	{
@@ -184,10 +187,10 @@ int	Server::execute_client_request(int client_fd)
 				else if (it->second.getAutoIndex())
 					cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
 
-				// root값
-				//cli->getRequest()->setRoot(s_b.getRootDir()+it->second.getRootDir());
+				// Rootdir 확인
 				cout << "this location's block's root is...  ";
-				cout << s_b.getRootDir()+"/"+it->second.getRootDir() << endl;
+				cout << s_b.getRootDir()+"/"+it->second.getRootDir()+"/" << endl;
+				cli->getRequest()->setSudoDir(s_b.getRootDir()+"/"+it->second.getRootDir()+"/");
 
 				break;
 			}
@@ -236,9 +239,6 @@ ServerBlock Server::find_serverblock(int client_fd)
 			break;
 		}
 	}
-	std::cout << host_header << "\n";
-	std::cout << "[" << port << "]\n";
-	std::cout << "[" << hostname << "]\n";
 	// 서버 블록 결정
 	vector<ServerBlock> v = serverblock_info[stoi(port)];
 	int flag = false;
