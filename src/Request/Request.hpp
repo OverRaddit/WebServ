@@ -25,6 +25,7 @@ public:
 	void	setReqType(int type);
 	void	setCgiPid(int cgi_pid);
 	void	setCgiResult(string cgi_result);
+	void	setSudoDir(string sudo_dir);
 
 	int		saveOnlyBody(string req_body);
 	void	saveRequestAgain(string req_msg);
@@ -43,6 +44,7 @@ public:
 	string		getIncompleteMessage(void) const;
 	int			getCgiPid(void) const;
 	string		getCgiResult(void) const;
+	string		getSudoDir(void) const;
 
 private:
 	map<string, string>	m_req_header;
@@ -59,6 +61,7 @@ private:
 	string				m_incomplete_message;
 	int					m_cgi_pid;
 	string				m_cgi_result;
+	string				m_sudo_dir;
 
 	Request(void);
 

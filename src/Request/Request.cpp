@@ -176,6 +176,10 @@ void	Request::setCgiResult(string cgi_result)
 {
 	this->m_cgi_result = cgi_result;
 }
+void	Request::setSudoDir(string sudo_dir)
+{
+	this->m_sudo_dir = sudo_dir;
+}
 
 long long	Request::getContentLength(void) const {
 	return this->m_content_length;
@@ -243,4 +247,9 @@ int		Request::getCgiPid(void) const
 string	Request::getCgiResult(void) const
 {
 	return m_cgi_result;
+}
+
+string	Request::getSudoDir(void) const
+{
+	return m_sudo_dir;
 }
