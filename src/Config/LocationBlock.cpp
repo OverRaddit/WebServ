@@ -36,7 +36,7 @@ void	LocationBlock::setRequestType(string loc_block, size_t pos)
 	string	type = "";
 	bool	flag = false;
 
-	if (this->m_request_type != 2)
+	if (this->m_request_type != DEFAULT)
 		flag = true;
 	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
 		type += loc_block[i];

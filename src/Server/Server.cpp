@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/14 11:58:09 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/11/04 17:16:25 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,9 @@ int	Server::execute_client_request(int client_fd)
 				cli->getRequest()->setReqType(it->second.getRequestType());
 				// 좀더 확장성 있는 방법을 강구해야 할듯...
 				if (valid_method[i] == DELETE_HTTP_METHOD)
-					cli->getRequest()->setReqType(3);
+					cli->getRequest()->setReqType(DELETE_REQUEST);
+				else if (it->second.getAutoIndex())
+					cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
 				break;
 			}
 		}
