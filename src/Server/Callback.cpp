@@ -27,31 +27,23 @@ int Server::callback_read(int fd)
 {
 	Client *cli;
 
-	std::cout << fd << ": callback_read" << std::endl;
-
 	if (is_listensocket(fd))
 		connect_new_client(fd);
 	else if (is_client(fd))
 	{
-		std::cout << "client socket event\n";
 		int ret;
 		cli = clients_info[fd];
 		ret = cli->read_client_request();
 		if (ret < 0)
 		{
-			cout << "before diconnect\n";
 			disconnect_client(fd);
 			return (-1);
 		}
 		else if (ret == 0)
 			return (0);
-
 		{
 			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
-
-			// for debug
-			//cli->getRequest()->setReqType(DOWNLOAD_REQUEST);
 
 			// root 폴더 파싱을 안해서 임시로 만듬
 			std::string root_path = "sudo/file_storage/";
@@ -112,12 +104,8 @@ int Server::callback_read(int fd)
 			return (0);
 		}
 
-		// 파이프를 제거해주지 않는다면?
 		disconnect_pipe(cli->getPipeFd());
-		// if (cli->getPipeFd() != -1)
-		// 	pipe_to_client.erase(fd);
 		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-		std::cout << "DEBUG1\n";
 	}
 	return (0);
 }
@@ -133,11 +121,7 @@ int Server::callback_write(int fd)
 	cli = clients_info[fd];
 	// CGI process 종료상태 회수
 	if (cli->getRequest()->getReqType() == CGI_REQUEST)
-	{
-		cout << "start collect CGI process status" << endl;
 		waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
-		cout << "end collect CGI process status" << endl;
-	}
 
 	// write하기.
 	// 가끔 이미 처리한 요청을 또 write해서 req,res가 없다.
@@ -217,7 +201,6 @@ int Server::connect_new_client(int fd)
 
 	// client 정보 등록
 	clients_info[client_socket] = new Client(client_socket, client_addr, client_len);
-	//std::cout << "[DEBUG]Fd is " << clients_info[client_socket]->getFd() << std::endl;
 
 	// kqueue로부터 읽기 이벤트 감지
 	change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);

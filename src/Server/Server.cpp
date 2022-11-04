@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/04 21:45:00 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/04 21:53:30 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ int Server::init_socket(int port)
 	memset(address.sin_zero, 0, sizeof(address.sin_zero));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	//address.sin_port = htons(  );
 	address.sin_port = htons( port );
 
 	// Bind
@@ -121,9 +120,7 @@ int Server::init_multiplexing()
 
 int Server::run()
 {
-
 	printf("[DEBUG] serverblock_info : \n");
-	//인덱스기반
 	for (map<int, vector<ServerBlock> >::iterator iter = serverblock_info.begin() ; iter !=  serverblock_info.end(); iter++)
 	{
 		cout << iter->first << ":" << endl;
@@ -142,7 +139,6 @@ int Server::run()
 		new_events = kevent(kq_fd, &change_list[0], change_list.size(), event_list, 8, NULL);
 		// change_list 비우기
 		change_list.clear();
-
 		// 이벤트리스트순회
 		for(int i=0;i < new_events ;i++)
 		{
@@ -187,6 +183,12 @@ int	Server::execute_client_request(int client_fd)
 					cli->getRequest()->setReqType(DELETE_REQUEST);
 				else if (it->second.getAutoIndex())
 					cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
+
+				// root값
+				//cli->getRequest()->setRoot(s_b.getRootDir()+it->second.getRootDir());
+				cout << "this location's block's root is...  ";
+				cout << s_b.getRootDir()+"/"+it->second.getRootDir() << endl;
+
 				break;
 			}
 		}
