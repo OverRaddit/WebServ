@@ -76,26 +76,19 @@ int			Client::read_client_request()
 			if (buf[0] < 'A' || buf[0] > 'Z')
 				return 0;
 			setRawRequest(string(buf, n));
-			std::cout << "====== Request start ======" << std::endl;
-			std::cout << "[" << getRawRequest() << "]" << std::endl;
-			std::cout << "====== Request end ======" << std::endl;
 			Request *req = new Request(getRawRequest());
 			setRequest(req);
-			cout << "Content-Length: " << req->getContentLength() << " Len :" << req->getReqBody().length() << endl;
 		}
 		else
 		{
-			std::cout << "====== ing Request start ======" << std::endl;
-			std::cout << string(buf, n) << std::endl;
-			std::cout << "====== Request end ======" << std::endl;
 			if (req->getIsIncomplete())
 			{
 				string msg = req->getIncompleteMessage();
-				cout << "Incomplete Message : " << msg << endl;
+				//cout << "Incomplete Message : " << msg << endl;
 				msg.append(string(buf, n));
-				cout << "Append Message : " << msg << endl;
+				//cout << "Append Message : " << msg << endl;
 				req->saveRequestAgain(msg);
-				cout << "---------------------" << endl;
+				//cout << "---------------------" << endl;
 			}
 			else if (req->saveOnlyBody(string(buf, n)) == req->getContentLength())
 				m_pending = false;
@@ -108,8 +101,12 @@ int			Client::read_client_request()
 			return 0;
 		}
 		else
+		{
 			m_pending = false;
-
+			std::cout << "====== Request start ======" << std::endl;
+			std::cout << "[" << getRawRequest() << "]" << std::endl;
+			std::cout << "====== Request end ======" << std::endl;
+		}
 		return 1;
 	}
 	return 0;
