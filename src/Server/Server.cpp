@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/05 00:59:44 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/05 20:06:21 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,17 +160,19 @@ int	Server::execute_client_request(int client_fd)
 	ServerBlock s_b = find_serverblock(client_fd);
 
 	// 이곳에서 요청 처리를 한다.
-	std::string url = cli->getRequest()->getReqTarget();
+	cli->getRequest()->saveURLInformation();
+	std::string url = cli->getRequest()->getPrefixURL();
 	std::map<string, LocationBlock>::const_iterator	it;
 	bool is_valid_method = false;
 	size_t pos;
 
-	pos = url.find("/delete/");
-	if (pos == 0)
-		url = "/delete";
-	// 필요해보여서 넣음
-	else if ((pos = url.find("/download/")) != string::npos)
-		url = "/download";
+	// pos = url.find("/delete/");
+	// if (pos == 0)
+	// 	url = "/delete";
+	// // 필요해보여서 넣음
+	// else if ((pos = url.find("/download/")) != string::npos)
+	// 	url = "/download";
+	cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
 	it = s_b.getLocationBlocks().find(url);
 	if (it != s_b.getLocationBlocks().end())
 	{
@@ -189,9 +191,8 @@ int	Server::execute_client_request(int client_fd)
 
 				// Rootdir 확인
 				cout << "this location's block's root is...  ";
-				cout << s_b.getRootDir()+"/"+it->second.getRootDir()+"/" << endl;
-				cli->getRequest()->setSudoDir(s_b.getRootDir()+"/"+it->second.getRootDir()+"/");
-
+				cout << s_b.getRootDir()+"/"+it->second.getRootDir() << endl;
+				cli->getRequest()->setSudoDir(s_b.getRootDir()+"/"+it->second.getRootDir());
 				break;
 			}
 		}

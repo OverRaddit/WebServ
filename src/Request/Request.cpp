@@ -1,6 +1,4 @@
 #include "Request.hpp"
-#include <cstddef>
-#include <string>
 
 Request::Request() {}
 
@@ -23,7 +21,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_req_type(OTHER_REQUEST), m_del_file_name(""), m_is_incomplete(false), m_cgi_pid(-1)
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_prefix_url(""), m_suffix_url(""), m_req_target(""), m_content_length(0), m_req_type(OTHER_REQUEST), m_is_incomplete(false), m_cgi_pid(-1)
 {
 	string	line = "";
 	size_t	len = request_msg.length();
@@ -87,6 +85,30 @@ int		Request::saveOnlyBody(string req_body)
 {
 	this->m_req_body.append(req_body);
 	return req_body.length();
+}
+
+void	Request::saveURLInformation(void)
+{
+	bool	flag = false;
+	string	line = "";
+
+	for (int i = 0;i < this->m_req_target.length();i++)
+	{
+		if(flag)
+			this->m_suffix_url += this->m_req_target[i];
+		else
+		{
+			if (i != 0 && this->m_req_target[i] == '/')
+			{
+				this->m_suffix_url += this->m_req_target[i];
+				flag = true;
+			}
+			else
+				this->m_prefix_url += this->m_req_target[i];
+		}
+	}
+	if (this->m_suffix_url != "")
+		this->m_req_file_name = this->m_suffix_url;
 }
 
 void	Request::saveStartLine(string start_line)
@@ -215,12 +237,17 @@ int		Request::getStatusCode(void) const {
 	return this->m_status_code;
 }
 
+<<<<<<< HEAD
 string		Request::getDelFileName(void) const {
 	return this->m_del_file_name;
 }
 
 string		Request::getFileName(void) const {
 	return this->m_file_name;
+=======
+string		Request::getDownloadFileName(void) const {
+	return this->m_download_file_name;
+>>>>>>> 2d5c18a36c36d191dfc37e622b6d4592847c23be
 }
 
 string	Request::getReqHeaderValue(string key) {
@@ -262,4 +289,19 @@ string	Request::getCgiResult(void) const
 string	Request::getSudoDir(void) const
 {
 	return m_sudo_dir;
+}
+
+string		Request::getPrefixURL(void) const
+{
+	return this->m_prefix_url;
+}
+
+string		Request::getSuffixURL(void) const
+{
+	return this->m_suffix_url;
+}
+
+string		Request::getReqFileName(void) const
+{
+	return this->m_req_file_name;
 }

@@ -44,7 +44,11 @@ int Server::callback_read(int fd)
 		{
 			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
+
 			std::string root_path = cli->getRequest()->getSudoDir();
+			string file_name = cli->getRequest()->getReqFileName();
+			string dir_path = cli->getRequest()->getSudoDir();
+			struct dirent * file;
 
 			switch (cli->getRequest()->getReqType())
 			{
@@ -62,16 +66,28 @@ int Server::callback_read(int fd)
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case OTHER_REQUEST:
-				std::cout << "Req type: OTHER" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->makeContent("OTHER REQUEST");
+				
+				// index 고려할것..
+				if (file_name == "")
+					cli->getResponse()->makeContent("OTHER REQUEST");
+				else {
+					file = cli->getResponse()->getRequestFile(file_name.c_str(), dir_path.c_str());
+					if (!file)
+					{
+						cli->getResponse()->makeContent("No such file"); // 404
+						cli->getResponse()->setStatusCode(404);
+					}
+					else
+						cli->getResponse()->serveFile(dir_path + "/" + file->d_name);
+				}
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case DELETE_REQUEST:
 				std::cout << "Req type: DELETE" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 				cli->getResponse()->makeContent("DELETE REQUEST");
-				cli->getResponse()->deleteResponse(root_path + cli->getRequest()->getDelFileName());
+				// cli->getResponse()->deleteResponse(root_path + cli->getRequest()->getDelFileName());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case AUTOINDEX_REQUEST:

@@ -47,7 +47,11 @@ public:
 	int			getCgiPid(void) const;
 	string		getCgiResult(void) const;
 	string		getSudoDir(void) const;
+	string		getPrefixURL(void) const;
+	string		getSuffixURL(void) const;
+	string		getReqFileName(void) const;
 
+	void		saveURLInformation(void);
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;
@@ -65,12 +69,16 @@ private:
 	int					m_cgi_pid;
 	string				m_cgi_result;
 	string				m_sudo_dir;
+	string				m_prefix_url;
+	string				m_suffix_url;
+	string				m_req_file_name;
 
 	Request(void);
 
 	void	saveStartLine(string start_line);
 	void	saveHeader(string header_line);
 };
-void	split(const string& str, const string& delimiters , vector<string>& tokens);
+
+bool	is_directory(const char *suffix_url);
 
 #endif
