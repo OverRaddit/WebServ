@@ -1,5 +1,19 @@
 #include "./Response.hpp"
-#include <iostream>
+#include <string>
+
+bool	is_directory(const char *suffix_url)
+{
+	int		 i;
+	struct stat buf;
+	bool	ret;
+
+	stat(suffix_url, &buf);
+	if (S_ISREG(buf.st_mode))
+		ret = false;
+	else if (S_ISDIR(buf.st_mode))
+		ret = true;
+	return ret;
+}
 
 map<int, string> Response::m_status_description;
 bool Response::is_init = false;
@@ -201,7 +215,7 @@ int Response::deleteFile(string file_path) {
 	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
 		return -1;
 	string full_name = URLDecoding(file_path.c_str());
-	cout << "Decode file name: " << full_name << "\n";
+	std::cout << "Decode file name: " << full_name << "\n";
 	return unlink(full_name.c_str());
 }
 
@@ -229,6 +243,26 @@ int Response::getFileList(vector<string>& li, const char *dir_path) {
 
 	closedir(dir_ptr);
 	return 0;
+}
+
+struct dirent	*Response::getRequestFile(const char *request_file, const char *dir_path) {
+	struct dirent	*file    = NULL;
+	DIR				*dir_ptr = NULL;
+	string			req_file(request_file);
+	// 목록을 읽을 디렉토리명으로 DIR *를 return
+	if((dir_ptr = opendir(dir_path)) == NULL)
+		return NULL;
+	// 디렉토리의 처음부터 파일 또는 디렉토리명을 순서대로 한개씩 읽기r.
+	while((file = readdir(dir_ptr)) != NULL) {
+		string	file_name(file->d_name);
+		if (!is_directory((dir_path + string("/") + file_name).c_str()))
+			if (req_file == "/" + file_name)
+				return file;
+	}
+	// open된 directory 정보를 close.
+	closedir(dir_ptr);
+
+	return NULL;
 }
 
 int Response::makeAutoIndex(const char *dir_path) {
