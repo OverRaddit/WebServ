@@ -237,17 +237,12 @@ int		Request::getStatusCode(void) const {
 	return this->m_status_code;
 }
 
-<<<<<<< HEAD
 string		Request::getDelFileName(void) const {
 	return this->m_del_file_name;
 }
 
 string		Request::getFileName(void) const {
 	return this->m_file_name;
-=======
-string		Request::getDownloadFileName(void) const {
-	return this->m_download_file_name;
->>>>>>> 2d5c18a36c36d191dfc37e622b6d4592847c23be
 }
 
 string	Request::getReqHeaderValue(string key) {
