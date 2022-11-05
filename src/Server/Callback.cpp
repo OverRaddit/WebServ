@@ -66,31 +66,21 @@ int Server::callback_read(int fd)
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case OTHER_REQUEST:
-				std::cout << "Req type: OTHER" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				std::cout << "Req type: OTHER2" << std::endl;
 				
 				// index 고려할것..
 				if (file_name == "")
-				{
-					cli->getResponse()->makeContent("No such file"); // 404
-					// cli->getResponse()->setStatusCode(404);
-					change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-					break ;
+					cli->getResponse()->makeContent("OTHER REQUEST");
+				else {
+					file = cli->getResponse()->getRequestFile(file_name.c_str(), dir_path.c_str());
+					if (!file)
+					{
+						cli->getResponse()->makeContent("No such file"); // 404
+						cli->getResponse()->setStatusCode(404);
+					}
+					else
+						cli->getResponse()->serveFile(dir_path + "/" + file->d_name);
 				}
-				file = cli->getResponse()->getRequestFile(file_name.c_str(), dir_path.c_str());
-				std::cout << "Req type: OTHER3" << std::endl;
-				if (!file)
-				{
-					std::cout << "Req type: OTHER4" << std::endl;
-					cli->getResponse()->makeContent("No such file"); // 404
-					cli->getResponse()->setStatusCode(404);
-				}
-				else
-				{
-					cli->getResponse()->serveFile(dir_path + "/" + file->d_name);
-				}
-				std::cout << "Req type: OTHER5" << std::endl;
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case DELETE_REQUEST:
