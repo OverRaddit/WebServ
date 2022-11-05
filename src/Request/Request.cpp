@@ -35,7 +35,7 @@ Request::Request(string request_msg): m_req_header(), m_http_version(""), m_meth
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
-				if (i + 2 != len)
+				if (i + 2 < len)
 					this->setReqBody(request_msg.substr(i + 2));
 				break;
 			}
@@ -118,16 +118,6 @@ void	Request::saveStartLine(string start_line)
 			cout << "DEL_FILE_NAME : " << m_del_file_name << endl;
 		}
 	}
-	// else if (this->m_download_file_name == "" && this->m_req_type == DOWNLOAD_REQUEST)
-	// {
-	// 	pos = this->m_req_target.find("/download/");
-	// 	if (pos != string::npos)
-	// 	{
-	// 		for (size_t i = pos + 10;i < m_req_target.length();i++)
-	// 			this->m_download_file_name += this->m_req_target[i];
-	// 		cout << "DEL_FILE_NAME : " << m_download_file_name << endl;
-	// 	}
-	// }
 }
 
 void	Request::saveHeader(string header_line)
@@ -186,9 +176,15 @@ void	Request::setCgiResult(string cgi_result)
 {
 	this->m_cgi_result = cgi_result;
 }
+
 void	Request::setSudoDir(string sudo_dir)
 {
 	this->m_sudo_dir = sudo_dir;
+}
+
+void	Request::setFilename(string file_name)
+{
+	this->m_file_name = file_name;
 }
 
 long long	Request::getContentLength(void) const {
@@ -223,8 +219,8 @@ string		Request::getDelFileName(void) const {
 	return this->m_del_file_name;
 }
 
-string		Request::getDownloadFileName(void) const {
-	return this->m_download_file_name;
+string		Request::getFileName(void) const {
+	return this->m_file_name;
 }
 
 string	Request::getReqHeaderValue(string key) {
