@@ -28,6 +28,7 @@ public:
 	void	setCgiResult(string cgi_result);
 	void	setSudoDir(string sudo_dir);
 	void	setLocBlock(LocationBlock loc_block);
+	void	setFilename(string file_name);
 
 	int		saveOnlyBody(string req_body);
 	void	saveRequestAgain(string req_msg);
@@ -65,7 +66,7 @@ private:
 	string				m_redirection_url;
 	int					m_req_type;
 	string				m_del_file_name;
-	string				m_download_file_name;
+	string				m_file_name;
 	bool				m_is_incomplete;
 	string				m_incomplete_message;
 	int					m_cgi_pid;

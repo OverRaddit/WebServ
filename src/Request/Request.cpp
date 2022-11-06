@@ -130,26 +130,16 @@ void	Request::saveStartLine(string start_line)
 		else
 			cnt++;
 	}
-	// if (this->m_del_file_name == "" && this->m_method == "DELETE")
-	// {
-	// 	pos = this->m_req_target.find("/delete/");
-	// 	if (pos == 0)
-	// 	{
-	// 		for (size_t i = pos + 7;i < m_req_target.length();i++)
-	// 			this->m_del_file_name += this->m_req_target[i];
-	// 		cout << "DEL_FILE_NAME : " << m_del_file_name << endl;
-	// 	}
-	// }
-	// else if (this->m_download_file_name == "" && this->m_req_type == DOWNLOAD_REQUEST)
-	// {
-	// 	pos = this->m_req_target.find("/download/");
-	// 	if (pos != string::npos)
-	// 	{
-	// 		for (size_t i = pos + 10;i < m_req_target.length();i++)
-	// 			this->m_download_file_name += this->m_req_target[i];
-	// 		cout << "DEL_FILE_NAME : " << m_download_file_name << endl;
-	// 	}
-	// }
+	if (this->m_del_file_name == "" && this->m_method == "DELETE")
+	{
+		pos = this->m_req_target.find("/delete/");
+		if (pos == 0)
+		{
+			for (size_t i = pos + 7;i < m_req_target.length();i++)
+				this->m_del_file_name += this->m_req_target[i];
+			cout << "DEL_FILE_NAME : " << m_del_file_name << endl;
+		}
+	}
 }
 
 void	Request::saveHeader(string header_line)
@@ -218,6 +208,10 @@ void	Request::setLocBlock(LocationBlock loc_block)
 {
 	this->m_loc_block = loc_block;
 }
+void	Request::setFilename(string file_name)
+{
+	this->m_file_name = file_name;
+}
 
 long long	Request::getContentLength(void) const {
 	return this->m_content_length;
@@ -247,8 +241,8 @@ int		Request::getStatusCode(void) const {
 	return this->m_status_code;
 }
 
-string		Request::getDownloadFileName(void) const {
-	return this->m_download_file_name;
+string		Request::getDelFileName(void) const {
+	return this->m_del_file_name;
 }
 
 string	Request::getReqHeaderValue(string key) {
