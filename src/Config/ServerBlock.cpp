@@ -10,44 +10,28 @@ void	ServerBlock::setLocationBlock(string loc_block)
 	pos = loc_block.find("/");
 	for (size_t i = pos;loc_block[i] != ' ';i++)
 		route += loc_block[i];
-	this->m_loc_blocks[route] = LocationBlock();
-	if ((pos = loc_block.find("limit_except")) != string::npos)
-		this->m_loc_blocks[route].setValidMethod(loc_block, pos);
-	if ((pos = loc_block.find("client_max_body_size")) != string::npos)
-		this->m_loc_blocks[route].setMaxBodySize(loc_block, pos);
+	this->m_loc_blocks[route] = LocationBlock(this->m_root_dir, this->m_index_file);
+	if ((pos = loc_block.find("\tlimit_except")) != string::npos)
+		this->m_loc_blocks[route].setValidMethod(loc_block, pos + 1);
+	if ((pos = loc_block.find("\tclient_max_body_size")) != string::npos)
+		this->m_loc_blocks[route].setMaxBodySize(loc_block, pos + 1);
 	if ((pos = loc_block.find("\tupload")) != string::npos)
-		this->m_loc_blocks[route].setUploadDirectory(loc_block, pos);
+		this->m_loc_blocks[route].setUploadDirectory(loc_block, pos + 1);
 	if ((pos = loc_block.find("\tautoindex")) != string::npos)
-		this->m_loc_blocks[route].setAutoIndex(loc_block, pos);
-	if ((pos = loc_block.find("root")) != string::npos)
-		this->m_loc_blocks[route].setRootDir(loc_block, pos);
-	if ((pos = loc_block.find("return")) != string::npos)
-		this->m_loc_blocks[route].setRedirectionURL(loc_block, pos);
-	if ((pos = loc_block.find("type")) != string::npos)
-		this->m_loc_blocks[route].setRequestType(loc_block, pos);
+		this->m_loc_blocks[route].setAutoIndex(loc_block, pos + 1);
+	if ((pos = loc_block.find("\troot")) != string::npos)
+		this->m_loc_blocks[route].setRootDir(loc_block, pos + 1);
+	if ((pos = loc_block.find("\treturn")) != string::npos)
+		this->m_loc_blocks[route].setRedirectionURL(loc_block, pos + 1);
+	if ((pos = loc_block.find("\ttype")) != string::npos)
+		this->m_loc_blocks[route].setRequestType(loc_block, pos + 1);
+	if ((pos = loc_block.find("\tindex")) != string::npos)
+		this->m_loc_blocks[route].setIndexFile(loc_block, pos + 1);
 }
 
 void	ServerBlock::setErrorPage(string error_page_info)
 {
-	string			status_code = "";
-	string			error_page_path = "";
-	int				int_status_code;
-	bool			flag = true;
-
-	for (int i = 0;i < error_page_info.length();i++)
-	{
-		if (error_page_info[i] == ' ')
-		{
-			flag = false;
-			continue;
-		}
-		if (flag)
-			status_code += error_page_info[i];
-		else
-			error_page_path += error_page_info[i];
-	}
-	// 에러 페이지 경로 예외처리..?
-	this->m_error_page[stoi(status_code)] = error_page_path;
+	this->m_error_page = error_page_info;
 }
 
 
@@ -90,7 +74,7 @@ void	ServerBlock::setPortNum(string port_num)
 	this->m_port_num = stoi(port_num);
 }
 
-string	ServerBlock::getErrorPage(int error_code) const { return this->m_error_page.at(error_code); }
+string	ServerBlock::getErrorPage(void) const { return this->m_error_page; }
 
 string ServerBlock::getIndexFile(void) const { return this->m_index_file; }
 

@@ -6,7 +6,7 @@
 /*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/05 20:06:21 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/11/06 20:29:30 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,9 @@ int	Server::execute_client_request(int client_fd)
 	// else if ((pos = url.find("/download/")) != string::npos)
 	// 	url = "/download";
 	cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
+	// 로케이션 블록 매핑
 	it = s_b.getLocationBlocks().find(url);
+	cli->getRequest()->setLocBlock(it->second);
 	if (it != s_b.getLocationBlocks().end())
 	{
 		vector<string>	valid_method = it->second.getValidMethod();
@@ -191,8 +193,15 @@ int	Server::execute_client_request(int client_fd)
 
 				// Rootdir 확인
 				cout << "this location's block's root is...  ";
-				cout << s_b.getRootDir()+"/"+it->second.getRootDir() << endl;
-				cli->getRequest()->setSudoDir(s_b.getRootDir()+"/"+it->second.getRootDir());
+				//cout << it->second.getRootDir() << endl;
+				//cli->getRequest()->setSudoDir(it->second.getRootDir());
+				cout << cli->getRequest()->getLocBlock().getRootDir() << endl;
+				// index 확인
+				cout << "this location's block's index is...  ";
+				//cout << it->second.getAutoIndex() << endl;
+				//cli->getRequest()->setAutoIndex(it->second.getAutoIndex());
+				cout << cli->getRequest()->getLocBlock().getIndexFile() << endl;
+
 				break;
 			}
 		}
