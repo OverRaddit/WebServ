@@ -3,9 +3,14 @@
 #include <iterator>
 #include <string>
 
-LocationBlock::LocationBlock(void)
-: m_max_body_size(1024 * 1024), m_root_dir(""), m_upload_dir(""), m_autoindex(false), m_redirection_url(""), m_request_type(DEFAULT)
-{}
+LocationBlock::LocationBlock() {}
+
+LocationBlock::LocationBlock(string root_dir, string index_file)
+: m_max_body_size(1024 * 1024), m_upload_dir(""), m_autoindex(false), m_redirection_url(""), m_request_type(DEFAULT)
+{
+	this->m_root_dir = root_dir;
+	this->m_index_file = index_file;
+}
 
 void LocationBlock::setValidMethod(string loc_block, size_t pos)
 {
@@ -110,8 +115,19 @@ void LocationBlock::setRootDir(string loc_block, size_t pos)
 	string	l_e = "root";
 	size_t	len = l_e.length();
 
+	this->m_root_dir += "/";
 	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
 		this->m_root_dir += loc_block[i];
+}
+
+void LocationBlock::setIndexFile(string loc_block, size_t pos)
+{
+	string	l_e = "index";
+	size_t	len = l_e.length();
+
+	this->m_index_file = "";
+	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
+		this->m_index_file += loc_block[i];
 }
 
 void LocationBlock::setRedirectionURL(string loc_block, size_t pos)
@@ -157,4 +173,8 @@ bool	LocationBlock::getAutoIndex(void) const {
 
 string	LocationBlock::getRedirectionURL(void) const {
 	return this->m_redirection_url;
+}
+
+string	LocationBlock::getIndexFile(void) const {
+	return this->m_index_file;
 }

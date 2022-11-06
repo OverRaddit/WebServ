@@ -20,7 +20,7 @@ public:
 	void	setIndexFile(string file_name);
 
 	int		getPortNum(void) const;
-	string	getErrorPage(int error_code) const;
+	string	getErrorPage(void) const;
 	string	getServerName(void) const;
 	string	getRootDir(void) const;
 	string	getCgiTester(void) const;
@@ -29,7 +29,7 @@ public:
 	const map<string, LocationBlock>&	getLocationBlocks(void) const;
 private:
 	map<string, LocationBlock>	m_loc_blocks;
-	map<int, string>			m_error_page;
+	string						m_error_page;
 	int							m_port_num;
 	string						m_server_name;
 	string						m_root_dir;

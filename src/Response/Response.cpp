@@ -1,7 +1,6 @@
 #include "./Response.hpp"
-#include <string>
 
-bool	is_directory(const char *suffix_url)
+bool	check_valid(const char *suffix_url)
 {
 	int		 i;
 	struct stat buf;
@@ -245,24 +244,17 @@ int Response::getFileList(vector<string>& li, const char *dir_path) {
 	return 0;
 }
 
-struct dirent	*Response::getRequestFile(const char *request_file, const char *dir_path) {
-	struct dirent	*file    = NULL;
-	DIR				*dir_ptr = NULL;
-	string			req_file(request_file);
-	// 목록을 읽을 디렉토리명으로 DIR *를 return
-	if((dir_ptr = opendir(dir_path)) == NULL)
-		return NULL;
-	// 디렉토리의 처음부터 파일 또는 디렉토리명을 순서대로 한개씩 읽기r.
-	while((file = readdir(dir_ptr)) != NULL) {
-		string	file_name(file->d_name);
-		if (!is_directory((dir_path + string("/") + file_name).c_str()))
-			if (req_file == "/" + file_name)
-				return file;
-	}
-	// open된 directory 정보를 close.
-	closedir(dir_ptr);
+int	Response::getRequestFile(string request_file, string dir_path) {
+	int		 i;
+	struct stat buf;
+	bool	ret;
 
-	return NULL;
+	if (stat((dir_path + request_file).c_str(), &buf) < 0)
+		return NO_FILE; // NO FILE!!
+	if (S_ISREG(buf.st_mode))
+		return VALID_REQ_FILE; // 존재하는 파일 요청
+	else if (S_ISDIR(buf.st_mode))
+		return VALID_REQ_DIR; // 존재하는 디렉토리 요청
 }
 
 int Response::makeAutoIndex(const char *dir_path) {
