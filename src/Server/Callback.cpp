@@ -63,7 +63,8 @@ int Server::callback_read(int fd)
 			case UPLOAD_REQUEST:
 				std::cout << "Req type: UPLOAD" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
+				cli->getResponse()->makeContent("Upload Request");
+				//cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case OTHER_REQUEST:
