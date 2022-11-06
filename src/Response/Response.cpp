@@ -1,7 +1,6 @@
 #include "./Response.hpp"
-#include <string>
 
-bool	is_directory(const char *suffix_url)
+bool	check_valid(const char *suffix_url)
 {
 	int		 i;
 	struct stat buf;
@@ -258,30 +257,17 @@ int Response::getFileList(vector<string>& li, const char *dir_path) {
 	return 0;
 }
 
-// 파일인 경우 0, 에러인 경우 1, 디렉토리인 경우 2, 잘못된 파일인 경우 3 반환
-int Response::getRequestFile(const char *request_file, const char *dir_path, struct dirent **file) {
-	DIR				*dir_ptr = NULL;
-	string			req_file(request_file);
-	struct dirent	*tmp = NULL;
-	// 목록을 읽을 디렉토리명으로 DIR *를 return
-	if((dir_ptr = opendir(dir_path)) == NULL)
-		return 1;
-	// 디렉토리의 처음부터 파일 또는 디렉토리명을 순서대로 한개씩 읽기r.
-	while((tmp = readdir(dir_ptr)) != NULL) {
-		string	file_name(tmp->d_name);
-		if (req_file == "/" + file_name) {
-			*file = tmp;
-			if (!is_directory((dir_path + string("/") + file_name + "/").c_str())) {
-				return 0;
-			}
-			else {
-				return 2;
-			}
-		}
-	}
-	// open된 directory 정보를 close.
-	closedir(dir_ptr);
-	return 3;
+int	Response::getRequestFile(string request_file, string dir_path) {
+	int		 i;
+	struct stat buf;
+	bool	ret;
+
+	if (stat((dir_path + request_file).c_str(), &buf) < 0)
+		return NO_FILE; // NO FILE!!
+	if (S_ISREG(buf.st_mode))
+		return VALID_REQ_FILE; // 존재하는 파일 요청
+	else if (S_ISDIR(buf.st_mode))
+		return VALID_REQ_DIR; // 존재하는 디렉토리 요청
 }
 
 int Response::makeAutoIndex(const char *dir_path) {

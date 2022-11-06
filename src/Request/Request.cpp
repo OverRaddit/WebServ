@@ -204,6 +204,10 @@ void	Request::setSudoDir(string sudo_dir)
 	this->m_sudo_dir = sudo_dir;
 }
 
+void	Request::setLocBlock(LocationBlock loc_block)
+{
+	this->m_loc_block = loc_block;
+}
 void	Request::setFilename(string file_name)
 {
 	this->m_file_name = file_name;
@@ -239,10 +243,6 @@ int		Request::getStatusCode(void) const {
 
 string		Request::getDelFileName(void) const {
 	return this->m_del_file_name;
-}
-
-string		Request::getFileName(void) const {
-	return this->m_file_name;
 }
 
 string	Request::getReqHeaderValue(string key) {
@@ -299,4 +299,9 @@ string		Request::getSuffixURL(void) const
 string		Request::getReqFileName(void) const
 {
 	return this->m_req_file_name;
+}
+
+LocationBlock	Request::getLocBlock(void) const
+{
+	return this->m_loc_block;
 }

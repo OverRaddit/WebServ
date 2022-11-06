@@ -13,6 +13,10 @@
 # include <iostream>
 # include <string.h>
 
+# define NO_FILE -1
+# define VALID_REQ_FILE 1
+# define VALID_REQ_DIR 0
+
 using namespace std;
 
 class Response {
@@ -76,10 +80,9 @@ public:
 	void		errorResponse(int status);
 	void		defaultResponse();
 	void		fileResponse(string path);
+	int			getRequestFile(string request_file, string dir_path);
 
 	string		getHttpResponse();
-
-	int			getRequestFile(const char *request_file, const char *dir_path, struct dirent **file);
 };
 
 // encode와 decode관련 비멤버 함수

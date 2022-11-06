@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <sys/_types/_intptr_t.h>
 
 void Server::exit_with_perror(const string& msg)
 {
@@ -44,12 +45,11 @@ int Server::callback_read(int fd)
 		{
 			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
-
-			std::string root_path = cli->getRequest()->getSudoDir();
-			string file_name = cli->getRequest()->getReqFileName();
-			string dir_path = cli->getRequest()->getSudoDir();
-			struct dirent * file = NULL;
-			int ret = 0;
+			string file_name = cli->getRequest()->getReqFileName(); // 슬래시 붙어있음
+			//string dir_path = cli->getRequest()->getSudoDir();
+			string dir_path = cli->getRequest()->getLocBlock().getRootDir();
+			string final_path = "";
+			int flag;
 
 			switch (cli->getRequest()->getReqType())
 			{
@@ -68,27 +68,41 @@ int Server::callback_read(int fd)
 				break;
 			case OTHER_REQUEST:
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->setRootPath("sudo/");
-				cli->getResponse()->setIndexFile("index.html");
-				cli->getResponse()->setErrorFile("error.html");
-
 				// index 고려할것..
 				if (file_name == "")
 					cli->getResponse()->defaultResponse();
 				else {
-					ret = cli->getResponse()->getRequestFile(file_name.c_str(), dir_path.c_str(), &file);
-					cout << "++++++ ret = " << ret << " ==========\n";
-					if (ret == 3)
+					cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
+					flag = cli->getResponse()->getRequestFile(file_name, dir_path);
+					if (flag == NO_FILE)
 					{
 						//cli->getResponse()->makeContent("No such file"); // 404
 						cli->getResponse()->errorResponse(404);
 					}
-					else if (ret == 0)
-						cli->getResponse()->fileResponse(dir_path + "/" + file->d_name);
-					else if (ret == 2) {
-						cli->getResponse()->defaultResponse();
-					} else {
-						cli->getResponse()->errorResponse(500);
+					else if (flag == VALID_REQ_DIR)
+					{
+						if (file_name.back() == '/')
+							final_path = dir_path + file_name;
+						else
+							final_path = dir_path + file_name + "/";
+						cout << "VALID_REQ_DIR1 : " << final_path + cli->getRequest()->getLocBlock().getIndexFile() << endl;
+						if (cli->getResponse()->getRequestFile(cli->getRequest()->getLocBlock().getIndexFile(), final_path) == NO_FILE)
+						{
+							cli->getResponse()->makeContent("No such file"); // 404
+							cli->getResponse()->setStatusCode(404);
+						}
+						else
+						{
+							cout << "VALID_REQ_DIR2 : " << dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile() << endl;
+							cli->getResponse()->fileResponse(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
+							cli->getResponse()->setStatusCode(200);
+						}
+					}
+					else if (flag == VALID_REQ_FILE)
+					{
+						cout << "VALID_REQ_FILE : " << dir_path + file_name << endl;
+						cli->getResponse()->fileResponse(dir_path + file_name);
+						cli->getResponse()->setStatusCode(200);
 					}
 				}
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -97,19 +111,19 @@ int Server::callback_read(int fd)
 				std::cout << "Req type: DELETE" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 				cli->getResponse()->makeContent("DELETE REQUEST");
-				// cli->getResponse()->deleteResponse(root_path + cli->getRequest()->getDelFileName());
+				// cli->getResponse()->deleteResponse(dir_path + cli->getRequest()->getDelFileName());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case AUTOINDEX_REQUEST:
 				std::cout << "Req type: AUTOINDEX" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->autoIndexResponse(root_path.c_str());
+				cli->getResponse()->autoIndexResponse(dir_path.c_str());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case DOWNLOAD_REQUEST:
 				std::cout << "Req type: DOWNLOAD" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->downloadResponse(root_path + "a.txt");
+				cli->getResponse()->downloadResponse(dir_path + "a.txt");
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			default:
