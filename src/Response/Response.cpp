@@ -87,6 +87,18 @@ void Response::setCgiResult(string ret) {
 	this->m_cgiResult = ret;
 }
 
+void Response::setRootPath(string path) {
+	this->m_rootPath = path;
+}
+
+void Response::setErrorFile(string path) {
+	this->m_ErrorFile = path;
+}
+
+void Response::setIndexFile(string path) {
+	this->m_indexFile = path;
+}
+
 string Response::makeHeaders() {
 	string result = "";
 
@@ -180,6 +192,7 @@ void Response::uploadResponse(string content_type, string content_body) {
 	std::cout << "Upload end\n";
 }
 
+// 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
 int Response::serveFile(string file_path) {
 	ifstream readFile;
 	string data = "";
@@ -188,7 +201,7 @@ int Response::serveFile(string file_path) {
 	char buf;
 
 	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
-		return -1;
+		return 1;
 	readFile.open(file_path);
 	if (!readFile.is_open())
 		return -1;
@@ -245,24 +258,30 @@ int Response::getFileList(vector<string>& li, const char *dir_path) {
 	return 0;
 }
 
-struct dirent	*Response::getRequestFile(const char *request_file, const char *dir_path) {
-	struct dirent	*file    = NULL;
+// 파일인 경우 0, 에러인 경우 1, 디렉토리인 경우 2, 잘못된 파일인 경우 3 반환
+int Response::getRequestFile(const char *request_file, const char *dir_path, struct dirent **file) {
 	DIR				*dir_ptr = NULL;
 	string			req_file(request_file);
+	struct dirent	*tmp = NULL;
 	// 목록을 읽을 디렉토리명으로 DIR *를 return
 	if((dir_ptr = opendir(dir_path)) == NULL)
-		return NULL;
+		return 1;
 	// 디렉토리의 처음부터 파일 또는 디렉토리명을 순서대로 한개씩 읽기r.
-	while((file = readdir(dir_ptr)) != NULL) {
-		string	file_name(file->d_name);
-		if (!is_directory((dir_path + string("/") + file_name).c_str()))
-			if (req_file == "/" + file_name)
-				return file;
+	while((tmp = readdir(dir_ptr)) != NULL) {
+		string	file_name(tmp->d_name);
+		if (req_file == "/" + file_name) {
+			*file = tmp;
+			if (!is_directory((dir_path + string("/") + file_name + "/").c_str())) {
+				return 0;
+			}
+			else {
+				return 2;
+			}
+		}
 	}
 	// open된 directory 정보를 close.
 	closedir(dir_ptr);
-
-	return NULL;
+	return 3;
 }
 
 int Response::makeAutoIndex(const char *dir_path) {
@@ -288,45 +307,40 @@ void Response::autoIndexResponse(const char *dir_path) {
 		this->makeContent("Auto Index Fail");
 }
 
-int Response::makeContentError() {
-	ifstream readFile;
-	string data = "";
-	char buf;
-
-	readFile.open(this->m_rootPath + "/" + this->m_ErrorFile);
-	if (!readFile.is_open())
-		return -1;
-	while (!readFile.eof()) {
-		readFile.read(&buf, sizeof(buf));
-		data.append(buf);
-	}
-	readFile.close();
-	this->setStatusCode(404);
-	this->setContent(data);
+int Response::makeContentError(int status) {
+	int ret;
+	this->setStatusCode(status);
+	ret = this->serveFile(this->m_rootPath + this->m_ErrorFile);
+	if (ret == -1)
+		this->errorResponse(500);
+	else if (ret == 1)
+		this->errorResponse(404);
 	return 0;
 }
 
-int Response::makeContentIndex(string file) {
-	ifstream readFile;
-	string data = "";
-	char buf;
-
-	readFile.open(this->m_rootPath + "/" + file);
-	if (!readFile.is_open())
-		return -1;
-	while (!readFile.eof()) {
-		readFile.read(&buf, sizeof(buf));
-		data.append(buf);
-	}
-	readFile.close();
-	this->setContent(data);
-	return 0;
+void Response::makeContentFile(string path) {
+	int status = this->serveFile(path);
+	if (status == -1)
+		this->makeContentError(500);
+	else if (status == 1)
+		this->makeContentError(404);
 }
 
 void Response::defaultResponse() {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (this->makeContentIndex(this->m_indexFile) == -1)
-		this->makeContentError();
+	this->makeContentFile(this->m_rootPath + this->m_indexFile);
+	std::cout << "default end ======== \n";
+}
+
+void Response::fileResponse(string path) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContentFile(path);
+}
+
+void Response::errorResponse(int status) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (this->makeContentError(status) == -1)
+		this->makeContentError(500);
 }
 
 string Response::getHttpResponse() {

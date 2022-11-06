@@ -32,14 +32,14 @@ private:
 	string		getFileContent(string& content_type, string last_boundary);
 
 	int			saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
-	//int			serveFile(string file_path);
+	int			serveFile(string file_path);
 	int			deleteFile(string file_path);
 
 	int			getFileList(vector<string>& li, const char *dir_path);
 	int			makeAutoIndex(const char *dir_path);
 
-	int			makeContentError(string error_path);
-	int			makeContentIndex(string root_path);
+	int			makeContentError(int status);
+	void		makeContentFile(string path);
 
 public:
 	// 왜 private??
@@ -48,7 +48,7 @@ public:
 	~Response ();
 
 	// 임시로 public 이동
-	int			serveFile(string file_path);
+	//int			serveFile(string file_path);
 
 	static void	ResponseInit(); // Response 클래스를 초기화하는 한번만 실행 가능함수
 	void		makeContent(string content);
@@ -73,11 +73,13 @@ public:
 	void		downloadResponse(string file_path);  // 파일 다운로드 응답처리
 	void		deleteResponse(string file_path);  // 파일 삭제 응답처리
 	void		autoIndexResponse(const char *dir_path);
+	void		errorResponse(int status);
 	void		defaultResponse();
+	void		fileResponse(string path);
 
 	string		getHttpResponse();
 
-	struct dirent	*getRequestFile(const char *request_file, const char *dir_path);
+	int			getRequestFile(const char *request_file, const char *dir_path, struct dirent **file);
 };
 
 // encode와 decode관련 비멤버 함수

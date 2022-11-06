@@ -48,7 +48,8 @@ int Server::callback_read(int fd)
 			std::string root_path = cli->getRequest()->getSudoDir();
 			string file_name = cli->getRequest()->getReqFileName();
 			string dir_path = cli->getRequest()->getSudoDir();
-			struct dirent * file;
+			struct dirent * file = NULL;
+			int ret = 0;
 
 			switch (cli->getRequest()->getReqType())
 			{
@@ -67,19 +68,28 @@ int Server::callback_read(int fd)
 				break;
 			case OTHER_REQUEST:
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				
+				cli->getResponse()->setRootPath("sudo/");
+				cli->getResponse()->setIndexFile("index.html");
+				cli->getResponse()->setErrorFile("error.html");
+
 				// index 고려할것..
 				if (file_name == "")
-					cli->getResponse()->makeContent("OTHER REQUEST");
+					cli->getResponse()->defaultResponse();
 				else {
-					file = cli->getResponse()->getRequestFile(file_name.c_str(), dir_path.c_str());
-					if (!file)
+					ret = cli->getResponse()->getRequestFile(file_name.c_str(), dir_path.c_str(), &file);
+					cout << "++++++ ret = " << ret << " ==========\n";
+					if (ret == 3)
 					{
-						cli->getResponse()->makeContent("No such file"); // 404
-						cli->getResponse()->setStatusCode(404);
+						//cli->getResponse()->makeContent("No such file"); // 404
+						cli->getResponse()->errorResponse(404);
 					}
-					else
-						cli->getResponse()->serveFile(dir_path + "/" + file->d_name);
+					else if (ret == 0)
+						cli->getResponse()->fileResponse(dir_path + "/" + file->d_name);
+					else if (ret == 2) {
+						cli->getResponse()->defaultResponse();
+					} else {
+						cli->getResponse()->errorResponse(500);
+					}
 				}
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
