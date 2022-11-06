@@ -52,10 +52,8 @@ void		Client::setPipeFd(int _pipe_fd){ pipe_fd = _pipe_fd; }
 void		Client::setRequest(Request *_req){ req = _req; }
 void		Client::setResponse(Response *_res){ res = _res; }
 void		Client::setRawRequest(std::string str){ raw_request = str; }
-
 void		Client::appendRawRequest(std::string _raw_request){ raw_request += _raw_request; }
 
-// 수정 필요!! 한번에 읽지않는경우.
 int			Client::read_client_request()
 {
 	char buf[65524] = {0};
@@ -70,39 +68,27 @@ int			Client::read_client_request()
 		std::cout << "client just disconnect socket\n" << std::endl;
 		return (-1);
 	}
-	// 그외 데이터 저장
 	else
 	{
 		buf[n] = '\0';
-		// if (n <= 3 && (buf[0] == '\n' || buf[0] == '\r'))
-		// 	return 0;
-		// 1개의 HTTP Request 읽기가 끝나면 동작시켜야 함.
 		if (m_pending == false)
 		{
 			if (buf[0] < 'A' || buf[0] > 'Z')
 				return 0;
 			setRawRequest(string(buf, n));
-			std::cout << "====== Request start ======" << std::endl;
-			std::cout << "[" << getRawRequest() << "]" << std::endl;
-			std::cout << "====== Request end ======" << std::endl;
 			Request *req = new Request(getRawRequest());
 			setRequest(req);
-			cout << "Content-Length: " << req->getContentLength() << " Len :" << req->getReqBody().length() << endl;
 		}
-		// ㄴㅏ머지 요청을 읽습니다.
 		else
 		{
-			std::cout << "====== ing Request start ======" << std::endl;
-			std::cout << string(buf, n) << std::endl;
-			std::cout << "====== Request end ======" << std::endl;
 			if (req->getIsIncomplete())
 			{
 				string msg = req->getIncompleteMessage();
-				cout << "Incomplete Message : " << msg << endl;
+				//cout << "Incomplete Message : " << msg << endl;
 				msg.append(string(buf, n));
-				cout << "Append Message : " << msg << endl;
+				//cout << "Append Message : " << msg << endl;
 				req->saveRequestAgain(msg);
-				cout << "---------------------" << endl;
+				//cout << "---------------------" << endl;
 			}
 			else if (req->saveOnlyBody(string(buf, n)) == req->getContentLength())
 				m_pending = false;
@@ -111,13 +97,16 @@ int			Client::read_client_request()
 		// 현재 요청이 완성되었는지 확인한다. 1571,
 		if (req->getContentLength() > req->getReqBody().length() || req->getIsIncomplete())
 		{
-			std::cout << "request uncomplete\n";
 			m_pending = true;
 			return 0;
 		}
 		else
+		{
 			m_pending = false;
-
+			std::cout << "====== Request start ======" << std::endl;
+			std::cout << "[" << getRawRequest() << "]" << std::endl;
+			std::cout << "====== Request end ======" << std::endl;
+		}
 		return 1;
 	}
 	return 0;
@@ -129,13 +118,6 @@ int			Client::read_pipe_result()
 	int ret;
 	char buf[65524];
 
-	// read
-	// 비동기방식으로 바꿔야 함.
-	// while((ret = read(getPipeFd(), buf, 65524 - 1)) > 0 && strlen(buf) != 0) {
-	// 	buf[ret] = '\0';
-	// 	std::string temp(buf);
-	// 	result += temp;
-	// }
 	ret = read(getPipeFd(), buf, 65524 - 1);	// 마지막에 NULL을 넣어야 seg fault 방지가능
 	if (ret > 0)
 	{
@@ -198,7 +180,6 @@ int			Client::cgi_init()
 	char **env;
 	env = (char**)malloc(sizeof(char*) * 11);
 	make_env(env);
-	// 파이프 fd를 nonblock하면 어떻게 되는 거지?
 	fcntl(to_parent[1], F_SETFL, O_NONBLOCK);
 	fcntl(to_parent[0], F_SETFL, O_NONBLOCK);
 
@@ -206,18 +187,17 @@ int			Client::cgi_init()
 	// 버퍼 한번에 담을 수 없는 양이 들어오면 어떡해야 할 지 모르겠다.
 	char buf[BUF_SIZE + 1];
 	memset(buf, 0, sizeof(buf));
-	char *body = strdup(getRequest()->getReqBody().c_str()); // 왜 warning?
+	char *body = strdup(getRequest()->getReqBody().c_str());
 	memcpy(buf, body, strlen(body));
-	buf[strlen(body)] = 26;	// EOF값을 준다.
-	//write(to_child[1], buf, sizeof(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
-	write(to_child[1], buf, strlen(buf)); // 3번째 인자를 strlen(buf)로 해야하나?
+	buf[strlen(body)] = 26;
+	write(to_child[1], buf, strlen(buf));
 
 	pid = fork();
-	getRequest()->setCgiPid(pid);	// 자식 프로세스 종료상태를 수거하기 위해 pid를 저장해둔다.
+	getRequest()->setCgiPid(pid);
 	if (pid == 0)
-	{	// child
-		dup2(to_child[0], 0);	// 부모->자식파이프의 읽기fd == 자식의 표준입력
-		dup2(to_parent[1], 1);	// 자식->부모파이프 쓰기fd == 자식의 표준출력
+	{
+		dup2(to_child[0], 0);
+		dup2(to_parent[1], 1);
 		close(to_child[1]);
 		close(to_child[0]);
 		close(to_parent[1]);
@@ -227,7 +207,6 @@ int			Client::cgi_init()
 			exit(1);
 		}
 	}
-	// parent
 	close(to_child[0]);
 	close(to_child[1]);
 	close(to_parent[1]);
@@ -235,7 +214,5 @@ int			Client::cgi_init()
 	for (int i=0; i<10; ++i)
 		free(env[i]);
 	free(env);
-
-	// kqueue에 파이프 등록해야 함.
 	return to_parent[0];
 }

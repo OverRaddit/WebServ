@@ -15,9 +15,9 @@ void	ServerBlock::setLocationBlock(string loc_block)
 		this->m_loc_blocks[route].setValidMethod(loc_block, pos);
 	if ((pos = loc_block.find("client_max_body_size")) != string::npos)
 		this->m_loc_blocks[route].setMaxBodySize(loc_block, pos);
-	if ((pos = loc_block.find("upload")) != string::npos)
+	if ((pos = loc_block.find("\tupload")) != string::npos)
 		this->m_loc_blocks[route].setUploadDirectory(loc_block, pos);
-	if ((pos = loc_block.find("autoindex")) != string::npos)
+	if ((pos = loc_block.find("\tautoindex")) != string::npos)
 		this->m_loc_blocks[route].setAutoIndex(loc_block, pos);
 	if ((pos = loc_block.find("root")) != string::npos)
 		this->m_loc_blocks[route].setRootDir(loc_block, pos);

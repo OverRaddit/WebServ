@@ -6,6 +6,8 @@
 # include <string>
 # include <map>
 
+# include "../Server/RequestType.hpp"
+
 using namespace std;
 
 class Request {
@@ -23,6 +25,8 @@ public:
 	void	setReqType(int type);
 	void	setCgiPid(int cgi_pid);
 	void	setCgiResult(string cgi_result);
+	void	setSudoDir(string sudo_dir);
+	void	setFilename(string file_name);
 
 	int		saveOnlyBody(string req_body);
 	void	saveRequestAgain(string req_msg);
@@ -37,11 +41,17 @@ public:
 	long long	getContentLength(void) const;
 	int			getReqType(void) const;
 	string		getDelFileName(void) const;
+	string		getFileName(void) const;
 	bool		getIsIncomplete(void) const;
 	string		getIncompleteMessage(void) const;
 	int			getCgiPid(void) const;
 	string		getCgiResult(void) const;
+	string		getSudoDir(void) const;
+	string		getPrefixURL(void) const;
+	string		getSuffixURL(void) const;
+	string		getReqFileName(void) const;
 
+	void		saveURLInformation(void);
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;
@@ -53,16 +63,22 @@ private:
 	string				m_redirection_url;
 	int					m_req_type;
 	string				m_del_file_name;
+	string				m_file_name;
 	bool				m_is_incomplete;
 	string				m_incomplete_message;
 	int					m_cgi_pid;
 	string				m_cgi_result;
-  
+	string				m_sudo_dir;
+	string				m_prefix_url;
+	string				m_suffix_url;
+	string				m_req_file_name;
+
 	Request(void);
 
 	void	saveStartLine(string start_line);
 	void	saveHeader(string header_line);
 };
-void	split(const string& str, const string& delimiters , vector<string>& tokens);
+
+bool	is_directory(const char *suffix_url);
 
 #endif

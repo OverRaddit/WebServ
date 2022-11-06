@@ -3,15 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/10/14 11:58:09 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/11/05 20:06:21 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
-#include <sys/_types/_size_t.h>
 
 //=============================================================================
 //	Orthodox Canonical Form
@@ -45,7 +44,6 @@ int Server::init_socket(int port)
 	memset(address.sin_zero, 0, sizeof(address.sin_zero));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	//address.sin_port = htons(  );
 	address.sin_port = htons( port );
 
 	// Bind
@@ -122,9 +120,7 @@ int Server::init_multiplexing()
 
 int Server::run()
 {
-
 	printf("[DEBUG] serverblock_info : \n");
-	//인덱스기반
 	for (map<int, vector<ServerBlock> >::iterator iter = serverblock_info.begin() ; iter !=  serverblock_info.end(); iter++)
 	{
 		cout << iter->first << ":" << endl;
@@ -143,7 +139,6 @@ int Server::run()
 		new_events = kevent(kq_fd, &change_list[0], change_list.size(), event_list, 8, NULL);
 		// change_list 비우기
 		change_list.clear();
-
 		// 이벤트리스트순회
 		for(int i=0;i < new_events ;i++)
 		{
@@ -165,14 +160,19 @@ int	Server::execute_client_request(int client_fd)
 	ServerBlock s_b = find_serverblock(client_fd);
 
 	// 이곳에서 요청 처리를 한다.
-	std::string url = cli->getRequest()->getReqTarget();
+	cli->getRequest()->saveURLInformation();
+	std::string url = cli->getRequest()->getPrefixURL();
 	std::map<string, LocationBlock>::const_iterator	it;
 	bool is_valid_method = false;
 	size_t pos;
 
-	pos = url.find("/delete/");
-	if (pos == 0)
-		url = "/delete";
+	// pos = url.find("/delete/");
+	// if (pos == 0)
+	// 	url = "/delete";
+	// // 필요해보여서 넣음
+	// else if ((pos = url.find("/download/")) != string::npos)
+	// 	url = "/download";
+	cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
 	it = s_b.getLocationBlocks().find(url);
 	if (it != s_b.getLocationBlocks().end())
 	{
@@ -185,7 +185,14 @@ int	Server::execute_client_request(int client_fd)
 				cli->getRequest()->setReqType(it->second.getRequestType());
 				// 좀더 확장성 있는 방법을 강구해야 할듯...
 				if (valid_method[i] == DELETE_HTTP_METHOD)
-					cli->getRequest()->setReqType(3);
+					cli->getRequest()->setReqType(DELETE_REQUEST);
+				else if (it->second.getAutoIndex())
+					cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
+
+				// Rootdir 확인
+				cout << "this location's block's root is...  ";
+				cout << s_b.getRootDir()+"/"+it->second.getRootDir() << endl;
+				cli->getRequest()->setSudoDir(s_b.getRootDir()+"/"+it->second.getRootDir());
 				break;
 			}
 		}
@@ -233,9 +240,6 @@ ServerBlock Server::find_serverblock(int client_fd)
 			break;
 		}
 	}
-	std::cout << host_header << "\n";
-	std::cout << "[" << port << "]\n";
-	std::cout << "[" << hostname << "]\n";
 	// 서버 블록 결정
 	vector<ServerBlock> v = serverblock_info[stoi(port)];
 	int flag = false;

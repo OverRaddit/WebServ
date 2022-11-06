@@ -36,7 +36,7 @@ void	LocationBlock::setRequestType(string loc_block, size_t pos)
 	string	type = "";
 	bool	flag = false;
 
-	if (this->m_request_type != 2)
+	if (this->m_request_type != DEFAULT)
 		flag = true;
 	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
 		type += loc_block[i];
@@ -129,7 +129,7 @@ void LocationBlock::setAutoIndex(string loc_block, size_t pos)
 	size_t	len = l_e.length();
 	string	on_off = "";
 
-	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
+	for (size_t i = pos + len + 2;loc_block[i] != ';';i++)
 		on_off += loc_block[i];
 	if (on_off == "on")
 		this->m_autoindex = true;

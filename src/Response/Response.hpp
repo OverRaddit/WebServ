@@ -9,6 +9,9 @@
 # include <cctype>
 # include <dirent.h>
 # include <sys/types.h>
+# include <sys/stat.h>
+# include <iostream>
+# include <string.h>
 
 using namespace std;
 
@@ -29,7 +32,7 @@ private:
 	string		getFileContent(string& content_type, string last_boundary);
 
 	int			saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
-	int			serveFile(string file_path);
+	//int			serveFile(string file_path);
 	int			deleteFile(string file_path);
 
 	int			getFileList(vector<string>& li, const char *dir_path);
@@ -43,6 +46,9 @@ public:
 	Response ();
 	Response (int status);
 	~Response ();
+
+	// 임시로 public 이동
+	int			serveFile(string file_path);
 
 	static void	ResponseInit(); // Response 클래스를 초기화하는 한번만 실행 가능함수
 	void		makeContent(string content);
@@ -70,6 +76,8 @@ public:
 	void		defaultResponse();
 
 	string		getHttpResponse();
+
+	struct dirent	*getRequestFile(const char *request_file, const char *dir_path);
 };
 
 // encode와 decode관련 비멤버 함수
@@ -77,5 +85,5 @@ char hex2int(char input);
 char int2hex(char input);
 string URLEncoding(const char *pIn);
 string URLDecoding(const char *pIn);
-
+bool is_directory(const char *suffix_url);
 #endif
