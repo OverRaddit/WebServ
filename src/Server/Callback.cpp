@@ -68,6 +68,10 @@ int Server::callback_read(int fd)
 				break;
 			case OTHER_REQUEST:
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->setRootPath(dir_path);
+				cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
+				cli->getResponse()->setErrorFile(cli->getRequest()->getLocBlock().getErrorPage());
+				//cli->getResponse()->setEr
 				// index 고려할것..
 				if (file_name == "")
 					cli->getResponse()->defaultResponse();

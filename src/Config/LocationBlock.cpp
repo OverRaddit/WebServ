@@ -5,11 +5,12 @@
 
 LocationBlock::LocationBlock() {}
 
-LocationBlock::LocationBlock(string root_dir, string index_file)
+LocationBlock::LocationBlock(string root_dir, string index_file, string error_page)
 : m_max_body_size(1024 * 1024), m_upload_dir(""), m_autoindex(false), m_redirection_url(""), m_request_type(DEFAULT)
 {
 	this->m_root_dir = root_dir;
 	this->m_index_file = index_file;
+	this->m_error_page = error_page;
 }
 
 void LocationBlock::setValidMethod(string loc_block, size_t pos)
@@ -177,4 +178,8 @@ string	LocationBlock::getRedirectionURL(void) const {
 
 string	LocationBlock::getIndexFile(void) const {
 	return this->m_index_file;
+}
+
+string	LocationBlock::getErrorPage(void) const {
+	return this->m_error_page;
 }
