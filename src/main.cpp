@@ -22,10 +22,9 @@
 
 int main(int argc, char *argv[])
 {
-	Server server(argv[1]);
-
 	if (argc == 2)
 	{
+		Server server(argv[1]);
 		//Config	config(argv[2]);
 		//server.init_socket();
 		server.init_multiplexing();

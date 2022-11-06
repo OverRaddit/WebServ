@@ -62,7 +62,8 @@
 		"unordered_map": "cpp",
 		"utility": "cpp",
 		"vector": "cpp",
-		"fstream": "cpp"
+		"fstream": "cpp",
+		"filesystem": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "Disabled"
 }

@@ -86,6 +86,18 @@ void Response::setCgiResult(string ret) {
 	this->m_cgiResult = ret;
 }
 
+void Response::setRootPath(string path) {
+	this->m_rootPath = path;
+}
+
+void Response::setErrorFile(string path) {
+	this->m_ErrorFile = path;
+}
+
+void Response::setIndexFile(string path) {
+	this->m_indexFile = path;
+}
+
 string Response::makeHeaders() {
 	string result = "";
 
@@ -179,6 +191,7 @@ void Response::uploadResponse(string content_type, string content_body) {
 	std::cout << "Upload end\n";
 }
 
+// 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
 int Response::serveFile(string file_path) {
 	ifstream readFile;
 	string data = "";
@@ -187,7 +200,7 @@ int Response::serveFile(string file_path) {
 	char buf;
 
 	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
-		return -1;
+		return 1;
 	readFile.open(file_path);
 	if (!readFile.is_open())
 		return -1;
@@ -278,6 +291,42 @@ void Response::autoIndexResponse(const char *dir_path) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	if (this->makeAutoIndex(dir_path) == -1)
 		this->makeContent("Auto Index Fail");
+}
+
+int Response::makeContentError(int status) {
+	int ret;
+	this->setStatusCode(status);
+	ret = this->serveFile(this->m_rootPath + this->m_ErrorFile);
+	if (ret == -1)
+		this->errorResponse(500);
+	else if (ret == 1)
+		this->errorResponse(404);
+	return 0;
+}
+
+void Response::makeContentFile(string path) {
+	int status = this->serveFile(path);
+	if (status == -1)
+		this->makeContentError(500);
+	else if (status == 1)
+		this->makeContentError(404);
+}
+
+void Response::defaultResponse() {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContentFile(this->m_rootPath + this->m_indexFile);
+	std::cout << "default end ======== \n";
+}
+
+void Response::fileResponse(string path) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContentFile(path);
+}
+
+void Response::errorResponse(int status) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (this->makeContentError(status) == -1)
+		this->makeContentError(500);
 }
 
 string Response::getHttpResponse() {

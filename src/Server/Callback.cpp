@@ -45,7 +45,6 @@ int Server::callback_read(int fd)
 		{
 			// 이름 validate으로 바꿀 것.
 			execute_client_request(cli->getFd());
-
 			string file_name = cli->getRequest()->getReqFileName(); // 슬래시 붙어있음
 			//string dir_path = cli->getRequest()->getSudoDir();
 			string dir_path = cli->getRequest()->getLocBlock().getRootDir();
@@ -71,14 +70,14 @@ int Server::callback_read(int fd)
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 				// index 고려할것..
 				if (file_name == "")
-					cli->getResponse()->makeContent("OTHER REQUEST");
+					cli->getResponse()->defaultResponse();
 				else {
 					cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
 					flag = cli->getResponse()->getRequestFile(file_name, dir_path);
 					if (flag == NO_FILE)
 					{
-						cli->getResponse()->makeContent("No such file"); // 404
-						cli->getResponse()->setStatusCode(404);
+						//cli->getResponse()->makeContent("No such file"); // 404
+						cli->getResponse()->errorResponse(404);
 					}
 					else if (flag == VALID_REQ_DIR)
 					{
@@ -95,14 +94,14 @@ int Server::callback_read(int fd)
 						else
 						{
 							cout << "VALID_REQ_DIR2 : " << dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile() << endl;
-							cli->getResponse()->serveFile(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
+							cli->getResponse()->fileResponse(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
 							cli->getResponse()->setStatusCode(200);
 						}
 					}
 					else if (flag == VALID_REQ_FILE)
 					{
 						cout << "VALID_REQ_FILE : " << dir_path + file_name << endl;
-						cli->getResponse()->serveFile(dir_path + file_name);
+						cli->getResponse()->fileResponse(dir_path + file_name);
 						cli->getResponse()->setStatusCode(200);
 					}
 				}
