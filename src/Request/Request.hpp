@@ -7,6 +7,7 @@
 # include <map>
 
 # include "../Server/RequestType.hpp"
+# include "../Config/Config.hpp"
 
 using namespace std;
 
@@ -26,29 +27,31 @@ public:
 	void	setCgiPid(int cgi_pid);
 	void	setCgiResult(string cgi_result);
 	void	setSudoDir(string sudo_dir);
+	void	setLocBlock(LocationBlock loc_block);
 
 	int		saveOnlyBody(string req_body);
 	void	saveRequestAgain(string req_msg);
 
-	string		getReqHeaderValue(string key);
-	string		getMethod(void) const;
-	string		getReqTarget(void) const;
-	string		getHttpVersion(void) const;
-	string		getReqBody(void) const;
-	string		getRedirectionURL(void) const;
-	int			getStatusCode(void) const;
-	long long	getContentLength(void) const;
-	int			getReqType(void) const;
-	string		getDelFileName(void) const;
-	string		getDownloadFileName(void) const;
-	bool		getIsIncomplete(void) const;
-	string		getIncompleteMessage(void) const;
-	int			getCgiPid(void) const;
-	string		getCgiResult(void) const;
-	string		getSudoDir(void) const;
-	string		getPrefixURL(void) const;
-	string		getSuffixURL(void) const;
-	string		getReqFileName(void) const;
+	string				getReqHeaderValue(string key);
+	string				getMethod(void) const;
+	string				getReqTarget(void) const;
+	string				getHttpVersion(void) const;
+	string				getReqBody(void) const;
+	string				getRedirectionURL(void) const;
+	int					getStatusCode(void) const;
+	long long			getContentLength(void) const;
+	int					getReqType(void) const;
+	string				getDelFileName(void) const;
+	string				getDownloadFileName(void) const;
+	bool				getIsIncomplete(void) const;
+	string				getIncompleteMessage(void) const;
+	int					getCgiPid(void) const;
+	string				getCgiResult(void) const;
+	string				getSudoDir(void) const;
+	string				getPrefixURL(void) const;
+	string				getSuffixURL(void) const;
+	string				getReqFileName(void) const;
+	LocationBlock		getLocBlock(void) const;
 
 	void		saveURLInformation(void);
 private:
@@ -67,10 +70,12 @@ private:
 	string				m_incomplete_message;
 	int					m_cgi_pid;
 	string				m_cgi_result;
-	string				m_sudo_dir;
+	string				m_sudo_dir; // useless
 	string				m_prefix_url;
 	string				m_suffix_url;
 	string				m_req_file_name;
+
+	LocationBlock		m_loc_block;
 
 	Request(void);
 

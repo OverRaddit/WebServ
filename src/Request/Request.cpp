@@ -208,9 +208,15 @@ void	Request::setCgiResult(string cgi_result)
 {
 	this->m_cgi_result = cgi_result;
 }
+
 void	Request::setSudoDir(string sudo_dir)
 {
 	this->m_sudo_dir = sudo_dir;
+}
+
+void	Request::setLocBlock(LocationBlock loc_block)
+{
+	this->m_loc_block = loc_block;
 }
 
 long long	Request::getContentLength(void) const {
@@ -299,4 +305,9 @@ string		Request::getSuffixURL(void) const
 string		Request::getReqFileName(void) const
 {
 	return this->m_req_file_name;
+}
+
+LocationBlock	Request::getLocBlock(void) const
+{
+	return this->m_loc_block;
 }
