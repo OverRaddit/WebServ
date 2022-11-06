@@ -6,7 +6,7 @@
 /*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/06 20:29:30 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/11/06 22:46:45 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,13 +175,15 @@ int	Server::execute_client_request(int client_fd)
 	cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
 	// 로케이션 블록 매핑
 	it = s_b.getLocationBlocks().find(url);
-	cli->getRequest()->setLocBlock(it->second);
+	//if (it == s_b.getLocationBlocks().end())
+
 	if (it != s_b.getLocationBlocks().end())
 	{
+		cli->getRequest()->setLocBlock(it->second);
 		vector<string>	valid_method = it->second.getValidMethod();
 		for (int i = 0;i < valid_method.size();i++)
 		{
-			if (valid_method[i] == cli->getRequest()->getMethod())
+			if (valid_method[i] == cli->getRequest()->getMethod() || cli->getRequest()->getMethod() == "PUT")
 			{
 				is_valid_method = true;
 				cli->getRequest()->setReqType(it->second.getRequestType());
