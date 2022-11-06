@@ -17,6 +17,7 @@ using namespace std;
 class LocationBlock {
 public:
 	LocationBlock(void);
+	LocationBlock(string root_dir, string index_file);
 
 	void	setValidMethod(string loc_block, size_t pos);
 	void	setMaxBodySize(string loc_block, size_t pos);
@@ -25,6 +26,7 @@ public:
 	void	setAutoIndex(string loc_block, size_t pos);
 	void	setRedirectionURL(string loc_block, size_t pos);
 	void	setRequestType(string loc_block, size_t pos);
+	void	setIndexFile(string loc_block, size_t pos);
 
 	vector<string>	getValidMethod(void) const;
 	string			getUploadDirectory(void) const;
@@ -33,11 +35,13 @@ public:
 	bool			getAutoIndex(void) const;
 	string			getRedirectionURL(void) const;
 	int				getRequestType(void) const;
+	string			getIndexFile(void) const;
 private:
 	vector<string>	m_valid_method;
 	long long		m_max_body_size;
 	string			m_upload_dir;
 	string			m_root_dir;
+	string			m_index_file;
 	bool			m_autoindex;
 	string			m_redirection_url;
 	int				m_request_type;
