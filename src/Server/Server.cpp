@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/07 17:33:49 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/07 20:02:20 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,7 +240,7 @@ ServerBlock Server::find_serverblock(int client_fd)
 
 	// Client의 request정보를 통해 어떤 서버블록을 사용할지 정한다.
 	std::string host_header = cli->getRequest()->getReqHeaderValue("Host");
-	std::string hostname, port;
+	std::string hostname = "", port = "";
 
 	// 헤더 정보 저장
 	for(int i=0;i<host_header.length();i++)
