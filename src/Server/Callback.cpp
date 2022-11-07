@@ -93,8 +93,8 @@ int Server::callback_read(int fd)
 						cout << "VALID_REQ_DIR1 : " << final_path + cli->getRequest()->getLocBlock().getIndexFile() << endl;
 						if (cli->getResponse()->getRequestFile(cli->getRequest()->getLocBlock().getIndexFile(), final_path) == NO_FILE)
 						{
-							cli->getResponse()->makeContent("No such file"); // 404
-							cli->getResponse()->setStatusCode(404);
+							//cli->getResponse()->makeContent("No such file"); // 404
+							cli->getResponse()->errorResponse(404);
 						}
 						else
 						{

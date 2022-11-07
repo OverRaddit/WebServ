@@ -296,11 +296,13 @@ void Response::autoIndexResponse(const char *dir_path) {
 int Response::makeContentError(int status) {
 	int ret;
 	this->setStatusCode(status);
-	ret = this->serveFile(this->m_rootPath + this->m_ErrorFile);
+	ret = this->serveFile("sudo/" + this->m_ErrorFile);
+	cout << "root path " << this->m_rootPath + "/" + this->m_ErrorFile << "\n";
 	//if (ret == -1)
 	//	this->errorResponse(500);
 	//else if (ret == 1)
 	//	this->errorResponse(404);
+	cout << "++++++++++ error content : " <<  this->getContent() << "========== \n";
 	return 0;
 }
 
