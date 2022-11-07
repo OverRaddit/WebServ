@@ -296,11 +296,13 @@ void Response::autoIndexResponse(const char *dir_path) {
 int Response::makeContentError(int status) {
 	int ret;
 	this->setStatusCode(status);
-	ret = this->serveFile(this->m_rootPath + this->m_ErrorFile);
-	if (ret == -1)
-		this->errorResponse(500);
-	else if (ret == 1)
-		this->errorResponse(404);
+	ret = this->serveFile("sudo/" + this->m_ErrorFile);
+	cout << "root path " << this->m_rootPath + "/" + this->m_ErrorFile << "\n";
+	//if (ret == -1)
+	//	this->errorResponse(500);
+	//else if (ret == 1)
+	//	this->errorResponse(404);
+	cout << "++++++++++ error content : " <<  this->getContent() << "========== \n";
 	return 0;
 }
 
@@ -313,9 +315,10 @@ void Response::makeContentFile(string path) {
 }
 
 void Response::defaultResponse() {
+	std::cout << "default Response start : " << this->m_rootPath + "/" + this->m_indexFile + " ======== \n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContentFile(this->m_rootPath + this->m_indexFile);
-	std::cout << "default end ======== \n";
+	this->makeContentFile(this->m_rootPath + "/" + this->m_indexFile);
+	std::cout << "default Response end ======== \n";
 }
 
 void Response::fileResponse(string path) {

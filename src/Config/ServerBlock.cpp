@@ -1,6 +1,7 @@
 #include "ServerBlock.hpp"
 
-ServerBlock::ServerBlock(void) {}
+ServerBlock::ServerBlock(void): m_error_page("")
+{}
 
 void	ServerBlock::setLocationBlock(string loc_block)
 {
@@ -10,7 +11,7 @@ void	ServerBlock::setLocationBlock(string loc_block)
 	pos = loc_block.find("/");
 	for (size_t i = pos;loc_block[i] != ' ';i++)
 		route += loc_block[i];
-	this->m_loc_blocks[route] = LocationBlock(this->m_root_dir, this->m_index_file);
+	this->m_loc_blocks[route] = LocationBlock(this->m_root_dir, this->m_index_file, this->m_error_page);
 	if ((pos = loc_block.find("\tlimit_except")) != string::npos)
 		this->m_loc_blocks[route].setValidMethod(loc_block, pos + 1);
 	if ((pos = loc_block.find("\tclient_max_body_size")) != string::npos)
