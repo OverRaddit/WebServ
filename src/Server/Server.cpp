@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/06 22:46:45 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/11/07 17:33:49 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ int	Server::execute_client_request(int client_fd)
 	// 	url = "/download";
 	cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
 	// 로케이션 블록 매핑
+	cli->getRequest()->setSerBlock(s_b);
 	it = s_b.getLocationBlocks().find(url);
 	//if (it == s_b.getLocationBlocks().end())
 

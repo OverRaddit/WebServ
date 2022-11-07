@@ -208,6 +208,12 @@ void	Request::setLocBlock(LocationBlock loc_block)
 {
 	this->m_loc_block = loc_block;
 }
+
+void	Request::setSerBlock(ServerBlock server_block)
+{
+	this->m_ser_block = server_block;
+}
+
 void	Request::setFilename(string file_name)
 {
 	this->m_file_name = file_name;
@@ -304,4 +310,9 @@ string		Request::getReqFileName(void) const
 LocationBlock	Request::getLocBlock(void) const
 {
 	return this->m_loc_block;
+}
+
+ServerBlock		Request::getSerBlock(void) const
+{
+	return this->m_ser_block;
 }

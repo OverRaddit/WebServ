@@ -28,6 +28,7 @@ public:
 	void	setCgiResult(string cgi_result);
 	void	setSudoDir(string sudo_dir);
 	void	setLocBlock(LocationBlock loc_block);
+	void	setSerBlock(ServerBlock server_block);
 	void	setFilename(string file_name);
 
 	int		saveOnlyBody(string req_body);
@@ -53,6 +54,7 @@ public:
 	string				getSuffixURL(void) const;
 	string				getReqFileName(void) const;
 	LocationBlock		getLocBlock(void) const;
+	ServerBlock			getSerBlock(void) const;
 
 	void		saveURLInformation(void);
 private:
@@ -77,6 +79,7 @@ private:
 	string				m_req_file_name;
 
 	LocationBlock		m_loc_block;
+	ServerBlock			m_ser_block;
 
 	Request(void);
 
