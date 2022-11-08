@@ -70,7 +70,7 @@ void	ServerBlock::setServerName(string server_name)
 	this->m_server_name = server_name;
 }
 
-void	ServerBlock::setPortNum(string port_nums)
+void	ServerBlock::setPortNums(string port_nums)
 {
 	string	port_num = "";
 	bool 	flag = false;
@@ -102,7 +102,7 @@ string ServerBlock::getRootDir(void) const { return this->m_root_dir; }
 
 string ServerBlock::getServerName(void) const { return this->m_server_name; }
 
-vector<int>&	ServerBlock::getPortNum(void) const { return this->m_port_nums; }
+vector<int>	ServerBlock::getPortNum(void) const { return this->m_port_nums; }
 
 const map<string, LocationBlock>&	ServerBlock::getLocationBlocks(void) const {
 	return this->m_loc_blocks;

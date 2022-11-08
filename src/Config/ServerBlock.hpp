@@ -12,7 +12,7 @@ class ServerBlock {
 public:
 	ServerBlock(void);
 
-	void	setPortNum(string port_nums);
+	void	setPortNums(string port_nums);
 	void	setServerName(string server_name);
 	void	setRootDir(string root_dir);
 	void	setCgiTester(string cgi_tester);
@@ -20,7 +20,7 @@ public:
 	void	setLocationBlock(string loc_block);
 	void	setIndexFile(string file_name);
 
-	vector<int>&	getPortNum(void) const;
+	vector<int>		getPortNum(void) const;
 	string			getErrorPage(void) const;
 	string			getServerName(void) const;
 	string			getRootDir(void) const;
