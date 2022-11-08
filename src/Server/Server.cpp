@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/07 20:02:20 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/08 15:21:21 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,33 +79,36 @@ int Server::init_multiplexing()
 		vector<ServerBlock> v = getConfig()->getServerBlocks(); // reference로 받으면 좋을듯...!
 		for(int i=0;i<v.size();i++)
 		{
-			int curr_port = v[i].getPortNum();
-
-			// already registered port
-			if (serverblock_info.find(curr_port) != serverblock_info.end())
+			vector<int> ports = v[i].getPortNum();
+			for(int i=0;i<ports.size();i++)
 			{
-				vector<ServerBlock> &blocks = serverblock_info[curr_port];
-				int flag = 0;
-				for(int j=0;j<blocks.size();j++)
+				int curr_port = ports[i];
+				// already registered port
+				if (serverblock_info.find(curr_port) != serverblock_info.end())
 				{
-					if (blocks[j].getServerName() == v[i].getServerName())
+					vector<ServerBlock> &blocks = serverblock_info[curr_port];
+					int flag = 0;
+					for(int j=0;j<blocks.size();j++)
 					{
-						flag = 1;
-						break;
+						if (blocks[j].getServerName() == v[i].getServerName())
+						{
+							flag = 1;
+							break;
+						}
 					}
+					if (!flag)
+						blocks.push_back(v[i]);
 				}
-				if (!flag)
-					blocks.push_back(v[i]);
-			}
-			// open listen socket
-			// init_socket의 반환값을 EV_SET인자로 넣는 방식이 좋아보인다.
-			else
-			{
-				init_socket(curr_port); // 포트열기
-				// 포트에 해당하는 fd를 kqueue에 SET하기
-				EV_SET(&event, server_fd, EVFILT_READ, EV_ADD | EV_CLEAR, flags, 0,	NULL);
-				change_events(server_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				serverblock_info[curr_port].push_back(v[i]);
+				// open listen socket
+				// init_socket의 반환값을 EV_SET인자로 넣는 방식이 좋아보인다.
+				else
+				{
+					init_socket(curr_port); // 포트열기
+					// 포트에 해당하는 fd를 kqueue에 SET하기
+					EV_SET(&event, server_fd, EVFILT_READ, EV_ADD | EV_CLEAR, flags, 0,	NULL);
+					change_events(server_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+					serverblock_info[curr_port].push_back(v[i]);
+				}
 			}
 		}
 	}
@@ -187,12 +190,12 @@ int	Server::execute_client_request(int client_fd)
 			if (valid_method[i] == cli->getRequest()->getMethod() || cli->getRequest()->getMethod() == "PUT")
 			{
 				is_valid_method = true;
-				cli->getRequest()->setReqType(it->second.getRequestType());
-				// 좀더 확장성 있는 방법을 강구해야 할듯...
-				if (valid_method[i] == DELETE_HTTP_METHOD)
-					cli->getRequest()->setReqType(DELETE_REQUEST);
-				else if (it->second.getAutoIndex())
-					cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
+				// cli->getRequest()->setReqType(it->second.getRequestType());
+				// // 좀더 확장성 있는 방법을 강구해야 할듯...
+				// if (valid_method[i] == DELETE_HTTP_METHOD)
+				// 	cli->getRequest()->setReqType(DELETE_REQUEST);
+				// else if (it->second.getAutoIndex())
+				// 	cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
 
 				// Rootdir 확인
 				cout << "this location's block's root is...  ";
