@@ -75,13 +75,13 @@ void	ServerBlock::setPortNums(string port_nums)
 	string	port_num = "";
 	bool 	flag = false;
 
-	for (size_t i = 0;port_nums[i] != ';';i++)
+	for (size_t i = 0;i < port_nums.length();i++)
 	{
 		if (port_nums[i] != ' ')
 			port_num += port_nums[i];
 		else
 			flag = true;
-		if (flag || port_nums[i + 1] == ';')
+		if (flag || i == port_nums.length() - 1)
 		{
 			this->m_port_nums.push_back(stoi(port_num));
 			port_num = "";
