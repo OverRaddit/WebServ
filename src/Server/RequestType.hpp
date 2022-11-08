@@ -1,0 +1,11 @@
+#ifndef REQUEST_TYPE_HPP
+#define REQUEST_TYPE_HPP
+
+# define CGI_REQUEST 0
+# define UPLOAD_REQUEST 1
+# define DOWNLOAD_REQUEST 2
+# define OTHER_REQUEST 3
+# define DELETE_REQUEST 4
+# define AUTOINDEX_REQUEST 5
+
+#endif
