@@ -78,7 +78,11 @@ int Server::callback_read(int fd)
 				//cli->getResponse()->setEr
 				// index 고려할것..
 				if (file_name == "")
+				{
+					cli->getResponse()->setRootPath(dir_path); // loc_block's root
+					cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
 					cli->getResponse()->defaultResponse();
+				}
 				else {
 					cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
 					flag = cli->getResponse()->getRequestFile(file_name, dir_path);
