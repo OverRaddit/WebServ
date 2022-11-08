@@ -51,7 +51,10 @@ void	ServerBlock::setCgiTester(string cgi_tester)
 	for (int i = 0;i < cgi_tester.length();i++)
 	{
 		if (cgi_tester[i] == ' ')
+		{
 			flag = true;
+			continue;
+		}
 		if (!flag)
 			this->m_cgi_tester += cgi_tester[i];
 		else
