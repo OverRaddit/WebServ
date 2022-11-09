@@ -165,82 +165,96 @@ void Response::cgiResponse(string cgi_result) {
 	this->makeContent(cgi_result);
 }
 
-void Response::putFile(string file_name, string content_body) {
-	ofstream writeFile;
+void Response::putFile(vector<int> fd, string content_body) {
+	//ofstream writeFile;
 	//writeFile.open("./sudo/file_storage/" + file_name);
-	writeFile.open(this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name);  // 수정
-	cout << "putFile path : " + this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name << "\n";
-	//cout << "content_body=" + content_body + "\n";
-	if (!writeFile.is_open()) {
-		cout << "putFile에서 ofstream.open() 실패\n";
-		return ;
+	//writeFile.open(this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name);  // 수정
+	for (int i=0; i<fd.size(); ++i) {
+		this->writeFile(fd[i], content_body);
 	}
-	writeFile.write(content_body.c_str(), content_body.size());
-	writeFile.close();
+	//cout << "putFile path : " + this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name << "\n";
+	//cout << "content_body=" + content_body + "\n";
+	//if (!writeFile.is_open()) {
+	//	cout << "putFile에서 ofstream.open() 실패\n";
+	//	return ;
+	//}
+	//writeFile.write(content_body.c_str(), content_body.size());
+	//writeFile.close();
+
 }
 
-int Response::saveFile(string content_type, string content_body) {
+int Response::saveFile(int fd, string content_type, string content_body) {
 	size_t i = content_type.find("boundary=");
 	if (i == string::npos)
 		return -1;
-	ofstream writeFile;
+	//ofstream writeFile;
 	string boundary = content_type.substr(i+9);
 	string sub_content = content_body;
 	string file_name;
 	string file_body;
 
 	while (sub_content.find("--" + boundary + "--") != 0) {
-		file_name = parseHeader(sub_content);
-		file_body = getFileContent(sub_content, "--" + boundary);
+		file_name = this->parseHeader(sub_content);
+		file_body = this->getFileContent(sub_content, "--" + boundary);
 		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
 			return -1;
-		writeFile.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
-		writeFile.write(file_body.c_str(), file_body.size());
-		writeFile.close();
+		this->writeFile(fd, file_body);
+		//writeFile.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
+		//writeFile.write(file_body.c_str(), file_body.size());
+		//writeFile.close();
 	}
 	return 0;
 }
 
-void Response::uploadResponse(string file_name, string content_type, string content_body) {
-	cout << "[DEBUG] uploadResponse start\n";
-	cout << "content_body : " + content_body + "\n";
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (this->saveFile(content_type, content_body) == -1)
-		this->putFile(file_name, content_body);
-	this->makeContent("Upload Success");
-	cout << "[DEBUG] uploadResponse end\n";
+vector<pair<string, string> > Response::saveFileName(int fd, string content_type, string content_body) {
+	size_t i = content_type.find("boundary=");
+	//ofstream writeFile;
+	vector<pair<string, string> > v;
+	string boundary = content_type.substr(i+9);
+	string sub_content = content_body;
+	string file_name;
+	string file_body;
+
+	while (sub_content.find("--" + boundary + "--") != 0) {
+		file_name = this->parseHeader(sub_content);
+		file_body = this->getFileContent(sub_content, "--" + boundary);
+		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
+			continue;
+		v.push_back(make_pair(file_name, file_name));
+		//this->writeFile(fd, file_body);
+		//writeFile.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
+		//writeFile.write(file_body.c_str(), file_body.size());
+		//writeFile.close();
+	}
+	return v;
 }
 
 // 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
-int Response::serveFile(string file_path) {
-	ifstream readFile;
+void Response::serveFile(int fd) {
+	//ifstream readFile;
 	string data = "";
-	unsigned int i = 0;
-	vector<char> d;
-	char buf;
+	//unsigned int i = 0;
+	//vector<char> d;
+	//char buf;
 
-	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
-		return 1;
-	readFile.open(file_path);
-	if (!readFile.is_open())
-		return -1;
-	while (!readFile.eof()) {
-		readFile.read(&buf, sizeof(buf));
-		d.push_back(buf);
-	}
-	data.reserve(d.size());
-	for (unsigned int i=0; i<d.size(); ++i) {
-		data += d[i];
-	}
-	readFile.close();
+	//if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
+	//	return 1;
+	//readFile.open(file_path);
+	//if (!readFile.is_open())
+	//	return -1;
+	//while (!readFile.eof()) {
+	//	readFile.read(&buf, sizeof(buf));
+	//	d.push_back(buf);
+	//}
+	data = this->readFile(fd);
+	//data.reserve(d.size());
+	//for (unsigned int i=0; i<d.size(); ++i) {
+	//	data += d[i];
+	//}
+	//readFile.close();
+	close(fd);
 	this->setContent(data);
-	return 0;
-}
-
-void Response::downloadResponse(string file_path) {
-	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
-	if (this->serveFile(file_path) != 0)
-		this->makeContent("Download Fail");
+	//return 0;
 }
 
 int Response::deleteFile(string file_path) {
@@ -249,14 +263,6 @@ int Response::deleteFile(string file_path) {
 	string full_name = URLDecoding(file_path.c_str());
 	std::cout << "Decode file name: " << full_name << "\n";
 	return unlink(full_name.c_str());
-}
-
-void Response::deleteResponse(string file_path) {
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (deleteFile(file_path) == 0)
-		this->makeContent("Delete Success");
-	else
-		this->makeContent("Delete Fail");
 }
 
 int Response::getFileList(vector<string>& li, const char *dir_path) {
@@ -308,49 +314,107 @@ int Response::makeAutoIndex(const char *dir_path) {
 	return 0;
 }
 
+// 일단 보류
+void Response::downloadResponse(string file_path) {
+	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
+	//this->serveFile(fd);
+		//this->makeContent("Download Fail");
+}
+
+void Response::uploadResponse(vector<int> fd, string content_type, string content_body) {
+	cout << "[DEBUG] uploadResponse start\n";
+	cout << "content_body : " + content_body + "\n";
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	//if (this->saveFile(content_type, content_body) == -1)
+	this->putFile(fd, content_body);
+	this->makeContent("Upload Success");
+	cout << "[DEBUG] uploadResponse end\n";
+}
+
+void Response::deleteResponse(string file_path) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (deleteFile(file_path) == 0)
+		this->makeContent("Delete Success");
+	else
+		this->makeContent("Delete Fail");
+}
+
 void Response::autoIndexResponse(const char *dir_path) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	if (this->makeAutoIndex(dir_path) == -1)
 		this->makeContent("Auto Index Fail");
 }
 
-int Response::makeContentError(int status) {
-	int ret;
+void Response::makeContentError(int status, int fd) {
+	//int ret;
 	this->setStatusCode(status);
-	ret = this->serveFile(this->m_location.getRootDir() + "/" + this->m_location.getErrorPage());
+	//ret = this->serveFile(this->m_location.getRootDir() + "/" + this->m_location.getErrorPage());
+	this->serveFile(fd);
 	cout << "root path " << this->m_location.getRootDir() + "/" + this->m_location.getErrorPage() << "\n";
 	//if (ret == -1)
 	//	this->errorResponse(500);
 	//else if (ret == 1)
 	//	this->errorResponse(404);
 	cout << "++++++++++ error content : " <<  this->getContent() << "========== \n";
-	return 0;
+	//return 0;
 }
 
-void Response::makeContentFile(string path) {
-	int status = this->serveFile(path);
-	if (status == -1)
-		this->makeContentError(500);
-	else if (status == 1)
-		this->makeContentError(404);
+void Response::makeContentFile(int fd) {
+	this->serveFile(fd);
+	//if (status == -1)
+	//	this->makeContentError(500, fd);
+	//else if (status == 1)
+	//	this->makeContentError(404, fd);
 }
 
-void Response::defaultResponse() {
+void Response::defaultResponse(int fd) {
 	std::cout << "default Response start : " << this->m_location.getRootDir() + "/" + this->m_location.getIndexFile() + " ======== \n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContentFile(this->m_location.getRootDir() + "/" + this->m_location.getIndexFile());
+	this->makeContentFile(fd);
+	//this->makeContentFile(this->m_location.getRootDir() + "/" + this->m_location.getIndexFile());
 	std::cout << "default Response end ======== \n";
 }
 
-void Response::fileResponse(string path) {
+void Response::fileResponse(int fd) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContentFile(path);
+	this->makeContentFile(fd);
 }
 
-void Response::errorResponse(int status) {
+void Response::errorResponse(int fd, int status) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (this->makeContentError(status) == -1)
-		this->makeContentError(500);
+	this->makeContentError(status, fd);
+		//this->makeContentError(500);
+}
+
+// fd 반환 read, write 둘 다 가능
+int Response::openFile(string path) {
+	int fd = open(path.c_str(), O_RDWR | O_TRUNC);
+	return fd;
+}
+
+vector<int> Response::openFiles(vector<pair<string, string> > in) {
+	vector<int> out;
+	int fd;
+	for (int i=0; i<in.size(); ++i) {
+		fd = this->openFile(in[i].first);
+		out.push_back(fd);
+	}
+	return out;
+}
+
+// 읽은 파일 스트링으로 반환
+string Response::readFile(int fd) {
+	char buf[BUFF_SIZE];
+	ssize_t ret = read(fd, buf, BUFF_SIZE);
+	if (ret == -1)
+		return "";
+	return string(buf);
+}
+
+// write 결과 값 반환
+ssize_t Response::writeFile(int fd, string content) {
+	ssize_t size = write(fd, content.c_str(), content.size());
+	return size;
 }
 
 string Response::getHttpResponse() {
