@@ -48,7 +48,13 @@ public:
 	int			read_client_request();
 	int			read_pipe_result();
 	void		make_env(char **env);
-	int			cgi_init();
+	int			cgi_init(std::string filename);
+
+	// HTTP METHOD
+	bool		is_cgi_request(Request *req);
+	int			GET(Request *req, Response *res, string filepath);
+	int			POST(Request *req, Response *res, string filepath);
+	int			DELETE(Request *req, Response *res, string filepath);
 };
 
 #endif
