@@ -44,9 +44,18 @@ int Server::callback_read(int fd)
 			return (0);
 		{
 			// 이름 validate으로 바꿀 것.
+			// 여기서 걸러진 요청은 바로 write할 수 있게 바꿔야 한다.
 			execute_client_request(cli->getFd());
 
-			//Request &req = cli->getRequest();
+			// 검증단계에서 응답코드가 정해진 것들은 바로 응답한다.
+			if (cli->getRequest()->getStatusCode() != 0)
+			{
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->makeContent("test\n");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				return 0;
+			}
+
 			string file_name = cli->getRequest()->getReqFileName(); // 슬래시 붙어있음
 			string dir_path = cli->getRequest()->getLocBlock().getRootDir();
 			string final_path = "";
@@ -58,7 +67,19 @@ int Server::callback_read(int fd)
 			cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
 			cli->getResponse()->setErrorFile(cli->getRequest()->getLocBlock().getErrorPage());
 
-			cli->GET(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			// 메소드별로 실행한다.
+			if (cli->getRequest()->getMethod() == "GET"){
+				cli->GET(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "DELETE") {
+				cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "POST") {
+				cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "PUT") {
+				cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else {
+				std::cerr << "Undefined Method" << std::endl;
+			}
+
 			if (cli->is_cgi_request(cli->getRequest()))
 			{
 				pipe_to_client[cli->getPipeFd()] = cli->getFd();
