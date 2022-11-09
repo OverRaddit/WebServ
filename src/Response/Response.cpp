@@ -286,6 +286,7 @@ int	Response::getRequestFile(string request_file, string dir_path) {
 		return VALID_REQ_FILE; // 존재하는 파일 요청
 	else if (S_ISDIR(buf.st_mode))
 		return VALID_REQ_DIR; // 존재하는 디렉토리 요청
+	return 2;  // 예외
 }
 
 int Response::makeAutoIndex(const char *dir_path) {
