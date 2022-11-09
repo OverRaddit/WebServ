@@ -169,8 +169,8 @@ void Response::putFile(string file_name, string content_body) {
 	ofstream writeFile;
 	//writeFile.open("./sudo/file_storage/" + file_name);
 	writeFile.open(this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name);  // 수정
-	cout << "++++++++++ putFile path = " + this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name << "\n";
-	cout << "content_body = " + content_body + "\n";
+	cout << "putFile path : " + this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name << "\n";
+	//cout << "content_body=" + content_body + "\n";
 	if (!writeFile.is_open()) {
 		cout << "putFile에서 ofstream.open() 실패\n";
 		return ;
@@ -202,11 +202,13 @@ int Response::saveFile(string content_type, string content_body) {
 }
 
 void Response::uploadResponse(string file_name, string content_type, string content_body) {
+	cout << "[DEBUG] uploadResponse start\n";
+	cout << "content_body : " + content_body + "\n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	if (this->saveFile(content_type, content_body) == -1)
 		this->putFile(file_name, content_body);
 	this->makeContent("Upload Success");
-	std::cout << "Upload end\n";
+	cout << "[DEBUG] uploadResponse end\n";
 }
 
 // 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
