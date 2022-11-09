@@ -6,7 +6,7 @@
 #    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/11/10 00:00:27 by gshim            ###   ########.fr        #
+#    Updated: 2022/11/10 00:26:00 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,14 +53,10 @@ SRC_LIST	=	src/main.cpp			\
 SRCS		=	$(addprefix $(SRCS_DIR), $(SRC_LIST))
 OBJS		=	$(SRCS:.cpp=.o)
 
-GNL_NAME = gnl
-GNL_DIR = include/get_next_line
-
 # =============================================================================
 # Target Generating
 # =============================================================================
 $(NAME)			:	$(OBJS)
-	@$(MAKE) -C $(GNL_DIR) all
 	@echo $(GREEN) "Source files are compiled!\n" $(EOC)
 	@echo $(WHITE) "Building $(NAME) for" $(YELLOW) "Mandatory" $(WHITE) "..." $(EOC)
 	@$(CXX) $(CFLAGS) $(CDEBUG) $^ -o $@
@@ -78,13 +74,11 @@ all			: $(NAME)
 clean		:
 				@echo $(YELLOW) "Cleaning object files..." $(EOC)
 				@rm -rf $(OBJS)
-				$(MAKE) -C $(GNL_DIR) clean
 				@echo $(RED) "Object files are cleaned! 🧹 🧹\n" $(EOC)
 
 fclean		:
 				@echo $(YELLOW) "Removing $(NAME)..." $(EOC)
 				@rm -rf $(NAME) $(OBJS)
-				$(MAKE) -C $(GNL_DIR) fclean
 				@echo $(RED) "$(NAME) is removed! 🗑 🗑\n" $(EOC)
 
 re			: fclean all
