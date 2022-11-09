@@ -41,3 +41,46 @@ Response
   - cgi flag
   - upload flag
 - 정적파일요청 수행후, 플래그에 따라 값 가공.
+
+
+
+오늘의 할일
+- 최종 request를 출력할것.
+- cgi flag
+-
+- 현재 upload가 안되는 이유
+  - HTTP method에서 get/post를 구분하지 않기 때문이다.
+  - file을 찾지못할때,
+    - POST/PUT	: 새로운 파일을 생성함
+    - GET		: 404 error
+
+파일명이 없을때. -> 무조건 404
+
+파일명은 있는데 유효하지 않은 파일명일때.
+- POST/PUT	: 새로운 파일을 생성함
+- GET		: 404 error
+
+
+원코드에서 파일명이 ""인 경우와 아닌경우를 나누었는데 굳이 나눌 필요가 있었을까?
+
+[O]파이프에 데이터 보낼때, read한 뒤에 eof 붙이기.
+	- 읽고 EOF찍고 strlen만큼만 write한다.
+
+[O]파이프에서 eof를 만날때만 로그찍기. 안그러면 미완성본이 여러번 출력될테니..
+request도 완성본을 만들고나서 로그찍기
+	현재 memory leak 우려파트 존재..
+
+
+파일fd가 업로드(쓰기용)인지 조회용(읽기용)인지 알아야함?
+
+write, 업로드 -> write를 모두 수행.
+	- 파일생성후, 생성한 파일을 반환.
+
+read, 조회 -> write이벤트 감지할 필요 없음.
+	- 파일읽어서 반환.\
+
+====================================
+
+error페이지를 반환하도록...!
+Test GET Expected 404 on http://localhost:4240/directory/Yeah
+content returned: H

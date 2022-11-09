@@ -6,7 +6,7 @@
 /*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/09 22:48:56 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/11/09 23:05:27 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,7 @@ int Server::run()
 	}
 }
 
+// 여기서 걸러진 요청은 바로 write할 수 있게 바꿔야 한다.
 int	Server::execute_client_request(int client_fd)
 {
 	Client *cli = clients_info[client_fd];
@@ -244,7 +245,7 @@ int	Server::execute_client_request(int client_fd)
 			matching_it->second.getMaxBodySize() == 0)
 			{
 				if (matching_it->second.getRedirectionURL() == "")
-					cli->getRequest()->setStatusCode(200); // OK
+					cli->getRequest()->setStatusCode(0); // not define yet.
 				else
 				{
 					cli->getRequest()->setRedirectionURL(matching_it->second.getRedirectionURL());

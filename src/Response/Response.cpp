@@ -308,10 +308,21 @@ int Response::makeContentError(int status) {
 
 void Response::makeContentFile(string path) {
 	int status = this->serveFile(path);
-	if (status == -1)
-		this->makeContentError(500);
-	else if (status == 1)
-		this->makeContentError(404);
+	if (status != 0)
+	{
+		// 지정한 디렉토리를 벗어난 경우.
+		if (status == 1)
+		{
+			this->makeContent("You tried to access other directory.");
+			this->makeContentError(500);
+		}
+		// 파일을 open하지 못한 경우
+		else if (status == -1)
+		{
+			this->makeContent("There's no file.");
+			this->makeContentError(404);
+		}
+	}
 }
 
 void Response::defaultResponse() {
