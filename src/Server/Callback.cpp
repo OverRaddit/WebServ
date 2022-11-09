@@ -63,21 +63,18 @@ int Server::callback_read(int fd)
 			case UPLOAD_REQUEST:
 				std::cout << "Req type: UPLOAD" << std::endl;
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->setLocationBlock(cli->getRequest()->getLocBlock());
 				cli->getResponse()->makeContent("Upload Request");
-				//cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
+
+				cli->getResponse()->uploadResponse(cli->getRequest()->getReqFileName(), cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				break;
 			case OTHER_REQUEST:
 				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->setRootPath(dir_path);
-				cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
-				cli->getResponse()->setErrorFile(cli->getRequest()->getLocBlock().getErrorPage());
-				//cli->getResponse()->setEr
+				cli->getResponse()->setLocationBlock(cli->getRequest()->getLocBlock());
 				// index 고려할것..
 				if (file_name == "")
 				{
-					cli->getResponse()->setRootPath(dir_path); // loc_block's root
-					cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
 					cli->getResponse()->defaultResponse();
 				}
 				else {
