@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
+/*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/08 15:21:21 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/09 22:48:56 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,10 +163,12 @@ int	Server::execute_client_request(int client_fd)
 	ServerBlock s_b = find_serverblock(client_fd);
 
 	// 이곳에서 요청 처리를 한다.
-	cli->getRequest()->saveURLInformation();
-	std::string url = cli->getRequest()->getPrefixURL();
-	std::map<string, LocationBlock>::const_iterator	it;
+	// cli->getRequest()->saveURLInformation();
+	std::string url = cli->getRequest()->getReqTarget();
+	std::map<string, LocationBlock>::iterator	it;
+	std::map<string, LocationBlock>::iterator	matching_it;
 	bool is_valid_method = false;
+	int	matched_len = -1;
 	size_t pos;
 
 	// pos = url.find("/delete/");
@@ -175,37 +177,62 @@ int	Server::execute_client_request(int client_fd)
 	// // 필요해보여서 넣음
 	// else if ((pos = url.find("/download/")) != string::npos)
 	// 	url = "/download";
-	cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
+	// cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
 	// 로케이션 블록 매핑
 	cli->getRequest()->setSerBlock(s_b);
-	it = s_b.getLocationBlocks().find(url);
+	it = s_b.getLocationBlocks().begin();
+	matching_it = s_b.getLocationBlocks().end();
+	// URL과 로케이션 블록의 Longest Prefix Matching
+	for (it = s_b.getLocationBlocks().begin();it != s_b.getLocationBlocks().end();it++)
+	{
+		if (url == it->first)
+		{
+			matching_it = it;
+			break;
+		}
+		else if (it->first == "/")
+		{
+			matching_it = it;
+			continue;
+		}
+		cout << "####### " << url << "  |  " << it->first << endl;
+		size_t	find = url.find(it->first);
+		if (find == 0)
+		{
+			if (matched_len < it->first.length())
+				if (url[it->first.length()] == '/')
+					matching_it = it;
+		}
+	}
+	cout << "#######!!! " << matching_it->first << endl;
+	// it = s_b.getLocationBlocks().find(url);
 	//if (it == s_b.getLocationBlocks().end())
 
-	if (it != s_b.getLocationBlocks().end())
+	if (matching_it != s_b.getLocationBlocks().end())
 	{
-		cli->getRequest()->setLocBlock(it->second);
-		vector<string>	valid_method = it->second.getValidMethod();
+		cli->getRequest()->setLocBlock(matching_it->second);
+		vector<string>	valid_method = matching_it->second.getValidMethod();
 		for (int i = 0;i < valid_method.size();i++)
 		{
 			if (valid_method[i] == cli->getRequest()->getMethod() || cli->getRequest()->getMethod() == "PUT")
 			{
 				is_valid_method = true;
-				// cli->getRequest()->setReqType(it->second.getRequestType());
+				// cli->getRequest()->setReqType(matching_it->second.getRequestType());
 				// // 좀더 확장성 있는 방법을 강구해야 할듯...
 				// if (valid_method[i] == DELETE_HTTP_METHOD)
 				// 	cli->getRequest()->setReqType(DELETE_REQUEST);
-				// else if (it->second.getAutoIndex())
+				// else if (matching_it->second.getAutoIndex())
 				// 	cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
 
 				// Rootdir 확인
 				cout << "this location's block's root is...  ";
-				//cout << it->second.getRootDir() << endl;
-				//cli->getRequest()->setSudoDir(it->second.getRootDir());
+				//cout << matching_it->second.getRootDir() << endl;
+				//cli->getRequest()->setSudoDir(matching_it->second.getRootDir());
 				cout << cli->getRequest()->getLocBlock().getRootDir() << endl;
 				// index 확인
 				cout << "this location's block's index is...  ";
-				//cout << it->second.getAutoIndex() << endl;
-				//cli->getRequest()->setAutoIndex(it->second.getAutoIndex());
+				//cout << matching_it->second.getAutoIndex() << endl;
+				//cli->getRequest()->setAutoIndex(matching_it->second.getAutoIndex());
 				cout << cli->getRequest()->getLocBlock().getIndexFile() << endl;
 
 				break;
@@ -213,14 +240,14 @@ int	Server::execute_client_request(int client_fd)
 		}
 		if (is_valid_method)
 		{
-			if (cli->getRequest()->getContentLength() <= it->second.getMaxBodySize() || \
-			it->second.getMaxBodySize() == 0)
+			if (cli->getRequest()->getContentLength() <= matching_it->second.getMaxBodySize() || \
+			matching_it->second.getMaxBodySize() == 0)
 			{
-				if (it->second.getRedirectionURL() == "")
+				if (matching_it->second.getRedirectionURL() == "")
 					cli->getRequest()->setStatusCode(200); // OK
 				else
 				{
-					cli->getRequest()->setRedirectionURL(it->second.getRedirectionURL());
+					cli->getRequest()->setRedirectionURL(matching_it->second.getRedirectionURL());
 					cli->getRequest()->setStatusCode(301);
 				};
 			}

@@ -13,6 +13,7 @@
 # include <unistd.h>
 # include <netinet/in.h>
 # include <sys/event.h>
+#include <sys/_types/_size_t.h>
 # include <err.h>
 # include <fcntl.h>
 # include <stdio.h>
