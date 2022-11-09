@@ -67,7 +67,7 @@ void	Config::saveDirective(int idx, string line)
 			dir_data += line[i];
 	}
 	if (directive == "listen")
-		this->m_server_blocks[idx].setPortNum(dir_data);
+		this->m_server_blocks[idx].setPortNums(dir_data);
 	else if (directive == "server_name")
 		this->m_server_blocks[idx].setServerName(dir_data);
 	else if (directive == "root")

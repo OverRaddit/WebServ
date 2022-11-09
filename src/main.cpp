@@ -25,30 +25,16 @@ int main(int argc, char *argv[])
 	if (argc == 2)
 	{
 		Server server(argv[1]);
-		//Config	config(argv[2]);
-		//server.init_socket();
 		server.init_multiplexing();
 		server.run();
-		// config 파일 파싱 체크
-		// vector<ServerBlock> s_b = config.getServerBlocks();
-		// for (int i = 0;i < s_b.size();i++)
-		// {
-		// 	int port_num = s_b[i].getPortNum();
-		// 	string	err_file_path = s_b[i].getErrorPage(404);
-		// 	string	server_name = s_b[i].getServerName();
-		// 	string	root_dir = s_b[i].getRootDir();
-		// 	string	cgi_tester = s_b[i].getCgiTester();
-		// 	string	index_file = s_b[i].getIndexFile();
-		// 	map<string, LocationBlock> l_b = s_b[i].getLocationBlocks();
-
-		// 	cout << "Port Num : " << port_num << endl;
-		// 	cout << "err_file_path : " << err_file_path << endl;
-		// 	cout << "server_name : " << server_name << endl;
-		// 	cout << "root_dir : " << root_dir << endl;
-		// 	cout << "cgi_tester : " << cgi_tester << endl;
-		// 	cout << "index_file : " << index_file << endl;
-		// 	cout << "location : :" << l_b["/delete"].getValidMethod() << endl;
-		// 	cout << "----------------------------------------------\n";
-		// }
 	}
+	else if (argc == 1)
+	{
+		Server server("config/default.config");
+		server.init_multiplexing();
+		server.run();
+	}
+	else
+		cerr << "Execute webserv program with one argument or without argument.\n";
+	return 0;
 }

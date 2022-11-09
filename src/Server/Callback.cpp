@@ -44,98 +44,195 @@ int Server::callback_read(int fd)
 			return (0);
 		{
 			// 이름 validate으로 바꿀 것.
+			// 여기서 걸러진 요청은 바로 write할 수 있게 바꿔야 한다.
 			execute_client_request(cli->getFd());
+
+			// 검증단계에서 응답코드가 정해진 것들은 바로 응답한다.
+			if (cli->getRequest()->getStatusCode() != 0)
+			{
+				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+				cli->getResponse()->makeContent("test\n");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				return 0;
+			}
+
 			string file_name = cli->getRequest()->getReqFileName(); // 슬래시 붙어있음
-			//string dir_path = cli->getRequest()->getSudoDir();
 			string dir_path = cli->getRequest()->getLocBlock().getRootDir();
 			string final_path = "";
 			int flag;
 
-			switch (cli->getRequest()->getReqType())
+			// Response 생성 및 필요한 인자 전달.
+			cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+			cli->getResponse()->setRootPath(dir_path);
+			cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
+			cli->getResponse()->setErrorFile(cli->getRequest()->getLocBlock().getErrorPage());
+
+			// 메소드별로 실행한다.
+			if (cli->getRequest()->getMethod() == "GET"){
+				cli->GET(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "DELETE") {
+				cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "POST") {
+				cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "PUT") {
+				cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else {
+				std::cerr << "Undefined Method" << std::endl;
+			}
+
+			if (cli->is_cgi_request(cli->getRequest()))
 			{
-			case CGI_REQUEST:
-				std::cout << "Req type: CGI" << std::endl;
-				if ((ret = cli->cgi_init()) < 0)
-					return -1;
 				pipe_to_client[cli->getPipeFd()] = cli->getFd();
 				change_events(cli->getPipeFd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				break;
-			case UPLOAD_REQUEST:
-				std::cout << "Req type: UPLOAD" << std::endl;
-				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->setLocationBlock(cli->getRequest()->getLocBlock());
-				cli->getResponse()->makeContent("Upload Request");
-
-				cli->getResponse()->uploadResponse(cli->getRequest()->getReqFileName(), cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
-				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				break;
-			case OTHER_REQUEST:
-				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->setLocationBlock(cli->getRequest()->getLocBlock());
-				// index 고려할것..
-				if (file_name == "")
-				{
-					cli->getResponse()->defaultResponse();
-				}
-				else {
-					cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
-					flag = cli->getResponse()->getRequestFile(file_name, dir_path);
-					if (flag == NO_FILE)
-					{
-						//cli->getResponse()->makeContent("No such file"); // 404
-						cli->getResponse()->errorResponse(404);
-					}
-					else if (flag == VALID_REQ_DIR)
-					{
-						if (file_name.back() == '/')
-							final_path = dir_path + file_name;
-						else
-							final_path = dir_path + file_name + "/";
-						cout << "VALID_REQ_DIR1 : " << final_path + cli->getRequest()->getLocBlock().getIndexFile() << endl;
-						if (cli->getResponse()->getRequestFile(cli->getRequest()->getLocBlock().getIndexFile(), final_path) == NO_FILE)
-						{
-							//cli->getResponse()->makeContent("No such file"); // 404
-							cli->getResponse()->errorResponse(404);
-						}
-						else
-						{
-							cout << "VALID_REQ_DIR2 : " << dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile() << endl;
-							cli->getResponse()->fileResponse(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
-							cli->getResponse()->setStatusCode(200);
-						}
-					}
-					else if (flag == VALID_REQ_FILE)
-					{
-						cout << "VALID_REQ_FILE : " << dir_path + file_name << endl;
-						cli->getResponse()->fileResponse(dir_path + file_name);
-						cli->getResponse()->setStatusCode(200);
-					}
-				}
-				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				break;
-			case DELETE_REQUEST:
-				std::cout << "Req type: DELETE" << std::endl;
-				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->makeContent("DELETE REQUEST");
-				// cli->getResponse()->deleteResponse(dir_path + cli->getRequest()->getDelFileName());
-				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				break;
-			case AUTOINDEX_REQUEST:
-				std::cout << "Req type: AUTOINDEX" << std::endl;
-				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->autoIndexResponse(dir_path.c_str());
-				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				break;
-			case DOWNLOAD_REQUEST:
-				std::cout << "Req type: DOWNLOAD" << std::endl;
-				cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-				cli->getResponse()->downloadResponse(dir_path + "a.txt");
-				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				break;
-			default:
-				std::cout << "Req type: " << cli->getRequest()->getReqType() << std::endl;
-				break;
 			}
+			else
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
+			// 파일명 미존재시 index파일을 찾는다.
+			// if (file_name == "") // if file name not exist
+			// {
+			// 	cli->getResponse()->setRootPath(dir_path); // loc_block's root
+			// 	cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
+			// 	cli->getResponse()->defaultResponse();
+			// }
+			// else {
+			// 	cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
+			// 	flag = cli->getResponse()->getRequestFile(file_name, dir_path);
+			// 	if (flag == VALID_REQ_FILE)
+			// 	{
+			// 		cout << "VALID_REQ_FILE : " << dir_path + file_name << endl;
+			// 		if (cli->getRequest()->getMethod() == "GET")
+			// 		{
+			// 			cli->getResponse()->fileResponse(dir_path + file_name);
+			// 			cli->getResponse()->setStatusCode(200);
+			// 		}
+			// 	}
+			// 	else if (flag == NO_FILE)
+			// 	{
+			// 		// GET,DELETE : 조회할 파일이 없으면, 404에러를 발생시킨다.
+			// 		if (cli->getRequest()->getMethod() == "GET" || cli->getRequest()->getMethod() == "DELETE")
+			// 		{
+			// 			cli->getResponse()->makeContent("No such file"); // 404
+			// 			cli->getResponse()->errorResponse(404);
+			// 		}
+			// 		// POST : 해당 파일명으로 새 파일을 생성한다.(201추가 할것.)
+			// 		else if (cli->getRequest()->getMethod() == "POST" || cli->getRequest()->getMethod() == "PUT")
+			// 		{
+			// 			cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
+			// 			cli->getResponse()->setStatusCode(201);
+			// 		}
+			// 	}
+			// 	else if (flag == VALID_REQ_DIR)
+			// 	{
+			// 		if (file_name.back() == '/')
+			// 			final_path = dir_path + file_name;
+			// 		else
+			// 			final_path = dir_path + file_name + "/";
+			// 		cout << "VALID_REQ_DIR1 : " << final_path + cli->getRequest()->getLocBlock().getIndexFile() << endl;
+			// 		if (cli->getResponse()->getRequestFile(cli->getRequest()->getLocBlock().getIndexFile(), final_path) == NO_FILE)
+			// 		{
+			// 			//cli->getResponse()->makeContent("No such file"); // 404
+			// 			cli->getResponse()->errorResponse(404);
+			// 		}
+			// 		else
+			// 		{
+			// 			cout << "VALID_REQ_DIR2 : " << dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile() << endl;
+			// 			cli->getResponse()->fileResponse(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
+			// 			cli->getResponse()->setStatusCode(200);
+			// 		}
+			// 	}
+			// }
+			//change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
+
+			// switch (cli->getRequest()->getReqType())
+			// {
+			// case CGI_REQUEST:
+			// 	std::cout << "Req type: CGI" << std::endl;
+			// 	if ((ret = cli->cgi_init()) < 0)
+			// 		return -1;
+			// 	pipe_to_client[cli->getPipeFd()] = cli->getFd();
+			// 	change_events(cli->getPipeFd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			// 	break;
+			// case UPLOAD_REQUEST:
+			// 	std::cout << "Req type: UPLOAD" << std::endl;
+			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+			// 	cli->getResponse()->makeContent("Upload Request");
+			// 	//cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
+			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			// 	break;
+			// case OTHER_REQUEST:
+			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+			// 	cli->getResponse()->setRootPath(dir_path);
+			// 	cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
+			// 	cli->getResponse()->setErrorFile(cli->getRequest()->getLocBlock().getErrorPage());
+			// 	//cli->getResponse()->setEr
+			// 	// index 고려할것..
+			// 	if (file_name == "")
+			// 	{
+			// 		cli->getResponse()->setRootPath(dir_path); // loc_block's root
+			// 		cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
+			// 		cli->getResponse()->defaultResponse();
+			// 	}
+			// 	else {
+			// 		cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
+			// 		flag = cli->getResponse()->getRequestFile(file_name, dir_path);
+			// 		if (flag == NO_FILE)
+			// 		{
+			// 			//cli->getResponse()->makeContent("No such file"); // 404
+			// 			cli->getResponse()->errorResponse(404);
+			// 		}
+			// 		else if (flag == VALID_REQ_DIR)
+			// 		{
+			// 			if (file_name.back() == '/')
+			// 				final_path = dir_path + file_name;
+			// 			else
+			// 				final_path = dir_path + file_name + "/";
+			// 			cout << "VALID_REQ_DIR1 : " << final_path + cli->getRequest()->getLocBlock().getIndexFile() << endl;
+			// 			if (cli->getResponse()->getRequestFile(cli->getRequest()->getLocBlock().getIndexFile(), final_path) == NO_FILE)
+			// 			{
+			// 				//cli->getResponse()->makeContent("No such file"); // 404
+			// 				cli->getResponse()->errorResponse(404);
+			// 			}
+			// 			else
+			// 			{
+			// 				cout << "VALID_REQ_DIR2 : " << dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile() << endl;
+			// 				cli->getResponse()->fileResponse(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
+			// 				cli->getResponse()->setStatusCode(200);
+			// 			}
+			// 		}
+			// 		else if (flag == VALID_REQ_FILE)
+			// 		{
+			// 			cout << "VALID_REQ_FILE : " << dir_path + file_name << endl;
+			// 			cli->getResponse()->fileResponse(dir_path + file_name);
+			// 			cli->getResponse()->setStatusCode(200);
+			// 		}
+			// 	}
+			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			// 	break;
+			// case DELETE_REQUEST:
+			// 	std::cout << "Req type: DELETE" << std::endl;
+			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+			// 	cli->getResponse()->makeContent("DELETE REQUEST");
+			// 	// cli->getResponse()->deleteResponse(dir_path + cli->getRequest()->getDelFileName());
+			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			// 	break;
+			// case AUTOINDEX_REQUEST:
+			// 	std::cout << "Req type: AUTOINDEX" << std::endl;
+			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+			// 	cli->getResponse()->autoIndexResponse(dir_path.c_str());
+			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			// 	break;
+			// case DOWNLOAD_REQUEST:
+			// 	std::cout << "Req type: DOWNLOAD" << std::endl;
+			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
+			// 	cli->getResponse()->downloadResponse(dir_path + "a.txt");
+			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			// 	break;
+			// default:
+			// 	std::cout << "Req type: " << cli->getRequest()->getReqType() << std::endl;
+			// 	break;
+			// }
 		}
 	}
 	else if (is_pipe(fd))

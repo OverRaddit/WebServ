@@ -6,12 +6,6 @@
 # include <string>
 # include <vector>
 
-# define CGI 0
-# define UPLOAD 1
-# define DOWNLOAD 2
-# define DEFAULT 3
-
-
 using namespace std;
 
 class LocationBlock {
@@ -25,7 +19,6 @@ public:
 	void	setRootDir(string loc_block, size_t pos);
 	void	setAutoIndex(string loc_block, size_t pos);
 	void	setRedirectionURL(string loc_block, size_t pos);
-	void	setRequestType(string loc_block, size_t pos);
 	void	setIndexFile(string loc_block, size_t pos);
 
 	vector<string>	getValidMethod(void) const;
@@ -34,7 +27,6 @@ public:
 	long long 		getMaxBodySize(void) const;
 	bool			getAutoIndex(void) const;
 	string			getRedirectionURL(void) const;
-	int				getRequestType(void) const;
 	string			getIndexFile(void) const;
 	string			getErrorPage(void) const;
 private:
@@ -46,7 +38,6 @@ private:
 	string			m_error_page;
 	bool			m_autoindex;
 	string			m_redirection_url;
-	int				m_request_type;
 };
 
 #endif

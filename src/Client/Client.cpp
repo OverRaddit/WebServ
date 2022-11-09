@@ -84,11 +84,9 @@ int			Client::read_client_request()
 			if (req->getIsIncomplete())
 			{
 				string msg = req->getIncompleteMessage();
-				//cout << "Incomplete Message : " << msg << endl;
 				msg.append(string(buf, n));
-				//cout << "Append Message : " << msg << endl;
 				req->saveRequestAgain(msg);
-				//cout << "---------------------" << endl;
+				appendRawRequest(msg);
 			}
 			else if (req->saveOnlyBody(string(buf, n)) == req->getContentLength())
 				m_pending = false;
@@ -125,23 +123,19 @@ int			Client::read_pipe_result()
 		std::string temp(buf, ret);
 		getRequest()->setCgiResult(getRequest()->getCgiResult() + temp);
 	}
+	else if (ret == 0)
+		std::cout << "Read Pipe Done!" << std::endl;
 	else
 		std::cerr << "Read Error!!" << std::endl;
+
+	if (ret != 0)
+		return (0);
 
 	std::cout << "====== pipe result start ======" << std::endl;
 	std::cout << getRequest()->getCgiResult() << std::endl;
 	std::cout << "====== pipe result end ======" << std::endl;
 
-	if (ret != 0)
-		return (0);
-
-	res = new Response(req->getStatusCode());
 	res->cgiResponse(getRequest()->getCgiResult());
-
-	// 요청이 완전하고 upload 요청일때만 처리한다
-	if (m_pending == false && req->getReqTarget() == "/upload")
-		res->uploadResponse(req->getReqFileName(), req->getReqHeaderValue("Content-Type"), req->getReqBody());
-
 	return (1);
 }
 
@@ -167,7 +161,7 @@ void		Client::make_env(char **env)
 	env[10] = 0;
 }
 
-int			Client::cgi_init()
+int			Client::cgi_init(string filepath)
 {
 	pid_t	pid;
 	int		to_child[2];
@@ -183,14 +177,31 @@ int			Client::cgi_init()
 	fcntl(to_parent[1], F_SETFL, O_NONBLOCK);
 	fcntl(to_parent[0], F_SETFL, O_NONBLOCK);
 
+	// open file
+	int inputFile;
+	if ((inputFile = open(filepath.c_str(), O_RDONLY)) < 0)
+	{
+		std::cerr << "cannot open input file of cgi" << std::endl;
+		return -1;
+	}
+
 	// 자식(CGI)가 가져갈 표준입력 준비.
-	// 버퍼 한번에 담을 수 없는 양이 들어오면 어떡해야 할 지 모르겠다.
 	char buf[BUF_SIZE + 1];
 	memset(buf, 0, sizeof(buf));
-	char *body = strdup(getRequest()->getReqBody().c_str());
-	memcpy(buf, body, strlen(body));
-	buf[strlen(body)] = 26;
-	write(to_child[1], buf, strlen(buf));
+	int ret = -1;
+	while((ret = read(inputFile, buf, sizeof(buf))) >= 0)
+	{
+		buf[ret] = 26; // EOF
+		if (ret < 0)
+			return -1;
+		if (ret == 0)
+			break;
+		if (write(to_child[1], buf, strlen(buf)) < 0)
+			return -1;
+		memset(buf, 0, sizeof(buf));
+	}
+	if (write(to_child[1], buf, strlen(buf)) < 0)
+		return -1;
 
 	pid = fork();
 	getRequest()->setCgiPid(pid);
@@ -210,7 +221,6 @@ int			Client::cgi_init()
 	close(to_child[0]);
 	close(to_child[1]);
 	close(to_parent[1]);
-	free(body);
 	for (int i=0; i<10; ++i)
 		free(env[i]);
 	free(env);

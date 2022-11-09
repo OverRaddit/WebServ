@@ -1,4 +1,6 @@
 #include "ServerBlock.hpp"
+#include <string>
+#include <vector>
 
 ServerBlock::ServerBlock(void): m_error_page("")
 {}
@@ -24,8 +26,6 @@ void	ServerBlock::setLocationBlock(string loc_block)
 		this->m_loc_blocks[route].setRootDir(loc_block, pos + 1);
 	if ((pos = loc_block.find("\treturn")) != string::npos)
 		this->m_loc_blocks[route].setRedirectionURL(loc_block, pos + 1);
-	if ((pos = loc_block.find("\ttype")) != string::npos)
-		this->m_loc_blocks[route].setRequestType(loc_block, pos + 1);
 	if ((pos = loc_block.find("\tindex")) != string::npos)
 		this->m_loc_blocks[route].setIndexFile(loc_block, pos + 1);
 }
@@ -51,7 +51,10 @@ void	ServerBlock::setCgiTester(string cgi_tester)
 	for (int i = 0;i < cgi_tester.length();i++)
 	{
 		if (cgi_tester[i] == ' ')
+		{
 			flag = true;
+			continue;
+		}
 		if (!flag)
 			this->m_cgi_tester += cgi_tester[i];
 		else
@@ -70,9 +73,24 @@ void	ServerBlock::setServerName(string server_name)
 	this->m_server_name = server_name;
 }
 
-void	ServerBlock::setPortNum(string port_num)
+void	ServerBlock::setPortNums(string port_nums)
 {
-	this->m_port_num = stoi(port_num);
+	string	port_num = "";
+	bool 	flag = false;
+
+	for (size_t i = 0;i < port_nums.length();i++)
+	{
+		if (port_nums[i] != ' ')
+			port_num += port_nums[i];
+		else
+			flag = true;
+		if (flag || i == port_nums.length() - 1)
+		{
+			this->m_port_nums.push_back(stoi(port_num));
+			port_num = "";
+			flag = false;
+		}
+	}
 }
 
 string	ServerBlock::getErrorPage(void) const { return this->m_error_page; }
@@ -87,7 +105,7 @@ string ServerBlock::getRootDir(void) const { return this->m_root_dir; }
 
 string ServerBlock::getServerName(void) const { return this->m_server_name; }
 
-int	ServerBlock::getPortNum(void) const { return this->m_port_num; }
+vector<int>	ServerBlock::getPortNum(void) const { return this->m_port_nums; }
 
 const map<string, LocationBlock>&	ServerBlock::getLocationBlocks(void) const {
 	return this->m_loc_blocks;
