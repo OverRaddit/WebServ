@@ -87,29 +87,29 @@ int		Request::saveOnlyBody(string req_body)
 	return req_body.length();
 }
 
-void	Request::saveURLInformation(void)
-{
-	bool	flag = false;
-	string	line = "";
+// void	Request::saveURLInformation(void)
+// {
+// 	bool	flag = false;
+// 	string	line = "";
 
-	for (int i = 0;i < this->m_req_target.length();i++)
-	{
-		if(flag)
-			this->m_suffix_url += this->m_req_target[i];
-		else
-		{
-			if (i != 0 && this->m_req_target[i] == '/')
-			{
-				this->m_suffix_url += this->m_req_target[i];
-				flag = true;
-			}
-			else
-				this->m_prefix_url += this->m_req_target[i];
-		}
-	}
-	if (this->m_suffix_url != "")
-		this->m_req_file_name = this->m_suffix_url;
-}
+// 	for (int i = 0;i < this->m_req_target.length();i++)
+// 	{
+// 		if(flag)
+// 			this->m_suffix_url += this->m_req_target[i];
+// 		else
+// 		{
+// 			if (i != 0 && this->m_req_target[i] == '/')
+// 			{
+// 				this->m_suffix_url += this->m_req_target[i];
+// 				flag = true;
+// 			}
+// 			else
+// 				this->m_prefix_url += this->m_req_target[i];
+// 		}
+// 	}
+// 	if (this->m_suffix_url != "")
+// 		this->m_req_file_name = this->m_suffix_url;
+// }
 
 void	Request::saveStartLine(string start_line)
 {
