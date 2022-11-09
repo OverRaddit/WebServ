@@ -18,10 +18,13 @@ Request& Request::operator=(const Request& a)
 	return *this;
 }
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target("")
+Request::~Request(){}
+
+
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_prefix_url(""), m_suffix_url(""), m_req_target(""), m_content_length(0), m_req_type(OTHER_REQUEST), m_is_incomplete(false), m_cgi_pid(-1)
 {
 	string	line = "";
-
+	size_t	len = request_msg.length();
 	for (int i = 0;request_msg[i];i++)
 	{
 		if (request_msg[i] == '\r')
@@ -29,7 +32,11 @@ Request::Request(string request_msg): m_req_header(), m_http_version(""), m_meth
 			if (m_method.empty())
 				this->saveStartLine(line);
 			else if (line.length() == 0)
-				this->setReqBody(request_msg.substr(i + 2));
+			{
+				if (i + 2 < len)
+					this->setReqBody(request_msg.substr(i + 2));
+				break;
+			}
 			else
 				this->saveHeader(line);
 			line = "";
@@ -37,12 +44,77 @@ Request::Request(string request_msg): m_req_header(), m_http_version(""), m_meth
 		else if (request_msg[i] != '\n')
 			line += request_msg[i];
 	}
+	if (line.length() != 0)
+	{
+		this->m_incomplete_message = line;
+		this->m_is_incomplete = true;
+	}
 }
 
+void	Request::saveRequestAgain(string req_msg)
+{
+	string	line = "";
+	size_t	len = req_msg.length();
+
+	for (int i = 0;req_msg[i];i++)
+	{
+		if (req_msg[i] == '\r')
+		{
+			if (m_method.empty())
+				this->saveStartLine(line);
+			else if (line.length() == 0)
+			{
+				if (i + 2 < len)
+					this->setReqBody(req_msg.substr(i + 2));
+				break;
+			}
+			else
+				this->saveHeader(line);
+			line = "";
+		}
+		else if (req_msg[i] != '\n')
+			line += req_msg[i];
+	}
+	if (line.length() != 0)
+		this->m_incomplete_message = line;
+	else
+		this->m_is_incomplete = false;
+}
+
+int		Request::saveOnlyBody(string req_body)
+{
+	this->m_req_body.append(req_body);
+	return req_body.length();
+}
+
+// void	Request::saveURLInformation(void)
+// {
+// 	bool	flag = false;
+// 	string	line = "";
+
+// 	for (int i = 0;i < this->m_req_target.length();i++)
+// 	{
+// 		if(flag)
+// 			this->m_suffix_url += this->m_req_target[i];
+// 		else
+// 		{
+// 			if (i != 0 && this->m_req_target[i] == '/')
+// 			{
+// 				this->m_suffix_url += this->m_req_target[i];
+// 				flag = true;
+// 			}
+// 			else
+// 				this->m_prefix_url += this->m_req_target[i];
+// 		}
+// 	}
+// 	if (this->m_suffix_url != "")
+// 		this->m_req_file_name = this->m_suffix_url;
+// }
 
 void	Request::saveStartLine(string start_line)
 {
-	int	cnt = 0;
+	int		cnt = 0;
+	size_t	pos;
 
 	for (int i = 0;i < start_line.length();i++)
 	{
@@ -58,29 +130,36 @@ void	Request::saveStartLine(string start_line)
 		else
 			cnt++;
 	}
+	if (this->m_del_file_name == "" && this->m_method == "DELETE")
+	{
+		pos = this->m_req_target.find("/delete/");
+		if (pos == 0)
+		{
+			for (size_t i = pos + 7;i < m_req_target.length();i++)
+				this->m_del_file_name += this->m_req_target[i];
+			cout << "DEL_FILE_NAME : " << m_del_file_name << endl;
+		}
+	}
 }
 
 void	Request::saveHeader(string header_line)
 {
 	string	key = "";
 	string	value = "";
-	int		flag = 0;
 	int		i;
 
-	for (i = 0;i < header_line.length();i++)
+	for(int i=0;i<header_line.length();i++)
 	{
-		if (header_line[i] == ':')
-		{
-			flag = 1;
-			i++;
+		if (header_line[i] != ':')
 			continue ;
-		}
-		if (flag)
-			value += header_line[i];
-		else
-			key += header_line[i];
+		this->setReqHeader(header_line.substr(0, i), header_line.substr(i+2));
+		break;
 	}
-	this->setReqHeader(key, value);
+}
+
+void	Request::setStatusCode(int status_code)
+{
+	this->m_status_code = status_code;
 }
 
 void	Request::setReqBody(string body)
@@ -88,9 +167,60 @@ void	Request::setReqBody(string body)
 	this->m_req_body = body;
 }
 
+void	Request::setRedirectionURL(string url)
+{
+	this->m_redirection_url = url;
+}
+
 void	Request::setReqHeader(string key, string value)
 {
+	if (key == "Content-Length" || key == "content-length")
+		setContentLength(value);
 	this->m_req_header.insert(pair<string, string>(key, value));
+}
+
+void	Request::setContentLength(string content_length)
+{
+	this->m_content_length = stoll(content_length);
+}
+
+void	Request::setReqType(int type)
+{
+	this->m_req_type = type;
+}
+
+void	Request::setCgiPid(int cgi_pid)
+{
+	this->m_cgi_pid = cgi_pid;
+}
+
+void	Request::setCgiResult(string cgi_result)
+{
+	this->m_cgi_result = cgi_result;
+}
+
+void	Request::setSudoDir(string sudo_dir)
+{
+	this->m_sudo_dir = sudo_dir;
+}
+
+void	Request::setLocBlock(LocationBlock loc_block)
+{
+	this->m_loc_block = loc_block;
+}
+
+void	Request::setSerBlock(ServerBlock server_block)
+{
+	this->m_ser_block = server_block;
+}
+
+void	Request::setFilename(string file_name)
+{
+	this->m_file_name = file_name;
+}
+
+long long	Request::getContentLength(void) const {
+	return this->m_content_length;
 }
 
 string	Request::getReqBody(void) const {
@@ -109,6 +239,80 @@ string	Request::getHttpVersion(void) const {
 	return this->m_http_version;
 }
 
+string	Request::getRedirectionURL(void) const {
+	return this->m_redirection_url;
+}
+
+int		Request::getStatusCode(void) const {
+	return this->m_status_code;
+}
+
+string		Request::getDelFileName(void) const {
+	return this->m_del_file_name;
+}
+
 string	Request::getReqHeaderValue(string key) {
-	return this->m_req_header[key];
+	string	lower_key = "";
+	for (int i = 0;i < key.length();i++)
+		lower_key += tolower(key[i]);
+	if (this->m_req_header.find(key) != this->m_req_header.end())
+		return this->m_req_header[key];
+	if (this->m_req_header.find(lower_key) != this->m_req_header.end())
+		return this->m_req_header[lower_key];
+	return "";
+}
+
+int		Request::getReqType(void) const
+{
+	return this->m_req_type;
+}
+
+bool		Request::getIsIncomplete(void) const
+{
+	return this->m_is_incomplete;
+}
+
+string		Request::getIncompleteMessage(void) const
+{
+	return this->m_incomplete_message;
+}
+
+int		Request::getCgiPid(void) const
+{
+	return m_cgi_pid;
+}
+
+string	Request::getCgiResult(void) const
+{
+	return m_cgi_result;
+}
+
+string	Request::getSudoDir(void) const
+{
+	return m_sudo_dir;
+}
+
+string		Request::getPrefixURL(void) const
+{
+	return this->m_prefix_url;
+}
+
+string		Request::getSuffixURL(void) const
+{
+	return this->m_suffix_url;
+}
+
+string		Request::getReqFileName(void) const
+{
+	return this->m_req_file_name;
+}
+
+LocationBlock	Request::getLocBlock(void) const
+{
+	return this->m_loc_block;
+}
+
+ServerBlock		Request::getSerBlock(void) const
+{
+	return this->m_ser_block;
 }

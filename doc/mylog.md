@@ -232,3 +232,5 @@ makefile 기초가 이렇게 빈약했었나..
 - read의 반환값이 뭔가 이상하다. BUF_SIZE랑 같은 값이 반환된다....왜지?
 	- write할때 문자열길이만큼 write하지 않고 버퍼크기 전체를 write했다.
 	- read는 문자열 길이만큼 읽어오는 기능이 아니다.
+prefix처리 /directory/파일명 -> root dir뒤져서 맞는 파일 찾고 있으면 반환.
+해당 작업은 모든 req에 적용되야 함.
