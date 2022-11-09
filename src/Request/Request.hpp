@@ -6,7 +6,6 @@
 # include <string>
 # include <map>
 
-# include "../Server/RequestType.hpp"
 # include "../Config/Config.hpp"
 
 using namespace std;
@@ -23,7 +22,6 @@ public:
 	void	setReqHeader(string key, string value);
 	void	setStatusCode(int status_code);
 	void	setRedirectionURL(string url);
-	void	setReqType(int type);
 	void	setCgiPid(int cgi_pid);
 	void	setCgiResult(string cgi_result);
 	void	setSudoDir(string sudo_dir);
@@ -42,7 +40,6 @@ public:
 	string				getRedirectionURL(void) const;
 	int					getStatusCode(void) const;
 	long long			getContentLength(void) const;
-	int					getReqType(void) const;
 	string				getDelFileName(void) const;
 	string				getDownloadFileName(void) const;
 	bool				getIsIncomplete(void) const;
@@ -66,7 +63,6 @@ private:
 	string				m_req_body;
 	int					m_status_code;
 	string				m_redirection_url;
-	int					m_req_type;
 	string				m_del_file_name;
 	string				m_file_name;
 	bool				m_is_incomplete;

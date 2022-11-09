@@ -16,7 +16,6 @@
 # include <iostream>
 # include <utility>
 
-# include "../Server/RequestType.hpp"
 # include "../Config/Config.hpp"
 
 # define NO_FILE -1
