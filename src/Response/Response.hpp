@@ -47,7 +47,7 @@ private:
 	int			saveFile(int fd, string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
 	void		serveFile(int fd);
 	int			deleteFile(string file_path);
-	void		putFile(int fd, string content_body);
+	void		putFile(vector<int> fd, string content_body);
 
 	int			getFileList(vector<string>& li, const char *dir_path);
 	int			makeAutoIndex(const char *dir_path);
@@ -85,7 +85,7 @@ public:
 	void		setLocationBlock(LocationBlock loc);
 
 	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
-	void		uploadResponse(int fd, string content_type, string content_body);  // 파일 업로드 경우의 응답처리
+	void		uploadResponse(vector<int> fd, string content_type, string content_body);  // 파일 업로드 경우의 응답처리
 	void		downloadResponse(string file_path);  // 파일 다운로드 응답처리
 	void		deleteResponse(string file_path);  // 파일 삭제 응답처리
 	void		autoIndexResponse(const char *dir_path);
@@ -93,7 +93,7 @@ public:
 	void		defaultResponse(int fd);
 	void		fileResponse(int fd);
 
-	vector<pair<string, string> >	saveFileName(int fd, string content_type, string content_body);
+	vector<pair<string, string> >	saveFileName(string content_type, string content_body);
 
 	int			openFile(string path);
 	vector<int>	openFiles(vector<pair<string, string> > in);

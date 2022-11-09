@@ -63,9 +63,6 @@ int Server::callback_read(int fd)
 
 			// Response 생성 및 필요한 인자 전달.
 			cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			cli->getResponse()->setRootPath(dir_path);
-			cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
-			cli->getResponse()->setErrorFile(cli->getRequest()->getLocBlock().getErrorPage());
 
 			// 메소드별로 실행한다.
 			if (cli->getRequest()->getMethod() == "GET"){

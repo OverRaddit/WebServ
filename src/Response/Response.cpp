@@ -206,7 +206,7 @@ int Response::saveFile(int fd, string content_type, string content_body) {
 	return 0;
 }
 
-vector<pair<string, string> > Response::saveFileName(int fd, string content_type, string content_body) {
+vector<pair<string, string> > Response::saveFileName(string content_type, string content_body) {
 	size_t i = content_type.find("boundary=");
 	//ofstream writeFile;
 	vector<pair<string, string> > v;
@@ -389,6 +389,7 @@ void Response::errorResponse(int fd, int status) {
 // fd 반환 read, write 둘 다 가능
 int Response::openFile(string path) {
 	int fd = open(path.c_str(), O_RDWR | O_TRUNC);
+	fcntl(fd, F_SETFL, O_NONBLOCK);
 	return fd;
 }
 
@@ -408,7 +409,7 @@ string Response::readFile(int fd) {
 	ssize_t ret = read(fd, buf, BUFF_SIZE);
 	if (ret == -1)
 		return "";
-	return string(buf);
+	return string(buf, ret);
 }
 
 // write 결과 값 반환

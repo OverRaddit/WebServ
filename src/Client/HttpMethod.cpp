@@ -92,7 +92,7 @@ int Client::POST(Request *req, Response *res, string filepath)
 			return 0;
 	}
 
-	res->uploadResponse(req->getReqHeaderValue("Content-Type"), req->getReqBody());
+	res->uploadResponse(target, req->getReqHeaderValue("Content-Type"), req->getReqBody());
 	res->fileResponse(target);
 	return 0;
 }
