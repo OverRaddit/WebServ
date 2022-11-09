@@ -12,7 +12,7 @@ class Config {
 public:
 	Config(string file);
 
-	vector<ServerBlock> getServerBlocks(void);
+	vector<ServerBlock> &getServerBlocks(void);
 private:
 	Config(void);
 	void	saveDirective(int idx, string line);

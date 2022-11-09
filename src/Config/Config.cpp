@@ -100,7 +100,7 @@ void	Config::saveDirective(int idx, string line)
 		this->m_server_blocks[idx].setIndexFile(dir_data);
 }
 
-vector<ServerBlock> Config::getServerBlocks(void)
+vector<ServerBlock> &Config::getServerBlocks(void)
 {
 	return this->m_server_blocks;
 }
