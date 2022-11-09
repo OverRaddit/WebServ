@@ -26,7 +26,7 @@ public:
 	string			getCgiTester(void) const;
 	string			getCgiExtension(void) const;
 	string			getIndexFile(void) const;
-	const map<string, LocationBlock>&	getLocationBlocks(void) const;
+	map<string, LocationBlock>&	getLocationBlocks(void);
 private:
 	map<string, LocationBlock>	m_loc_blocks;
 	string						m_error_page;
