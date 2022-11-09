@@ -86,16 +86,20 @@ void Response::setCgiResult(string ret) {
 	this->m_cgiResult = ret;
 }
 
-void Response::setRootPath(string path) {
-	this->m_rootPath = path;
-}
+//void Response::setRootPath(string path) {
+//	this->m_rootPath = path;
+//}
 
-void Response::setErrorFile(string path) {
-	this->m_ErrorFile = path;
-}
+//void Response::setErrorFile(string path) {
+//	this->m_ErrorFile = path;
+//}
 
-void Response::setIndexFile(string path) {
-	this->m_indexFile = path;
+//void Response::setIndexFile(string path) {
+//	this->m_indexFile = path;
+//}
+
+void Response::setLocationBlock(LocationBlock loc) {
+	this->m_location = loc;
 }
 
 string Response::makeHeaders() {
@@ -161,10 +165,25 @@ void Response::cgiResponse(string cgi_result) {
 	this->makeContent(cgi_result);
 }
 
-int Response::saveFile(string content_type, string content_body) {
+void Response::putFile(string file_name, string content_body) {
 	ofstream writeFile;
+	//writeFile.open("./sudo/file_storage/" + file_name);
+	writeFile.open(this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name);  // 수정
+	cout << "putFile path : " + this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name << "\n";
+	//cout << "content_body=" + content_body + "\n";
+	if (!writeFile.is_open()) {
+		cout << "putFile에서 ofstream.open() 실패\n";
+		return ;
+	}
+	writeFile.write(content_body.c_str(), content_body.size());
+	writeFile.close();
+}
 
+int Response::saveFile(string content_type, string content_body) {
 	size_t i = content_type.find("boundary=");
+	if (i == string::npos)
+		return -1;
+	ofstream writeFile;
 	string boundary = content_type.substr(i+9);
 	string sub_content = content_body;
 	string file_name;
@@ -175,20 +194,21 @@ int Response::saveFile(string content_type, string content_body) {
 		file_body = getFileContent(sub_content, "--" + boundary);
 		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
 			return -1;
-		writeFile.open("./sudo/file_storage/" + file_name);
+		writeFile.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
 		writeFile.write(file_body.c_str(), file_body.size());
 		writeFile.close();
 	}
 	return 0;
 }
 
-void Response::uploadResponse(string content_type, string content_body) {
+void Response::uploadResponse(string file_name, string content_type, string content_body) {
+	cout << "[DEBUG] uploadResponse start\n";
+	cout << "content_body : " + content_body + "\n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (this->saveFile(content_type, content_body) == 0)
-		this->makeContent("Upload Success");
-	else
-		this->makeContent("Upload Fail");
-	std::cout << "Upload end\n";
+	if (this->saveFile(content_type, content_body) == -1)
+		this->putFile(file_name, content_body);
+	this->makeContent("Upload Success");
+	cout << "[DEBUG] uploadResponse end\n";
 }
 
 // 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
@@ -268,6 +288,7 @@ int	Response::getRequestFile(string request_file, string dir_path) {
 		return VALID_REQ_FILE; // 존재하는 파일 요청
 	else if (S_ISDIR(buf.st_mode))
 		return VALID_REQ_DIR; // 존재하는 디렉토리 요청
+	return 2;  // 예외
 }
 
 int Response::makeAutoIndex(const char *dir_path) {
@@ -296,8 +317,8 @@ void Response::autoIndexResponse(const char *dir_path) {
 int Response::makeContentError(int status) {
 	int ret;
 	this->setStatusCode(status);
-	ret = this->serveFile("sudo/" + this->m_ErrorFile);
-	cout << "root path " << this->m_rootPath + "/" + this->m_ErrorFile << "\n";
+	ret = this->serveFile(this->m_location.getRootDir() + "/" + this->m_location.getErrorPage());
+	cout << "root path " << this->m_location.getRootDir() + "/" + this->m_location.getErrorPage() << "\n";
 	//if (ret == -1)
 	//	this->errorResponse(500);
 	//else if (ret == 1)
@@ -326,9 +347,9 @@ void Response::makeContentFile(string path) {
 }
 
 void Response::defaultResponse() {
-	std::cout << "default Response start : " << this->m_rootPath + "/" + this->m_indexFile + " ======== \n";
+	std::cout << "default Response start : " << this->m_location.getRootDir() + "/" + this->m_location.getIndexFile() + " ======== \n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContentFile(this->m_rootPath + "/" + this->m_indexFile);
+	this->makeContentFile(this->m_location.getRootDir() + "/" + this->m_location.getIndexFile());
 	std::cout << "default Response end ======== \n";
 }
 

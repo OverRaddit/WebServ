@@ -13,6 +13,9 @@
 # include <iostream>
 # include <string.h>
 
+# include "../Server/RequestType.hpp"
+# include "../Config/Config.hpp"
+
 # define NO_FILE -1
 # define VALID_REQ_FILE 1
 # define VALID_REQ_DIR 0
@@ -27,9 +30,10 @@ private:
 	map<string, string>		m_headers;
 	string					m_content;
 	string					m_cgiResult;
-	string					m_rootPath;
-	string					m_indexFile;
-	string					m_ErrorFile;
+	//string					m_rootPath;
+	//string					m_indexFile;
+	//string					m_ErrorFile;
+	LocationBlock			m_location;
 
 	string		makeHeaders();
 	string		parseHeader(string& content_type);
@@ -38,6 +42,7 @@ private:
 	int			saveFile(string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
 	int			serveFile(string file_path);
 	int			deleteFile(string file_path);
+	void		putFile(string file_name, string content_body);
 
 	int			getFileList(vector<string>& li, const char *dir_path);
 	int			makeAutoIndex(const char *dir_path);
@@ -68,12 +73,13 @@ public:
 	void		setCgiResult(string ret);
 	void		setContent(string content);
 
-	void		setRootPath(string path);
-	void		setIndexFile(string path);
-	void		setErrorFile(string path);
+	//void		setRootPath(string path);
+	//void		setIndexFile(string path);
+	//void		setErrorFile(string path);
+	void		setLocationBlock(LocationBlock loc);
 
 	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
-	void		uploadResponse(string content_type, string content_body);  // 파일 업로드 경우의 응답처리
+	void		uploadResponse(string file_name, string content_type, string content_body);  // 파일 업로드 경우의 응답처리
 	void		downloadResponse(string file_path);  // 파일 다운로드 응답처리
 	void		deleteResponse(string file_path);  // 파일 삭제 응답처리
 	void		autoIndexResponse(const char *dir_path);

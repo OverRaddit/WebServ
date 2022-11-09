@@ -134,6 +134,7 @@ string	LocationBlock::getUploadDirectory(void) const {
 	return this->m_upload_dir;
 }
 
+// "/" 안붙어있음
 string	LocationBlock::getRootDir(void) const {
 	return this->m_root_dir;
 }
