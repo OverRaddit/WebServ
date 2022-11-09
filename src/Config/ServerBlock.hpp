@@ -2,8 +2,7 @@
 # define SERVER_BLOCK_HPP
 
 # include <map>
-#include <string>
-#include <vector>
+# include <exception>
 # include "LocationBlock.hpp"
 
 using namespace std;
@@ -12,7 +11,7 @@ class ServerBlock {
 public:
 	ServerBlock(void);
 
-	void	setPortNums(string port_nums);
+	void	setPortNums(string port_nums, vector<int> &p_nums);
 	void	setServerName(string server_name);
 	void	setRootDir(string root_dir);
 	void	setCgiTester(string cgi_tester);
