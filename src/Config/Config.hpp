@@ -3,6 +3,7 @@
 
 # include <vector>
 # include <fstream>
+#include <sys/_types/_size_t.h>
 # include "ServerBlock.hpp"
 
 using namespace std;
@@ -11,13 +12,15 @@ class Config {
 public:
 	Config(string file);
 
-	vector<ServerBlock> getServerBlocks(void);
+	vector<ServerBlock> &getServerBlocks(void);
 private:
 	Config(void);
 	void	saveDirective(int idx, string line);
+	void	checkDuplicatedPortNum(void);
 
 	ifstream			m_config_file;
 	vector<ServerBlock>	m_server_blocks;
+	vector<int>		m_port_nums;
 };
 
 #endif
