@@ -69,25 +69,28 @@ int Server::callback_read(int fd, intptr_t datalen)
 			if (cli->getRequest()->getMethod() == "GET"){
 				ret = cli->GET(cli->getRequest(), cli->getResponse(), dir_path + file_name);
 			}
-			else {
-				cli->getResponse()->makeContent("Hello~0");
-				cli->getResponse()->setStatusCode(200);
+			else if (cli->getRequest()->getMethod() == "DELETE") {
+				ret = cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "POST") {
+				ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else if (cli->getRequest()->getMethod() == "PUT") {
+				ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			} else {
+				std::cerr << "Undefined Method" << std::endl;
 			}
-			// else if (cli->getRequest()->getMethod() == "DELETE") {
-			// 	ret = cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
-			// } else if (cli->getRequest()->getMethod() == "POST") {
-			// 	ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
-			// } else if (cli->getRequest()->getMethod() == "PUT") {
-			// 	ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
-			// } else {
-			// 	std::cerr << "Undefined Method" << std::endl;
-			// }
 
 			if (ret > 2)	// if file descriptor is returned..
 			{
 				std::cout << "File open! registered to kqueue..." << std::endl;
 				file_to_client[ret] = cli->getFd();
-				change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
+				struct stat temp;
+				fstat(ret, &temp);
+				if (temp.st_mode & O_RDONLY)
+					change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				else
+					change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
 				//change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 			}
 			else
@@ -147,10 +150,12 @@ int Server::callback_write(int fd, intptr_t datalen)
 {
 	Client *cli;
 
-	cli = clients_info[file_to_client[fd]];
-
-	if (is_file(fd) && cli->getRequest()->getMethod() == "POST")
+	if (is_file(fd))
 	{
+		cli = clients_info[file_to_client[fd]];
+		if (cli->getRequest()->getMethod() != "POST")
+			return 0;
+
 		std::cout << "file write event" << std::endl;
 		Request* req = cli->getRequest();
 		Response* res = cli->getResponse();
@@ -190,7 +195,10 @@ int Server::callback_write(int fd, intptr_t datalen)
 
 	// keep-alive 옵션에따라 포트연결 유지여부를 결정한다.
 	if (cli->getRequest()->getReqHeaderValue("Connection") != "keep-alive")
+	{
 		disconnect_client(fd);
+		return (0);
+	}
 
 	// 사용이 끝난 Res,Req 객체를 삭제한다.
 	delete cli->getResponse();
@@ -227,6 +235,12 @@ void Server::disconnect_client(int client_fd)
 	Client *cli = clients_info[client_fd];
 	if (clients_info[client_fd]->getPipeFd() != -1)
 		disconnect_pipe(clients_info[client_fd]->getPipeFd());
+
+	delete cli->getResponse();
+	delete cli->getRequest();
+	cli->setRequest(0);
+	cli->setResponse(0);
+
 	delete clients_info[client_fd];
 	clients_info.erase(client_fd);
 	std::cout << "[DEBUG]client disconnected: " << client_fd << std::endl;

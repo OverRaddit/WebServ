@@ -386,6 +386,8 @@ void Response::redirectResponse(int status, string url) {
 // GET,POST에 따라 open 모드 다르게
 int Response::openFile(string path, int flag) {
 	int fd = open(path.c_str(), flag);
+	if (fd < 0)
+		return -1;
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	return fd;
 }
