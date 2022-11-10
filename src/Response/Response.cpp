@@ -251,7 +251,7 @@ vector<pair<string, string> > Response::saveFileName(string content_type, string
 }
 
 // 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
-void Response::serveFile(int fd) {
+void Response::serveFile(int fd, intptr_t datalen) {
 	//ifstream readFile;
 	string data = "";
 	//unsigned int i = 0;
@@ -267,7 +267,7 @@ void Response::serveFile(int fd) {
 	//	readFile.read(&buf, sizeof(buf));
 	//	d.push_back(buf);
 	//}
-	data = this->readFile(fd);
+	data = this->readFile(fd, datalen);
 	//data.reserve(d.size());
 	//for (unsigned int i=0; i<d.size(); ++i) {
 	//	data += d[i];
@@ -309,7 +309,7 @@ int	Response::getRequestFile(string request_file, string dir_path) {
 	struct stat buf;
 	bool	ret;
 
-	if (stat((dir_path + request_file).c_str(), &buf) < 0)
+	if (stat((dir_path + "/" + request_file).c_str(), &buf) < 0)
 		return NO_FILE; // NO FILE!!
 	if (S_ISREG(buf.st_mode))
 		return VALID_REQ_FILE; // 존재하는 파일 요청
@@ -367,10 +367,14 @@ void Response::autoIndexResponse(const char *dir_path) {
 }
 
 void Response::makeContentError(int status, int fd) {
+	int datalen = 100;
+
+
+
 	//int ret;
 	this->setStatusCode(status);
 	//ret = this->serveFile(this->m_location.getRootDir() + "/" + this->m_location.getErrorPage());
-	this->serveFile(fd);
+	this->serveFile(fd, datalen);
 	cout << "root path " << this->m_location.getRootDir() + "/" + this->m_location.getErrorPage() << "\n";
 	//if (ret == -1)
 	//	this->errorResponse(500);
@@ -381,7 +385,8 @@ void Response::makeContentError(int status, int fd) {
 }
 
 void Response::makeContentFile(int fd) {
-	this->serveFile(fd);
+	int datalen = 100;
+	this->serveFile(fd, datalen);
 	//if (status == -1)
 	//	this->makeContentError(500, fd);
 	//else if (status == 1)
@@ -414,17 +419,18 @@ void Response::redirectResponse(int status, string url) {
 }
 
 // fd 반환 read, write 둘 다 가능
-int Response::openFile(string path) {
-	int fd = open(path.c_str(), O_RDWR | O_TRUNC);
+// GET,POST에 따라 open 모드 다르게
+int Response::openFile(string path, int flag) {
+	int fd = open(path.c_str(), flag);
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	return fd;
 }
 
-vector<int> Response::openFiles(vector<pair<string, string> > in) {
+vector<int> Response::openFiles(vector<pair<string, string> > in, int flag) {
 	vector<int> out;
 	int fd;
 	for (int i=0; i<in.size(); ++i) {
-		fd = this->openFile(in[i].first);
+		fd = this->openFile(in[i].first, flag);
 		out.push_back(fd);
 	}
 	return out;
@@ -459,7 +465,7 @@ string Response::getHttpResponse() {
 }
 
 // readFile 완성시 return true
-bool Response::readFile(int fd) {
+bool Response::readFile(int fd, intptr_t datalen) {
 	string ret = this->read_fd(fd);
 	this->appendContent(ret);
 	if (ret == "") {
@@ -470,7 +476,7 @@ bool Response::readFile(int fd) {
 }
 
 // writeFile 완성시 return true
-bool Response::writeFile(int fd) {
+bool Response::writeFile(int fd, intptr_t datalen) {
 	ssize_t write_len = this->write_fd(fd, this->m_content);
 	// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
 	if (write_len == -1) { // 에러 발생
