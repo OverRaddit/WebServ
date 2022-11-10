@@ -84,3 +84,37 @@ read, 조회 -> write이벤트 감지할 필요 없음.
 error페이지를 반환하도록...!
 Test GET Expected 404 on http://localhost:4240/directory/Yeah
 content returned: H
+
+===================================
+
+정적파일을 비동기로 처리할때,,, 과정을 정리해보자.
+
+서버 디렉토리에 있는 정적파일을 GET할때의 과정이다.
+
+1. 반환할 파일을 open한다. 파일디스크립터값 fd를 얻는다.
+
+2. cli측에서 fd를 반환하면 Server가 해당 fd를 kqueue에 등록한다.
+
+3. fd의 read이벤트를 감지된다. read한 값을 Response의 버퍼(이하 버퍼)에 저장한다.
+
+4. 계속하여 read하다가 어느순간 read의 반환값이 0이된다. EOF를 의미하므로 read가 완료되었다.
+
+5. 버퍼에 있는 값(content)이 Response body에 들어가게 된다.
+
+다음으로, 클라이언트에서 POST메소드로 파일을 업로드하는 과정이다.
+
+1. a.txt라는 파일명과 request body에 aaa가 들어간 요청이 날아왔다.
+
+2. a.txt파일을 open한다. 파일디스크립터값 fd를 얻는다.
+
+3. fd의 write이벤트를 감지한다. req_body값을 write한다.
+
+4. write의 누적 반환값이 Requet's content-length와 일치하면 write가 종료된다.
+
+5. 업로드 성공 응답을 전송한다.
+
+============================================
+
+keep-alive에 따라 포트를 유지시키거나 삭제한다.
+
+file_to_client에 있는 튜플은 언제삭제시키지?
