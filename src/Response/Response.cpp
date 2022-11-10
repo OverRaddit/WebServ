@@ -187,20 +187,20 @@ void Response::cgiResponse(string cgi_result) {
 }
 
 void Response::putFile(vector<int> fd, string content_body) {
-	//ofstream writeFile;
-	//writeFile.open("./sudo/file_storage/" + file_name);
-	//writeFile.open(this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name);  // 수정
+	//ofstream write_fd;
+	//write_fd.open("./sudo/file_storage/" + file_name);
+	//write_fd.open(this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name);  // 수정
 	for (int i=0; i<fd.size(); ++i) {
-		this->writeFile(fd[i], content_body);
+		this->write_fd(fd[i], content_body);
 	}
 	//cout << "putFile path : " + this->m_location.getRootDir() + "/" + this->m_location.getUploadDirectory() + file_name << "\n";
 	//cout << "content_body=" + content_body + "\n";
-	//if (!writeFile.is_open()) {
+	//if (!write_fd.is_open()) {
 	//	cout << "putFile에서 ofstream.open() 실패\n";
 	//	return ;
 	//}
-	//writeFile.write(content_body.c_str(), content_body.size());
-	//writeFile.close();
+	//write_fd.write(content_body.c_str(), content_body.size());
+	//write_fd.close();
 
 }
 
@@ -208,7 +208,7 @@ int Response::saveFile(int fd, string content_type, string content_body) {
 	size_t i = content_type.find("boundary=");
 	if (i == string::npos)
 		return -1;
-	//ofstream writeFile;
+	//ofstream write_fd;
 	string boundary = content_type.substr(i+9);
 	string sub_content = content_body;
 	string file_name;
@@ -219,17 +219,17 @@ int Response::saveFile(int fd, string content_type, string content_body) {
 		file_body = this->getFileContent(sub_content, "--" + boundary);
 		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
 			return -1;
-		this->writeFile(fd, file_body);
-		//writeFile.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
-		//writeFile.write(file_body.c_str(), file_body.size());
-		//writeFile.close();
+		this->write_fd(fd, file_body);
+		//write_fd.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
+		//write_fd.write(file_body.c_str(), file_body.size());
+		//write_fd.close();
 	}
 	return 0;
 }
 
 vector<pair<string, string> > Response::saveFileName(string content_type, string content_body) {
 	size_t i = content_type.find("boundary=");
-	//ofstream writeFile;
+	//ofstream write_fd;
 	vector<pair<string, string> > v;
 	string boundary = content_type.substr(i+9);
 	string sub_content = content_body;
@@ -242,10 +242,10 @@ vector<pair<string, string> > Response::saveFileName(string content_type, string
 		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
 			continue;
 		v.push_back(make_pair(file_name, file_name));
-		//this->writeFile(fd, file_body);
-		//writeFile.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
-		//writeFile.write(file_body.c_str(), file_body.size());
-		//writeFile.close();
+		//this->write_fd(fd, file_body);
+		//write_fd.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
+		//write_fd.write(file_body.c_str(), file_body.size());
+		//write_fd.close();
 	}
 	return v;
 }
@@ -431,7 +431,7 @@ vector<int> Response::openFiles(vector<pair<string, string> > in) {
 }
 
 // 읽은 파일 스트링으로 반환 다 읽으면 "" 반환
-string Response::readFile(int fd) {
+string Response::read_fd(int fd) {
 	char buf[BUFF_SIZE];
 	ssize_t ret = read(fd, buf, BUFF_SIZE);
 	if (ret == -1)   {
@@ -443,7 +443,7 @@ string Response::readFile(int fd) {
 }
 
 // write 결과 값 반환
-ssize_t Response::writeFile(int fd, string content) {
+ssize_t Response::write_fd(int fd, string content) {
 	ssize_t size = write(fd, content.c_str(), content.size());
 	return size;
 }
@@ -454,18 +454,29 @@ string Response::getHttpResponse() {
 	return result;
 }
 
-// upload 종료시 true 반환
-bool Response::uploadFile(int fd) {
-	ssize_t write_len = res->writeFile(fd, this->m_content);
+// readFile 완성시 return true
+bool Response::readFile(int fd) {
+	string ret = this->read_fd(fd);
+	this->appendContent(ret);
+	if (ret == "") {
+		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
+		return true;
+	}
+	return false;
+}
+
+// writeFile 완성시 return true
+bool Response::writeFile(int fd) {
+	ssize_t write_len = this->write_fd(fd, this->m_content);
 	// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
 	if (this->m_content.size() == write_len) {
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-		res->setHtmlFooter();
-		res->appendContent("upload success");
-		res->setHtmlFooter();
+		this->setHtmlFooter();
+		this->appendContent("upload success");
+		this->setHtmlFooter();
 		return true;
 	}
-	res->setContent(res->getContent().substr(write_len));
+	this->setContent(this->getContent().substr(write_len));
 	return false;
 }
 
