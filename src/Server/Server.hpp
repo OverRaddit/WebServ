@@ -13,6 +13,7 @@
 # include <unistd.h>
 # include <netinet/in.h>
 # include <sys/event.h>
+#include <sys/_types/_size_t.h>
 # include <err.h>
 # include <fcntl.h>
 # include <stdio.h>
@@ -88,7 +89,7 @@ public:
 	int read_pipe_result();
 
 	ServerBlock find_serverblock(int client_fd);
-
+	map<string, LocationBlock>::iterator locationBlockMapping(Client *cli, ServerBlock &s_b);
 //=============================================================================
 //	Getter & Setter
 //=============================================================================

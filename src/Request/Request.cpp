@@ -21,7 +21,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_prefix_url(""), m_suffix_url(""), m_req_target(""), m_content_length(0), m_req_type(OTHER_REQUEST), m_is_incomplete(false), m_cgi_pid(-1)
+Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_is_incomplete(false), m_cgi_pid(-1)
 {
 	string	line = "";
 	size_t	len = request_msg.length();
@@ -87,30 +87,6 @@ int		Request::saveOnlyBody(string req_body)
 	return req_body.length();
 }
 
-void	Request::saveURLInformation(void)
-{
-	bool	flag = false;
-	string	line = "";
-
-	for (int i = 0;i < this->m_req_target.length();i++)
-	{
-		if(flag)
-			this->m_suffix_url += this->m_req_target[i];
-		else
-		{
-			if (i != 0 && this->m_req_target[i] == '/')
-			{
-				this->m_suffix_url += this->m_req_target[i];
-				flag = true;
-			}
-			else
-				this->m_prefix_url += this->m_req_target[i];
-		}
-	}
-	if (this->m_suffix_url != "")
-		this->m_req_file_name = this->m_suffix_url;
-}
-
 void	Request::saveStartLine(string start_line)
 {
 	int		cnt = 0;
@@ -130,16 +106,6 @@ void	Request::saveStartLine(string start_line)
 		else
 			cnt++;
 	}
-	if (this->m_del_file_name == "" && this->m_method == "DELETE")
-	{
-		pos = this->m_req_target.find("/delete/");
-		if (pos == 0)
-		{
-			for (size_t i = pos + 7;i < m_req_target.length();i++)
-				this->m_del_file_name += this->m_req_target[i];
-			cout << "DEL_FILE_NAME : " << m_del_file_name << endl;
-		}
-	}
 }
 
 void	Request::saveHeader(string header_line)
@@ -157,21 +123,7 @@ void	Request::saveHeader(string header_line)
 	}
 }
 
-void	Request::setStatusCode(int status_code)
-{
-	this->m_status_code = status_code;
-}
-
-void	Request::setReqBody(string body)
-{
-	this->m_req_body = body;
-}
-
-void	Request::setRedirectionURL(string url)
-{
-	this->m_redirection_url = url;
-}
-
+// ----------------------------------------- Setter -----------------------------------------------------
 void	Request::setReqHeader(string key, string value)
 {
 	if (key == "Content-Length" || key == "content-length")
@@ -179,78 +131,34 @@ void	Request::setReqHeader(string key, string value)
 	this->m_req_header.insert(pair<string, string>(key, value));
 }
 
-void	Request::setContentLength(string content_length)
+void	Request::setLocBlock(LocationBlock &loc_block, string url, size_t pos)
 {
-	this->m_content_length = stoll(content_length);
-}
+	string	split_url = "";
 
-void	Request::setReqType(int type)
-{
-	this->m_req_type = type;
-}
-
-void	Request::setCgiPid(int cgi_pid)
-{
-	this->m_cgi_pid = cgi_pid;
-}
-
-void	Request::setCgiResult(string cgi_result)
-{
-	this->m_cgi_result = cgi_result;
-}
-
-void	Request::setSudoDir(string sudo_dir)
-{
-	this->m_sudo_dir = sudo_dir;
-}
-
-void	Request::setLocBlock(LocationBlock loc_block)
-{
 	this->m_loc_block = loc_block;
+	if (url[pos] == '/')
+		split_url = url.substr(pos + 1);
+	else
+		split_url = url.substr(pos);
+	this->m_req_file_name += split_url;
+	// cout << "REQ FILE NAME : " << m_req_file_name << endl;
 }
 
-void	Request::setSerBlock(ServerBlock server_block)
-{
-	this->m_ser_block = server_block;
-}
+void	Request::setStatusCode(int status_code) {this->m_status_code = status_code; }
 
-void	Request::setFilename(string file_name)
-{
-	this->m_file_name = file_name;
-}
+void	Request::setReqBody(string body) { this->m_req_body = body; }
 
-long long	Request::getContentLength(void) const {
-	return this->m_content_length;
-}
+void	Request::setRedirectionURL(string url) { this->m_redirection_url = url; }
 
-string	Request::getReqBody(void) const {
-	return this->m_req_body;
-}
+void	Request::setContentLength(string content_length) { this->m_content_length = stoll(content_length); }
 
-string	Request::getMethod(void) const {
-	return this->m_method;
-}
+void	Request::setCgiPid(int cgi_pid) { this->m_cgi_pid = cgi_pid; }
 
-string	Request::getReqTarget(void) const {
-	return this->m_req_target;
-}
+void	Request::setCgiResult(string cgi_result) { this->m_cgi_result = cgi_result; }
 
-string	Request::getHttpVersion(void) const {
-	return this->m_http_version;
-}
+void	Request::setSerBlock(ServerBlock &server_block) { this->m_ser_block = server_block; }
 
-string	Request::getRedirectionURL(void) const {
-	return this->m_redirection_url;
-}
-
-int		Request::getStatusCode(void) const {
-	return this->m_status_code;
-}
-
-string		Request::getDelFileName(void) const {
-	return this->m_del_file_name;
-}
-
+// ----------------------------------------- Getter -----------------------------------------------------
 string	Request::getReqHeaderValue(string key) {
 	string	lower_key = "";
 	for (int i = 0;i < key.length();i++)
@@ -262,57 +170,30 @@ string	Request::getReqHeaderValue(string key) {
 	return "";
 }
 
-int		Request::getReqType(void) const
-{
-	return this->m_req_type;
-}
+long long	Request::getContentLength(void) const { return this->m_content_length; }
 
-bool		Request::getIsIncomplete(void) const
-{
-	return this->m_is_incomplete;
-}
+string	Request::getReqBody(void) const { return this->m_req_body; }
 
-string		Request::getIncompleteMessage(void) const
-{
-	return this->m_incomplete_message;
-}
+string	Request::getMethod(void) const { return this->m_method; }
 
-int		Request::getCgiPid(void) const
-{
-	return m_cgi_pid;
-}
+string	Request::getReqTarget(void) const { return this->m_req_target; }
 
-string	Request::getCgiResult(void) const
-{
-	return m_cgi_result;
-}
+string	Request::getHttpVersion(void) const { return this->m_http_version; }
 
-string	Request::getSudoDir(void) const
-{
-	return m_sudo_dir;
-}
+string	Request::getRedirectionURL(void) const { return this->m_redirection_url; }
 
-string		Request::getPrefixURL(void) const
-{
-	return this->m_prefix_url;
-}
+int		Request::getStatusCode(void) const { return this->m_status_code; }
 
-string		Request::getSuffixURL(void) const
-{
-	return this->m_suffix_url;
-}
+bool	Request::getIsIncomplete(void) const { return this->m_is_incomplete; }
 
-string		Request::getReqFileName(void) const
-{
-	return this->m_req_file_name;
-}
+string	Request::getIncompleteMessage(void) const { return this->m_incomplete_message; }
 
-LocationBlock	Request::getLocBlock(void) const
-{
-	return this->m_loc_block;
-}
+int		Request::getCgiPid(void) const { return m_cgi_pid; }
 
-ServerBlock		Request::getSerBlock(void) const
-{
-	return this->m_ser_block;
-}
+string	Request::getCgiResult(void) const { return m_cgi_result; }
+
+string	Request::getReqFileName(void) const { return this->m_req_file_name; }
+
+LocationBlock	Request::getLocBlock(void) const { return this->m_loc_block; }
+
+ServerBlock		Request::getSerBlock(void) const { return this->m_ser_block; }

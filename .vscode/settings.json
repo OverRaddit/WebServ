@@ -7,6 +7,10 @@
 		"ostream": "cpp",
 		"iosfwd": "cpp",
 		"__config": "cpp",
+<<<<<<< HEAD
+		"string": "cpp"
+	}
+=======
 		"string": "cpp",
 		"__bit_reference": "cpp",
 		"__debug": "cpp",
@@ -66,4 +70,5 @@
 		"filesystem": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "Disabled"
+>>>>>>> a3f7ada0a0b1dc21a75838cc59e3e5d9ce3ac1fc
 }
