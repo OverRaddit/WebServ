@@ -436,7 +436,7 @@ string Response::read_fd(int fd) {
 	ssize_t ret = read(fd, buf, BUFF_SIZE);
 	if (ret == -1)   {
 		this->setStatusCode(500);
-		std::cerr << "read error!" << std::endl;
+		std::cerr << "Read Error!\n";
 		return "";
 	}
 	return string(buf, ret);
@@ -445,6 +445,10 @@ string Response::read_fd(int fd) {
 // write 결과 값 반환
 ssize_t Response::write_fd(int fd, string content) {
 	ssize_t size = write(fd, content.c_str(), content.size());
+	if (size == -1) {
+		this->setStatusCode(500);
+		std::cerr << "Write Error!\n";
+	}
 	return size;
 }
 
@@ -469,7 +473,14 @@ bool Response::readFile(int fd) {
 bool Response::writeFile(int fd) {
 	ssize_t write_len = this->write_fd(fd, this->m_content);
 	// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
-	if (this->m_content.size() == write_len) {
+	if (write_len == -1) { // 에러 발생
+		close(fd);
+		this->setHtmlFooter();
+		this->appendContent("fail success");
+		this->setHtmlFooter();
+		return true;
+	}
+	else if (this->m_content.size() == write_len) {  // 완성
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
 		this->setHtmlFooter();
 		this->appendContent("upload success");
