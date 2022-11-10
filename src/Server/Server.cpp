@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: jinyoo <jinyoo@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/10 00:13:41 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/10 17:12:10 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,29 +157,14 @@ int Server::run()
 	}
 }
 
-// 여기서 걸러진 요청은 바로 write할 수 있게 바꿔야 한다.
-int	Server::execute_client_request(int client_fd)
+map<string, LocationBlock>::iterator	Server::locationBlockMapping(Client *cli, ServerBlock &s_b)
 {
-	Client *cli = clients_info[client_fd];
-	ServerBlock s_b = find_serverblock(client_fd);
-
-	// 이곳에서 요청 처리를 한다.
-	// cli->getRequest()->saveURLInformation();
-	std::string url = cli->getRequest()->getReqTarget();
-	std::map<string, LocationBlock>::iterator	it;
-	std::map<string, LocationBlock>::iterator	matching_it;
-	bool is_valid_method = false;
-	int	matched_len = -1;
+	string url = cli->getRequest()->getReqTarget();
+	map<string, LocationBlock>::iterator	it;
+	map<string, LocationBlock>::iterator	matching_it;
+	size_t	matched_len = 0;
 	size_t pos;
 
-	// pos = url.find("/delete/");
-	// if (pos == 0)
-	// 	url = "/delete";
-	// // 필요해보여서 넣음
-	// else if ((pos = url.find("/download/")) != string::npos)
-	// 	url = "/download";
-	// cout << "-------- FileName: " << cli->getRequest()->getReqFileName() << endl;
-	// 로케이션 블록 매핑
 	cli->getRequest()->setSerBlock(s_b);
 	it = s_b.getLocationBlocks().begin();
 	matching_it = s_b.getLocationBlocks().end();
@@ -194,24 +179,33 @@ int	Server::execute_client_request(int client_fd)
 		else if (it->first == "/")
 		{
 			matching_it = it;
+			matched_len = 1;
 			continue;
 		}
-		cout << "####### " << url << "  |  " << it->first << endl;
 		size_t	find = url.find(it->first);
 		if (find == 0)
 		{
-			if (matched_len < it->first.length())
-				if (url[it->first.length()] == '/')
-					matching_it = it;
+			if (matched_len < it->first.length() && url[it->first.length()] == '/')
+			{
+				matched_len = it->first.length();
+				matching_it = it;
+			}
 		}
 	}
-	cout << "#######!!! " << matching_it->first << endl;
-	// it = s_b.getLocationBlocks().find(url);
-	//if (it == s_b.getLocationBlocks().end())
+	return matching_it;
+}
+
+// 여기서 걸러진 요청은 바로 write할 수 있게 바꿔야 한다.
+int	Server::execute_client_request(int client_fd)
+{
+	Client *cli = clients_info[client_fd];
+	ServerBlock s_b = find_serverblock(client_fd);
+	map<string, LocationBlock>::iterator matching_it = locationBlockMapping(cli, s_b);
+	bool is_valid_method = false;
 
 	if (matching_it != s_b.getLocationBlocks().end())
 	{
-		cli->getRequest()->setLocBlock(matching_it->second);
+		cli->getRequest()->setLocBlock(matching_it->second, cli->getRequest()->getReqTarget(), matching_it->first.length());
 		vector<string>	valid_method = matching_it->second.getValidMethod();
 		for (int i = 0;i < valid_method.size();i++)
 		{
