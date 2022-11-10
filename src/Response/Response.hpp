@@ -95,8 +95,8 @@ public:
 
 	int			openFile(string path, int flag);
 	vector<int>	openFiles(vector<pair<string, string> > in, int flag);
-	string		read_fd(int fd);
-	ssize_t		write_fd(int fd, string content);
+	string		read_fd(int fd, intptr_t datalen);
+	ssize_t		write_fd(int fd, intptr_t datalen, string content);
 
 	bool		readFile(int fd, intptr_t datalen);
 	bool		writeFile(int fd, intptr_t datalen);
