@@ -262,12 +262,14 @@ int	Response::getRequestFile(string request_file, string dir_path) {
 	struct stat buf;
 	bool	ret;
 
-	if (stat((dir_path + request_file).c_str(), &buf) < 0)
-		return NO_FILE; // NO FILE!!
-	if (S_ISREG(buf.st_mode))
-		return VALID_REQ_FILE; // 존재하는 파일 요청
-	else if (S_ISDIR(buf.st_mode))
-		return VALID_REQ_DIR; // 존재하는 디렉토리 요청
+	if (stat((dir_path + request_file).c_str(), &buf) == 0)
+	{
+		if (S_ISREG(buf.st_mode))
+			return VALID_REQ_FILE; // 존재하는 파일 요청
+		else if (S_ISDIR(buf.st_mode))
+			return VALID_REQ_DIR; // 존재하는 디렉토리 요청
+	}
+	return NO_FILE; // NO FILE!!
 }
 
 int Response::makeAutoIndex(const char *dir_path) {
