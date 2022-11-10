@@ -144,3 +144,7 @@ CGI 과정 정리
 
 
 https://brook-paw-154.notion.site/Inception-70b40226228c4fab96f1943aefca0d1a
+====================
+
+get : 읽기 전용
+post : 쓰기용
