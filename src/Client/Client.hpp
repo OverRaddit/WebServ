@@ -17,6 +17,7 @@ private:
 	int			pipe_fd;
 	sockaddr_in	addr;
 	socklen_t	len;
+	Cgi			*m_cgi;
 
 	Request		*req;
 	Response	*res;
@@ -38,12 +39,14 @@ public:
 	Request		*getRequest();
 	Response	*getResponse() const;
 	std::string	getRawRequest() const;
+	Cgi			*getCgi() const;
 
 	void		setPipeFd(int pipe_fd);
 	void		setRequest(Request *_req);
 	void		setResponse(Response *_res);
 	void		setRawRequest(std::string str);
 	void		appendRawRequest(std::string _raw_request);
+	void		setCgi(Cgi *_cgi);
 
 	int			read_client_request();
 	int			read_pipe_result();

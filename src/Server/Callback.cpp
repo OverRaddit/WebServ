@@ -60,176 +60,44 @@ int Server::callback_read(int fd)
 			string dir_path = cli->getRequest()->getLocBlock().getRootDir();
 			string final_path = "";
 			int flag;
+			int ret = 0;
 
 			// Response 생성 및 필요한 인자 전달.
 			cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 
 			// 메소드별로 실행한다.
 			if (cli->getRequest()->getMethod() == "GET"){
-				cli->GET(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+				ret = cli->GET(cli->getRequest(), cli->getResponse(), dir_path + file_name);
 			} else if (cli->getRequest()->getMethod() == "DELETE") {
-				cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+				ret = cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
 			} else if (cli->getRequest()->getMethod() == "POST") {
-				cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+				ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
 			} else if (cli->getRequest()->getMethod() == "PUT") {
-				cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+				ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
 			} else {
 				std::cerr << "Undefined Method" << std::endl;
 			}
 
-			if (cli->is_cgi_request(cli->getRequest()))
+			if (ret > 0)	// if file descriptor is returned..
 			{
-				pipe_to_client[cli->getPipeFd()] = cli->getFd();
-				change_events(cli->getPipeFd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				std::cout << "File open! registered to kqueue..." << std::endl;
+				file_to_client[ret] = cli->getFd();
+				change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 			}
 			else
+			{
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			}
 
-			// 파일명 미존재시 index파일을 찾는다.
-			// if (file_name == "") // if file name not exist
+			// 원래의 cgi 처리 로직.
+			// if (cli->is_cgi_request(cli->getRequest()))
 			// {
-			// 	cli->getResponse()->setRootPath(dir_path); // loc_block's root
-			// 	cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
-			// 	cli->getResponse()->defaultResponse();
-			// }
-			// else {
-			// 	cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
-			// 	flag = cli->getResponse()->getRequestFile(file_name, dir_path);
-			// 	if (flag == VALID_REQ_FILE)
-			// 	{
-			// 		cout << "VALID_REQ_FILE : " << dir_path + file_name << endl;
-			// 		if (cli->getRequest()->getMethod() == "GET")
-			// 		{
-			// 			cli->getResponse()->fileResponse(dir_path + file_name);
-			// 			cli->getResponse()->setStatusCode(200);
-			// 		}
-			// 	}
-			// 	else if (flag == NO_FILE)
-			// 	{
-			// 		// GET,DELETE : 조회할 파일이 없으면, 404에러를 발생시킨다.
-			// 		if (cli->getRequest()->getMethod() == "GET" || cli->getRequest()->getMethod() == "DELETE")
-			// 		{
-			// 			cli->getResponse()->makeContent("No such file"); // 404
-			// 			cli->getResponse()->errorResponse(404);
-			// 		}
-			// 		// POST : 해당 파일명으로 새 파일을 생성한다.(201추가 할것.)
-			// 		else if (cli->getRequest()->getMethod() == "POST" || cli->getRequest()->getMethod() == "PUT")
-			// 		{
-			// 			cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
-			// 			cli->getResponse()->setStatusCode(201);
-			// 		}
-			// 	}
-			// 	else if (flag == VALID_REQ_DIR)
-			// 	{
-			// 		if (file_name.back() == '/')
-			// 			final_path = dir_path + file_name;
-			// 		else
-			// 			final_path = dir_path + file_name + "/";
-			// 		cout << "VALID_REQ_DIR1 : " << final_path + cli->getRequest()->getLocBlock().getIndexFile() << endl;
-			// 		if (cli->getResponse()->getRequestFile(cli->getRequest()->getLocBlock().getIndexFile(), final_path) == NO_FILE)
-			// 		{
-			// 			//cli->getResponse()->makeContent("No such file"); // 404
-			// 			cli->getResponse()->errorResponse(404);
-			// 		}
-			// 		else
-			// 		{
-			// 			cout << "VALID_REQ_DIR2 : " << dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile() << endl;
-			// 			cli->getResponse()->fileResponse(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
-			// 			cli->getResponse()->setStatusCode(200);
-			// 		}
-			// 	}
-			// }
-			//change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-
-
-			// switch (cli->getRequest()->getReqType())
-			// {
-			// case CGI_REQUEST:
-			// 	std::cout << "Req type: CGI" << std::endl;
-			// 	if ((ret = cli->cgi_init()) < 0)
-			// 		return -1;
 			// 	pipe_to_client[cli->getPipeFd()] = cli->getFd();
 			// 	change_events(cli->getPipeFd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-			// 	break;
-			// case UPLOAD_REQUEST:
-			// 	std::cout << "Req type: UPLOAD" << std::endl;
-			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			// 	cli->getResponse()->makeContent("Upload Request");
-			// 	//cli->getResponse()->uploadResponse(cli->getRequest()->getReqHeaderValue("Content-Type"), cli->getRequest()->getReqBody());
-			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-			// 	break;
-			// case OTHER_REQUEST:
-			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			// 	cli->getResponse()->setRootPath(dir_path);
-			// 	cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
-			// 	cli->getResponse()->setErrorFile(cli->getRequest()->getLocBlock().getErrorPage());
-			// 	//cli->getResponse()->setEr
-			// 	// index 고려할것..
-			// 	if (file_name == "")
-			// 	{
-			// 		cli->getResponse()->setRootPath(dir_path); // loc_block's root
-			// 		cli->getResponse()->setIndexFile(cli->getRequest()->getLocBlock().getIndexFile());
-			// 		cli->getResponse()->defaultResponse();
-			// 	}
-			// 	else {
-			// 		cout << "CHANGE REQ URL : " << dir_path + file_name << endl;
-			// 		flag = cli->getResponse()->getRequestFile(file_name, dir_path);
-			// 		if (flag == NO_FILE)
-			// 		{
-			// 			//cli->getResponse()->makeContent("No such file"); // 404
-			// 			cli->getResponse()->errorResponse(404);
-			// 		}
-			// 		else if (flag == VALID_REQ_DIR)
-			// 		{
-			// 			if (file_name.back() == '/')
-			// 				final_path = dir_path + file_name;
-			// 			else
-			// 				final_path = dir_path + file_name + "/";
-			// 			cout << "VALID_REQ_DIR1 : " << final_path + cli->getRequest()->getLocBlock().getIndexFile() << endl;
-			// 			if (cli->getResponse()->getRequestFile(cli->getRequest()->getLocBlock().getIndexFile(), final_path) == NO_FILE)
-			// 			{
-			// 				//cli->getResponse()->makeContent("No such file"); // 404
-			// 				cli->getResponse()->errorResponse(404);
-			// 			}
-			// 			else
-			// 			{
-			// 				cout << "VALID_REQ_DIR2 : " << dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile() << endl;
-			// 				cli->getResponse()->fileResponse(dir_path + "/" + cli->getRequest()->getLocBlock().getIndexFile());
-			// 				cli->getResponse()->setStatusCode(200);
-			// 			}
-			// 		}
-			// 		else if (flag == VALID_REQ_FILE)
-			// 		{
-			// 			cout << "VALID_REQ_FILE : " << dir_path + file_name << endl;
-			// 			cli->getResponse()->fileResponse(dir_path + file_name);
-			// 			cli->getResponse()->setStatusCode(200);
-			// 		}
-			// 	}
-			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-			// 	break;
-			// case DELETE_REQUEST:
-			// 	std::cout << "Req type: DELETE" << std::endl;
-			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			// 	cli->getResponse()->makeContent("DELETE REQUEST");
-			// 	// cli->getResponse()->deleteResponse(dir_path + cli->getRequest()->getDelFileName());
-			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-			// 	break;
-			// case AUTOINDEX_REQUEST:
-			// 	std::cout << "Req type: AUTOINDEX" << std::endl;
-			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			// 	cli->getResponse()->autoIndexResponse(dir_path.c_str());
-			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-			// 	break;
-			// case DOWNLOAD_REQUEST:
-			// 	std::cout << "Req type: DOWNLOAD" << std::endl;
-			// 	cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			// 	cli->getResponse()->downloadResponse(dir_path + "a.txt");
-			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-			// 	break;
-			// default:
-			// 	std::cout << "Req type: " << cli->getRequest()->getReqType() << std::endl;
-			// 	break;
 			// }
+			// else
+			// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		}
 	}
 	else if (is_pipe(fd))
@@ -245,21 +113,84 @@ int Server::callback_read(int fd)
 		disconnect_pipe(cli->getPipeFd());
 		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	}
+	else if (is_file(fd))
+	{
+		std::cout << "file read event" << std::endl;
+		cli = clients_info[file_to_client[fd]];
+
+		/*
+			이곳에서 file read 비동기 처리를 합니다!!
+		*/
+
+		//===============의사 코드 start=================================
+		string ret = cli->getResponse()->readFile(fd);
+		cli->getResponse()->appendContent(ret);
+		// read 반환값 EOF 검출시 read 완료로 정의한다.
+		//if (is_read_complete())
+		if (ret == "")
+		{
+			close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
+
+			// cgi req일 경우, content를 cgi에 넘겨준다.
+			// 파일경로 -> 파일내용으로 인자설정 바꾸기.
+
+		}
+		//===============의사 코드 end=================================
+		if (cli->is_cgi_request(req))
+		{
+			// 읽기 완료한 내용(sample)을 cgi의 파이프 입구에 write해야 한다.
+			// cli->getResponse()->getContent()
+		}
+		else
+			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	}
 	return (0);
 }
 
 int Server::callback_write(int fd)
 {
 	Client *cli;
+	Response *res;
 
+	if (is_file(fd))
+	{
+		std::cout << "file write event" << std::endl;
+		cli = clients_info[file_to_client[fd]];
+		res = cli->getResponse();
+		/*
+			이곳에서 file write 비동기 처리를 합니다!!
+		*/
+
+		//===============의사 코드 start=================================
+		string content = res->getContent();
+		ssize_t write_len = res->writeFile(fd, content);
+		// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
+		//if (is_write_complete())
+		if (content.size() == write_len)
+		{
+			close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
+			res->setHtmlFooter();
+			res->appendContent("upload success");
+			res->setHtmlFooter();
+			//change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		}
+		else {
+			res->setContent(res->getContent().substr(write_len));
+		}
+		//===============의사 코드 end=================================
+		if (is_done)
+			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		return 0;
+	}
 	// 클라이언트에게만 write합니다.
-	if (!is_client(fd))
+	else if (!is_client(fd))
 		return -1;
+
 
 	cli = clients_info[fd];
 	// CGI process 종료상태 회수
-	if (cli->getRequest()->getReqType() == CGI_REQUEST)
-		waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
+	// if (cli->getRequest()->getReqType() == CGI_REQUEST)
+	// 	waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
 
 	// write하기.
 	// 가끔 이미 처리한 요청을 또 write해서 req,res가 없다.
@@ -277,6 +208,11 @@ int Server::callback_write(int fd)
 	else
 		std::cout << "[DEBUG] http response complete" << std::endl;
 	free(res);
+
+	// keep-alive 옵션에따라 포트연결 유지여부를 결정한다.
+	if (cli->getRequest()->getReqHeaderValue("Connection") != "keep-alive")
+		disconnect_client(fd);
+
 	// 사용이 끝난 Res,Req 객체를 삭제한다.
 	delete cli->getResponse();
 	delete cli->getRequest();

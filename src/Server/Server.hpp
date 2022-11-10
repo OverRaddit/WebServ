@@ -13,6 +13,7 @@
 # include <unistd.h>
 # include <netinet/in.h>
 # include <sys/event.h>
+#include <sys/_types/_size_t.h>
 # include <err.h>
 # include <fcntl.h>
 # include <stdio.h>
@@ -28,6 +29,7 @@ class Server {
 private:
 	std::map<int, Client*>	clients_info;
 	std::map<int, int>		pipe_to_client;
+	std::map<int, int>		file_to_client;
 
 	Config					*config;
 
@@ -80,7 +82,7 @@ public:
 	int read_pipe_result();
 
 	ServerBlock find_serverblock(int client_fd);
-
+	map<string, LocationBlock>::iterator locationBlockMapping(Client *cli, ServerBlock &s_b);
 //=============================================================================
 //	Getter & Setter
 //=============================================================================
@@ -92,7 +94,7 @@ public:
 	int	is_listensocket(int fd);
 	int	is_client(int fd);
 	int	is_pipe(int fd);
-
+	int	is_file(int fd);
 };
 
 #endif

@@ -430,12 +430,15 @@ vector<int> Response::openFiles(vector<pair<string, string> > in) {
 	return out;
 }
 
-// 읽은 파일 스트링으로 반환
+// 읽은 파일 스트링으로 반환 다 읽으면 "" 반환
 string Response::readFile(int fd) {
 	char buf[BUFF_SIZE];
 	ssize_t ret = read(fd, buf, BUFF_SIZE);
-	if (ret == -1)
+	if (ret == -1)   {
+		this->setStatusCode(500);
+		std::cerr << "read error!" << std::endl;
 		return "";
+	}
 	return string(buf, ret);
 }
 

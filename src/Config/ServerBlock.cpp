@@ -1,6 +1,4 @@
 #include "ServerBlock.hpp"
-#include <string>
-#include <vector>
 
 ServerBlock::ServerBlock(void): m_error_page("")
 {}
@@ -30,17 +28,9 @@ void	ServerBlock::setLocationBlock(string loc_block)
 		this->m_loc_blocks[route].setIndexFile(loc_block, pos + 1);
 }
 
-void	ServerBlock::setErrorPage(string error_page_info)
-{
-	this->m_error_page = error_page_info;
-}
+void	ServerBlock::setErrorPage(string error_page_info) { this->m_error_page = error_page_info; }
 
-
-void	ServerBlock::setIndexFile(string file_name)
-{
-	this->m_index_file = file_name;
-	// 예외처리???
-}
+void	ServerBlock::setIndexFile(string file_name){ this->m_index_file = file_name; }
 
 void	ServerBlock::setCgiTester(string cgi_tester)
 {
@@ -62,31 +52,43 @@ void	ServerBlock::setCgiTester(string cgi_tester)
 	}
 }
 
-void	ServerBlock::setRootDir(string root_dir)
-{
-	this->m_root_dir = root_dir;
-	// 예외처리 필요..?
-}
+void	ServerBlock::setRootDir(string root_dir){ this->m_root_dir = root_dir; }
 
-void	ServerBlock::setServerName(string server_name)
-{
-	this->m_server_name = server_name;
-}
+void	ServerBlock::setServerName(string server_name) { this->m_server_name = server_name; }
 
-void	ServerBlock::setPortNums(string port_nums)
+void	ServerBlock::setPortNums(string port_nums, vector<int> &p_nums)
 {
 	string	port_num = "";
 	bool 	flag = false;
 
+	if (port_nums == "")
+	{
+		cerr << "LISTEN PORT IS EMPTY\n";
+		exit(1);
+	}
 	for (size_t i = 0;i < port_nums.length();i++)
 	{
 		if (port_nums[i] != ' ')
+		{
+			if (port_nums[i] < '0' || port_nums[i] > '9')
+			{
+				cerr << "INVALID PORT NUMBER\n";
+				exit(1);
+			}
 			port_num += port_nums[i];
+		}
 		else
 			flag = true;
 		if (flag || i == port_nums.length() - 1)
 		{
-			this->m_port_nums.push_back(stoi(port_num));
+			try {
+				this->m_port_nums.push_back(stoi(port_num));
+				p_nums.push_back(stoi(port_num));
+			}
+			catch(exception &e) {
+				cerr << "INVALID PORT NUMBER\n";
+				exit(1);
+			}
 			port_num = "";
 			flag = false;
 		}
@@ -107,7 +109,5 @@ string ServerBlock::getServerName(void) const { return this->m_server_name; }
 
 vector<int>	ServerBlock::getPortNum(void) const { return this->m_port_nums; }
 
-const map<string, LocationBlock>&	ServerBlock::getLocationBlocks(void) const {
-	return this->m_loc_blocks;
-}
+map<string, LocationBlock>&	ServerBlock::getLocationBlocks(void) { return this->m_loc_blocks; }
 

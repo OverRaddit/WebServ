@@ -41,20 +41,17 @@ int Client::GET(Request *req, Response *res, string filepath)
 			break;
 	}
 
-	// ReqFileName에 cgi 확장자 존재시, cgi처리를 한다.
-	// (1)응답을 cgi에 넣어서 새로운 응답을 만들까.
-	// (2)파일을 cgi에 넣은 결과를 응답으로 할까.
-	// 적고보니 (2)가 좋아보임.
-	// 그러면, 응답파일이 index여도 똑같이 CGI로 처리해야 할까?
 	res->setStatusCode(200);
 	if (is_cgi_request(req))
 	{
+		// target을 read후 cgi에 넘기도록 수정할 것.
+		// read후 cgi처리를 해야함. 여기서는 처리할 수 없음.
 		if (cgi_init(target) < 0)
 			std:cerr << "CGI ERROR" << std::endl;
 	}
 	else
 	{
-		res->fileResponse(target);
+		return (res->openFile(target));
 	}
 	return 0;
 }
