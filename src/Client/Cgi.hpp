@@ -1,11 +1,11 @@
 #ifndef CGI_HPP
 # define CGI_HPP
 
-// # include "../Request/Request.hpp"
-// # include "../Response/Response.hpp"
-// # include <sys/socket.h>
-// # include <netinet/in.h>
-// # include <unistd.h>
+# include "../Request/Request.hpp"
+# include "../Response/Response.hpp"
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <unistd.h>
 # include <fcntl.h>
 
 class Cgi
@@ -22,8 +22,8 @@ private:
 public:
 	Cgi(char **_env);
 
-	int *getToChild(void) const;
-	int *getToParent(void) const;
+	int *getToChild(void);
+	int *getToParent(void);
 	std::string getInput(void) const;
 	std::string getOutput(void) const;
 	void setInput(std::string& input);
