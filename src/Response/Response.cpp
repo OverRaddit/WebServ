@@ -476,14 +476,14 @@ bool Response::writeFile(int fd) {
 	if (write_len == -1) { // 에러 발생
 		close(fd);
 		this->setHtmlFooter();
-		this->appendContent("fail success");
+		this->appendContent("Error: writeFile");
 		this->setHtmlFooter();
 		return true;
 	}
 	else if (this->m_content.size() == write_len) {  // 완성
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
 		this->setHtmlFooter();
-		this->appendContent("upload success");
+		this->appendContent("writeFile success");
 		this->setHtmlFooter();
 		return true;
 	}
