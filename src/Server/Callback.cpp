@@ -261,8 +261,8 @@ int Server::callback_write(int fd)
 
 	cli = clients_info[fd];
 	// CGI process 종료상태 회수
-	if (cli->getRequest()->getReqType() == CGI_REQUEST)
-		waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
+	// if (cli->getRequest()->getReqType() == CGI_REQUEST)
+	// 	waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
 
 	// write하기.
 	// 가끔 이미 처리한 요청을 또 write해서 req,res가 없다.
