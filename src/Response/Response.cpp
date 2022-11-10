@@ -451,6 +451,21 @@ string Response::getHttpResponse() {
 	return result;
 }
 
+// upload 종료시 true 반환
+bool Response::uploadFile(int fd) {
+	ssize_t write_len = res->writeFile(fd, this->m_content);
+	// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
+	if (this->m_content.size() == write_len) {
+		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
+		res->setHtmlFooter();
+		res->appendContent("upload success");
+		res->setHtmlFooter();
+		return true;
+	}
+	res->setContent(res->getContent().substr(write_len));
+	return false;
+}
+
 /*
 	여기부터 비 멤버함수
 */

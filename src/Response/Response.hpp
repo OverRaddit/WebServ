@@ -98,6 +98,8 @@ public:
 	string		readFile(int fd);
 	ssize_t		writeFile(int fd, string content);
 
+	bool		uploadFile(int fd);
+
 	string		getHttpResponse();
 };
 
