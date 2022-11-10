@@ -3,6 +3,7 @@
 
 # include "../Request/Request.hpp"
 # include "../Response/Response.hpp"
+# include "Cgi.hpp"
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <unistd.h>
