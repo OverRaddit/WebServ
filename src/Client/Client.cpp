@@ -47,12 +47,14 @@ socklen_t	Client::getLen() const { return len; }
 Request*	Client::getRequest(){ return req; }
 Response*	Client::getResponse() const { return res; }
 std::string	Client::getRawRequest() const {return raw_request; }
+Cgi*		Client::getCgi() const {return raw_request; }
 
 void		Client::setPipeFd(int _pipe_fd){ pipe_fd = _pipe_fd; }
 void		Client::setRequest(Request *_req){ req = _req; }
 void		Client::setResponse(Response *_res){ res = _res; }
 void		Client::setRawRequest(std::string str){ raw_request = str; }
 void		Client::appendRawRequest(std::string _raw_request){ raw_request += _raw_request; }
+void		Client::setCgi(Cgi *cgi){ m_cgi = cgi; }
 
 int			Client::read_client_request()
 {
@@ -161,68 +163,48 @@ void		Client::make_env(char **env)
 	env[10] = 0;
 }
 
-int			Client::cgi_init(string filepath)
+int			Client::cgi_init(string content)
 {
-	pid_t	pid;
-	int		to_child[2];
-	int		to_parent[2];
+	char **env = (char**)malloc(sizeof(char*) * 11);
+	make_env(env);
+	m_cgi = new Cgi(env);
 
-	pipe(to_child);
-	pipe(to_parent);
 	setPipeFd(to_parent[0]);
 
-	char **env;
-	env = (char**)malloc(sizeof(char*) * 11);
-	make_env(env);
-	fcntl(to_parent[1], F_SETFL, O_NONBLOCK);
-	fcntl(to_parent[0], F_SETFL, O_NONBLOCK);
 
-	// open file
-	int inputFile;
-	if ((inputFile = open(filepath.c_str(), O_RDONLY)) < 0)
-	{
-		std::cerr << "cannot open input file of cgi" << std::endl;
-		return -1;
-	}
-
-	// 자식(CGI)가 가져갈 표준입력 준비.
-	char buf[BUF_SIZE + 1];
-	memset(buf, 0, sizeof(buf));
-	int ret = -1;
-	while((ret = read(inputFile, buf, sizeof(buf))) >= 0)
-	{
-		buf[ret] = 26; // EOF
-		if (ret < 0)
-			return -1;
-		if (ret == 0)
-			break;
-		if (write(to_child[1], buf, strlen(buf)) < 0)
-			return -1;
-		memset(buf, 0, sizeof(buf));
-	}
-	if (write(to_child[1], buf, strlen(buf)) < 0)
-		return -1;
-
-	pid = fork();
-	getRequest()->setCgiPid(pid);
-	if (pid == 0)
-	{
-		dup2(to_child[0], 0);
-		dup2(to_parent[1], 1);
-		close(to_child[1]);
-		close(to_child[0]);
-		close(to_parent[1]);
-		close(to_parent[0]);
-		if (execve("./src/cgi_tester", 0, env) == -1) {
-			std::cerr << "[child]cgi error\n";
-			exit(1);
-		}
-	}
-	close(to_child[0]);
-	close(to_child[1]);
-	close(to_parent[1]);
-	for (int i=0; i<10; ++i)
-		free(env[i]);
-	free(env);
-	return to_parent[0];
+	// 파이프의 입구 fd를 반환한다.
+	return to_child[1];
 }
+
+
+// int			Client::cgi_init(string content)
+// {
+// 	pid_t	pid;
+
+// 	// 이 로직들은 파이프의 write에 해당하는 처리로직이 된다.
+// 	if (write(to_child[1], content.c_str(), strlen(buf)) < 0)
+// 		return -1;
+
+// 	pid = fork();
+// 	getRequest()->setCgiPid(pid);
+// 	if (pid == 0)
+// 	{
+// 		dup2(to_child[0], 0);
+// 		dup2(to_parent[1], 1);
+// 		close(to_child[1]);
+// 		close(to_child[0]);
+// 		close(to_parent[1]);
+// 		close(to_parent[0]);
+// 		if (execve("./src/cgi_tester", 0, env) == -1) {
+// 			std::cerr << "[child]cgi error\n";
+// 			exit(1);
+// 		}
+// 	}
+// 	close(to_child[0]);
+// 	close(to_child[1]);
+// 	close(to_parent[1]);
+// 	for (int i=0; i<10; ++i)
+// 		free(env[i]);
+// 	free(env);
+// 	return to_parent[0];
+// }

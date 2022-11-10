@@ -115,6 +115,32 @@ content returned: H
 
 ============================================
 
+# 11.10(목) 오늘의 할일
+
 keep-alive에 따라 포트를 유지시키거나 삭제한다.
+	-> 동작 확인할 것.
 
 file_to_client에 있는 튜플은 언제삭제시키지?
+
+multiplexing timeout 설정 찾아보기.
+
+cgi를 돌릴때...
+	- 실행파일 이름을 하드코딩이 아닌 변수명으로 사용할것.
+	- 파일을 인자로 넣지 말고 문자열을 인자로 넣을 것.
+	- 해당 문자열을 파이프입구에 write해야 하는데... 파이프 입구도 저장을 해두어야 하나?
+
+CGI 과정 정리
+
+1. CGI 객체를 생성한다.(파이프 생성 및 파이프fd 논블락처리, 환경변수는 외부에서 만들어 넣어줌)
+   - CGI(env);
+2. cgi입력파일을 read한 결과를 cgi의 input에 넣는다.
+   - CGI.setInput(sample);
+3. input데이터를 to_child[1]에 write한다.
+   - pipe fd's write event
+4. to_parent[0]를 read하고 결과를 output에 저장한다.
+   - pipe fd's read event
+5. output데이터를 클라이언트 소켓에 write한다.
+   - cli fd's write event
+
+
+https://brook-paw-154.notion.site/Inception-70b40226228c4fab96f1943aefca0d1a

@@ -87,7 +87,7 @@ int Server::callback_read(int fd)
 			}
 			else
 			{
-				// ...?
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 			}
 
 			// 원래의 cgi 처리 로직.
@@ -123,18 +123,26 @@ int Server::callback_read(int fd)
 		*/
 
 		//===============의사 코드 start=================================
-		cli->getResponse()->readFile(fd);
+		string ret = cli->getResponse()->readFile(fd);
+		cli->getResponse()->appendContent(ret);
 		// read 반환값 EOF 검출시 read 완료로 정의한다.
-		if (is_read_complete())
+		//if (is_read_complete())
+		if (ret == "")
 		{
-			std::string sample = "complete read data sample"
-			cli->getResponse()->makeContent(sample);
 			close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-			if (cli->is_cgi_request(cli->getRequest()))
 
-			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			// cgi req일 경우, content를 cgi에 넘겨준다.
+			// 파일경로 -> 파일내용으로 인자설정 바꾸기.
+
 		}
 		//===============의사 코드 end=================================
+		if (cli->is_cgi_request(req))
+		{
+			// 읽기 완료한 내용(sample)을 cgi의 파이프 입구에 write해야 한다.
+			// cli->getResponse()->getContent()
+		}
+		else
+			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	}
 	return (0);
 }
@@ -142,28 +150,36 @@ int Server::callback_read(int fd)
 int Server::callback_write(int fd)
 {
 	Client *cli;
+	Response *res;
 
 	if (is_file(fd))
 	{
 		std::cout << "file write event" << std::endl;
 		cli = clients_info[file_to_client[fd]];
-
+		res = cli->getResponse();
 		/*
 			이곳에서 file write 비동기 처리를 합니다!!
 		*/
 
 		//===============의사 코드 start=================================
-		// string sample = "some data to write";
-		// cli->getResponse()->writeFile(fd, content);
-		// // write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
-		// if (is_write_complete())
-		// {
-		// 	std::string sample = "upload success"
-		// 	cli->getResponse()->makeContent(sample);
-		// 	close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-		// 	change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-		// }
+		string content = res->getContent();
+		ssize_t write_len = res->writeFile(fd, content);
+		// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
+		//if (is_write_complete())
+		if (content.size() == write_len)
+		{
+			close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
+			res->setHtmlFooter();
+			res->appendContent("upload success");
+			res->setHtmlFooter();
+			//change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		}
+		else {
+			res->setContent(res->getContent().substr(write_len));
+		}
 		//===============의사 코드 end=================================
+		if (is_done)
+			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		return 0;
 	}
 	// 클라이언트에게만 write합니다.
