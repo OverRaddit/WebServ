@@ -28,6 +28,7 @@ class Server {
 private:
 	std::map<int, Client*>	clients_info;
 	std::map<int, int>		pipe_to_client;
+	std::map<int, int>		file_to_client;
 
 	Config					*config;
 
@@ -92,7 +93,7 @@ public:
 	int	is_listensocket(int fd);
 	int	is_client(int fd);
 	int	is_pipe(int fd);
-
+	int	is_file(int fd);
 };
 
 #endif
