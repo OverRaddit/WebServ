@@ -131,21 +131,6 @@ void	Request::setReqHeader(string key, string value)
 	this->m_req_header.insert(pair<string, string>(key, value));
 }
 
-void	Request::setContentLength(string content_length)
-{
-	this->m_content_length = stoll(content_length);
-}
-
-void	Request::setCgiPid(int cgi_pid)
-{
-	this->m_cgi_pid = cgi_pid;
-}
-
-void	Request::setCgiResult(string cgi_result)
-{
-	this->m_cgi_result = cgi_result;
-}
-
 void	Request::setLocBlock(LocationBlock &loc_block, string url, size_t pos)
 {
 	string	split_url = "";
@@ -155,9 +140,18 @@ void	Request::setLocBlock(LocationBlock &loc_block, string url, size_t pos)
 		split_url = url.substr(pos + 1);
 	else
 		split_url = url.substr(pos);
+	if (split_url.back() == '/')
+		split_url.pop_back();
 	this->m_req_file_name += split_url;
 	// cout << "REQ FILE NAME : " << m_req_file_name << endl;
 }
+
+void	Request::setContentLength(string content_length) { this->m_content_length = stoll(content_length); }
+
+void	Request::setCgiPid(int cgi_pid) { this->m_cgi_pid = cgi_pid; }
+
+void	Request::setCgiResult(string cgi_result) { this->m_cgi_result = cgi_result; }
+
 
 void	Request::setStatusCode(int status_code) {this->m_status_code = status_code; }
 
@@ -189,10 +183,7 @@ long long	Request::getContentLength(void) const { return this->m_content_length;
 
 string	Request::getReqBody(void) const { return this->m_req_body; }
 
-bool		Request::getIsIncomplete(void) const
-{
-	return this->m_is_incomplete;
-}
+bool	Request::getIsIncomplete(void) const { return this->m_is_incomplete; }
 
 string	Request::getMethod(void) const { return this->m_method; }
 
