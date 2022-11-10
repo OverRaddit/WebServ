@@ -21,3 +21,10 @@ int Server::is_pipe(int fd)
 		return 1;
 	return 0;
 }
+
+int Server::is_file(int fd)
+{
+	if (file_to_client.find(fd) != file_to_client.end())
+		return 1;
+	return 0;
+}

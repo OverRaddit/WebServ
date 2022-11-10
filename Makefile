@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/11/10 00:26:00 by gshim            ###   ########.fr        #
+#    Updated: 2022/11/10 17:51:52 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,6 +39,7 @@ SRCS_DIR	=	./
 SRC_LIST	=	src/main.cpp			\
 				src/Client/Client.cpp	\
 				src/Client/HttpMethod.cpp	\
+				src/Client/Cgi.cpp	\
 				src/Request/Request.cpp \
 				src/Server/Server.cpp	\
 				src/Server/Callback.cpp	\
