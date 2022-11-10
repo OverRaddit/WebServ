@@ -17,12 +17,12 @@ bool	check_valid(const char *suffix_url)
 map<int, string> Response::m_status_description;
 bool Response::is_init = false;
 
-Response::Response() {
+Response::Response() : m_status_code(0), m_content(""), m_cgiResult("") {
 	if (Response::is_init == false)
 		Response::ResponseInit();
 }
 
-Response::Response(int status) {
+Response::Response(int status) : m_status_code(0), m_content(""), m_cgiResult("") {
 	if (Response::is_init == false)
 		Response::ResponseInit();
 	this->setStatusCode(status);
@@ -36,10 +36,10 @@ void Response::ResponseInit() {
 	Response::m_status_description[201] = "201 Created";
 	Response::m_status_description[204] = "204 No Content";
 	Response::m_status_description[300] = "300 Multiple Choices";
-	Response::m_status_description[301] = "301 Moved Permanently";
-	Response::m_status_description[302] = "302 Found";
-	Response::m_status_description[303] = "303 See Other";
-	Response::m_status_description[307] = "307 Temporary Redirect";
+	Response::m_status_description[301] = "301 Moved Permanently";  // 페이지가 영구적으로 바뀐 것을 알림. get은 그대로고 그 외는 get으로 바뀔수도 안바뀔수도 있음
+	Response::m_status_description[302] = "302 Found";  // get은 그대로고 그 외는 get으로 바뀔수도 안바뀔수도 있음
+	Response::m_status_description[303] = "303 See Other";  // body를 잃고 메소드가 모두 get이 됨
+	Response::m_status_description[307] = "307 Temporary Redirect";  // 리디렉션하는데 메소드 안바꿈
 	Response::m_status_description[400] = "400 Bad Request";
 	Response::m_status_description[404] = "404 Not Found";
 	Response::m_status_description[405] = "405 Method Not Allowed";
@@ -122,6 +122,27 @@ void Response::makeContent(string content) {
 	result.append("</body></html>");
 
 	this->setContent(result);
+}
+
+// append content를 반복 사용하여 html을 만드는 경우 먼저 호출
+void Response::setHtmlHeader() {
+	string result;
+	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
+	result.append("<body>");
+	this->setContent(result);
+}
+
+// append content를 반복 사용하여 html을 만드는 경우 마지막에 호출
+void Response::setHtmlFooter() {
+	string result;
+	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
+	result.append("</body></html>");
+	this->appendContent(result);
+}
+
+// 기존 m_content에 append함
+void Response::appendContent(string content) {
+	this->m_content.append(content);
 }
 
 string Response::parseHeader(string& sub_content) {
@@ -384,6 +405,12 @@ void Response::errorResponse(int fd, int status) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	this->makeContentError(status, fd);
 		//this->makeContentError(500);
+}
+
+void Response::redirectResponse(int status, string url) {
+	this->setStatusCode(status);
+	this->setHeaders("Location", url);
+	this->makeContent("Redirection Success");
 }
 
 // fd 반환 read, write 둘 다 가능
