@@ -204,12 +204,20 @@ void	Request::setSudoDir(string sudo_dir)
 	this->m_sudo_dir = sudo_dir;
 }
 
-void	Request::setLocBlock(LocationBlock loc_block)
+void	Request::setLocBlock(LocationBlock &loc_block, string url, size_t pos)
 {
+	string	split_url = "";
+
 	this->m_loc_block = loc_block;
+	if (url[pos] == '/')
+		split_url = url.substr(pos + 1);
+	else
+		split_url = url.substr(pos);
+	this->m_req_file_name += split_url;
+	cout << "REQ FILE NAME : " << m_req_file_name << endl;
 }
 
-void	Request::setSerBlock(ServerBlock server_block)
+void	Request::setSerBlock(ServerBlock &server_block)
 {
 	this->m_ser_block = server_block;
 }

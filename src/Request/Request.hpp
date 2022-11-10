@@ -27,8 +27,8 @@ public:
 	void	setCgiPid(int cgi_pid);
 	void	setCgiResult(string cgi_result);
 	void	setSudoDir(string sudo_dir);
-	void	setLocBlock(LocationBlock loc_block);
-	void	setSerBlock(ServerBlock server_block);
+	void	setLocBlock(LocationBlock &loc_block, string url, size_t pos);
+	void	setSerBlock(ServerBlock &server_block);
 	void	setFilename(string file_name);
 
 	int		saveOnlyBody(string req_body);
