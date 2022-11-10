@@ -47,7 +47,7 @@ socklen_t	Client::getLen() const { return len; }
 Request*	Client::getRequest(){ return req; }
 Response*	Client::getResponse() const { return res; }
 std::string	Client::getRawRequest() const {return raw_request; }
-Cgi*		Client::getCgi() const {return raw_request; }
+Cgi*		Client::getCgi() const {return m_cgi; }
 
 void		Client::setPipeFd(int _pipe_fd){ pipe_fd = _pipe_fd; }
 void		Client::setRequest(Request *_req){ req = _req; }
@@ -169,11 +169,11 @@ int			Client::cgi_init(string content)
 	make_env(env);
 	m_cgi = new Cgi(env);
 
-	setPipeFd(to_parent[0]);
+	//setPipeFd(to_parent[0]);
 
 
 	// 파이프의 입구 fd를 반환한다.
-	return to_child[1];
+	//return to_child[1];
 }
 
 

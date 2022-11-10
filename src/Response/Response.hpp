@@ -41,7 +41,7 @@ private:
 	string		getFileContent(string& content_type, string last_boundary);
 
 	int			saveFile(int fd, string content_type, string content_body);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
-	void		serveFile(int fd);
+	void		serveFile(int fd, intptr_t datalen);
 	int			deleteFile(string file_path);
 	void		putFile(vector<int> fd, string content_body);
 
@@ -93,13 +93,13 @@ public:
 
 	vector<pair<string, string> >	saveFileName(string content_type, string content_body);
 
-	int			openFile(string path);
-	vector<int>	openFiles(vector<pair<string, string> > in);
+	int			openFile(string path, int flag);
+	vector<int>	openFiles(vector<pair<string, string> > in, int flag);
 	string		read_fd(int fd);
 	ssize_t		write_fd(int fd, string content);
 
-	bool		readFile(int fd);
-	bool		writeFile(int fd);
+	bool		readFile(int fd, intptr_t datalen);
+	bool		writeFile(int fd, intptr_t datalen);
 
 	string		getHttpResponse();
 };

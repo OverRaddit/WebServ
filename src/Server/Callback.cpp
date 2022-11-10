@@ -24,7 +24,7 @@ int Server::callback_error(int fd)
 	return 0;
 }
 
-int Server::callback_read(int fd)
+int Server::callback_read(int fd, intptr_t datalen)
 {
 	Client *cli;
 
@@ -68,22 +68,27 @@ int Server::callback_read(int fd)
 			// 메소드별로 실행한다.
 			if (cli->getRequest()->getMethod() == "GET"){
 				ret = cli->GET(cli->getRequest(), cli->getResponse(), dir_path + file_name);
-			} else if (cli->getRequest()->getMethod() == "DELETE") {
-				ret = cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
-			} else if (cli->getRequest()->getMethod() == "POST") {
-				ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
-			} else if (cli->getRequest()->getMethod() == "PUT") {
-				ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
-			} else {
-				std::cerr << "Undefined Method" << std::endl;
 			}
+			else {
+				cli->getResponse()->makeContent("Hello~0");
+				cli->getResponse()->setStatusCode(200);
+			}
+			// else if (cli->getRequest()->getMethod() == "DELETE") {
+			// 	ret = cli->DELETE(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			// } else if (cli->getRequest()->getMethod() == "POST") {
+			// 	ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			// } else if (cli->getRequest()->getMethod() == "PUT") {
+			// 	ret = cli->POST(cli->getRequest(), cli->getResponse(), dir_path + file_name);
+			// } else {
+			// 	std::cerr << "Undefined Method" << std::endl;
+			// }
 
-			if (ret > 0)	// if file descriptor is returned..
+			if (ret > 2)	// if file descriptor is returned..
 			{
 				std::cout << "File open! registered to kqueue..." << std::endl;
 				file_to_client[ret] = cli->getFd();
 				change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				//change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 			}
 			else
 			{
@@ -116,26 +121,16 @@ int Server::callback_read(int fd)
 	else if (is_file(fd))
 	{
 		std::cout << "file read event" << std::endl;
+		std::cout << "you have [" << datalen << "] byte left to read" << std::endl;
 		cli = clients_info[file_to_client[fd]];
+		Request* req = cli->getRequest();
+		Response* res = cli->getResponse();
 
-		/*
-			이곳에서 file read 비동기 처리를 합니다!!
-		*/
+		// 읽기가 완성되지 않았다면 로직중지.
+		bool is_read_done = res->readFile(fd, datalen);
+		if (!is_read_done)
+			return 0;
 
-		//===============의사 코드 start=================================
-		string ret = cli->getResponse()->readFile(fd);
-		cli->getResponse()->appendContent(ret);
-		// read 반환값 EOF 검출시 read 완료로 정의한다.
-		//if (is_read_complete())
-		if (ret == "")
-		{
-			close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-
-			// cgi req일 경우, content를 cgi에 넘겨준다.
-			// 파일경로 -> 파일내용으로 인자설정 바꾸기.
-
-		}
-		//===============의사 코드 end=================================
 		if (cli->is_cgi_request(req))
 		{
 			// 읽기 완료한 내용(sample)을 cgi의 파이프 입구에 write해야 한다.
@@ -143,42 +138,25 @@ int Server::callback_read(int fd)
 		}
 		else
 			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
 	}
 	return (0);
 }
 
-int Server::callback_write(int fd)
+int Server::callback_write(int fd, intptr_t datalen)
 {
 	Client *cli;
-	Response *res;
 
-	if (is_file(fd))
+	cli = clients_info[file_to_client[fd]];
+
+	if (is_file(fd) && cli->getRequest()->getMethod() == "POST")
 	{
 		std::cout << "file write event" << std::endl;
-		cli = clients_info[file_to_client[fd]];
-		res = cli->getResponse();
-		/*
-			이곳에서 file write 비동기 처리를 합니다!!
-		*/
+		Request* req = cli->getRequest();
+		Response* res = cli->getResponse();
 
-		//===============의사 코드 start=================================
-		string content = res->getContent();
-		ssize_t write_len = res->writeFile(fd, content);
-		// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
-		//if (is_write_complete())
-		if (content.size() == write_len)
-		{
-			close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-			res->setHtmlFooter();
-			res->appendContent("upload success");
-			res->setHtmlFooter();
-			//change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-		}
-		else {
-			res->setContent(res->getContent().substr(write_len));
-		}
-		//===============의사 코드 end=================================
-		if (is_done)
+		bool is_write_done = res->writeFile(fd, datalen);
+		if (is_write_done)
 			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		return 0;
 	}
@@ -186,14 +164,12 @@ int Server::callback_write(int fd)
 	else if (!is_client(fd))
 		return -1;
 
-
 	cli = clients_info[fd];
 	// CGI process 종료상태 회수
-	// if (cli->getRequest()->getReqType() == CGI_REQUEST)
-	// 	waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
+	if (cli->is_cgi_request(cli->getRequest()))
+		waitpid(cli->getRequest()->getCgiPid(), NULL, 0);
 
 	// write하기.
-	// 가끔 이미 처리한 요청을 또 write해서 req,res가 없다.
 	char *res = strdup(cli->getResponse()->getHttpResponse().c_str());
 
 	// DEBUG Response
@@ -202,11 +178,14 @@ int Server::callback_write(int fd)
 	std::cout << "====== response end ======" << std::endl;
 
 	// 클라이언트에게 write
+	//========================================================
+	// 이 부분을 res->writeFile(fd); 을 써서 처리할 수 있을 것 같다.
 	int n;
 	if ((n = write(fd, res, strlen(res)) == -1))
 		std::cerr << "[DEBUG] client write error!" << std::endl;
 	else
 		std::cout << "[DEBUG] http response complete" << std::endl;
+	//========================================================
 	free(res);
 
 	// keep-alive 옵션에따라 포트연결 유지여부를 결정한다.

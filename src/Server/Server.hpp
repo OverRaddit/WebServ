@@ -66,8 +66,8 @@ public:
 	int run();
 
 	int callback_error(int fd);
-	int callback_read(int fd);
-	int callback_write(int fd);
+	int callback_read(int fd, intptr_t datalen);
+	int callback_write(int fd, intptr_t datalen);
 
 	void exit_with_perror(const string& msg);
 	void disconnect_pipe(int pipe_fd);

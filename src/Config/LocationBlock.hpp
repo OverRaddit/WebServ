@@ -14,6 +14,7 @@ public:
 	LocationBlock(string root_dir, string index_file, string error_page);
 
 	void	setValidMethod(string loc_block, size_t pos);
+	void	setDefaultMethod(string method);
 	void	setMaxBodySize(string loc_block, size_t pos);
 	void	setUploadDirectory(string loc_block, size_t pos);
 	void	setRootDir(string loc_block, size_t pos);

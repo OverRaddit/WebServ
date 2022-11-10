@@ -152,18 +152,11 @@ void	Request::setCgiPid(int cgi_pid) { this->m_cgi_pid = cgi_pid; }
 
 void	Request::setCgiResult(string cgi_result) { this->m_cgi_result = cgi_result; }
 
-
 void	Request::setStatusCode(int status_code) {this->m_status_code = status_code; }
 
 void	Request::setReqBody(string body) { this->m_req_body = body; }
 
 void	Request::setRedirectionURL(string url) { this->m_redirection_url = url; }
-
-void	Request::setContentLength(string content_length) { this->m_content_length = stoll(content_length); }
-
-void	Request::setCgiPid(int cgi_pid) { this->m_cgi_pid = cgi_pid; }
-
-void	Request::setCgiResult(string cgi_result) { this->m_cgi_result = cgi_result; }
 
 void	Request::setSerBlock(ServerBlock &server_block) { this->m_ser_block = server_block; }
 
@@ -182,8 +175,6 @@ string	Request::getReqHeaderValue(string key) {
 long long	Request::getContentLength(void) const { return this->m_content_length; }
 
 string	Request::getReqBody(void) const { return this->m_req_body; }
-
-bool	Request::getIsIncomplete(void) const { return this->m_is_incomplete; }
 
 string	Request::getMethod(void) const { return this->m_method; }
 

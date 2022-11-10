@@ -28,16 +28,12 @@ int Client::GET(Request *req, Response *res, string filepath)
 			return 0;
 		case VALID_REQ_FILE:
 			cout << "Found File" << endl;
-			target = req->getLocBlock().getRootDir() + req->getReqFileName();
+			target = req->getLocBlock().getRootDir() + "/" + req->getReqFileName();
 			break;
 		case VALID_REQ_DIR:
-			// if (file_name.back() == '/')
-			// 	final_path = dir_path + file_name;
-			// else
-			// 	final_path = dir_path + file_name + "/";
-			cout << "This file is directory. Return IndexFile : " << req->getLocBlock().getRootDir() + req->getReqFileName() + "/" + req->getLocBlock().getIndexFile() << endl;
+			cout << "This file is directory. Return IndexFile : " << req->getLocBlock().getRootDir() + "/" + req->getReqFileName() + "/" + req->getLocBlock().getIndexFile() << endl;
 			// 이 경우, index file은 항상 존재한다고 가정한다.
-			target = req->getLocBlock().getRootDir() + req->getReqFileName() + "/" + req->getLocBlock().getIndexFile();
+			target = req->getLocBlock().getRootDir() + "/" + req->getReqFileName() + "/" + req->getLocBlock().getIndexFile();
 			break;
 	}
 
@@ -80,7 +76,7 @@ int Client::POST(Request *req, Response *res, string filepath)
 			break;
 		case VALID_REQ_FILE:
 			cout << "File already Exist! Truc File..." << endl;
-			target = req->getLocBlock().getRootDir() + req->getReqFileName();
+			target = req->getLocBlock().getRootDir() + "/" + req->getReqFileName();
 			res->setStatusCode(201);
 			break;
 		case VALID_REQ_DIR:
