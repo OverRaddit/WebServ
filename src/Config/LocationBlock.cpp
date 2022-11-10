@@ -122,6 +122,8 @@ void LocationBlock::setAutoIndex(string loc_block, size_t pos)
 		this->m_autoindex = true;
 }
 
+void	LocationBlock::setDefaultMethod(string method) { this->m_valid_method.push_back(method); }
+
 vector<string>	LocationBlock::getValidMethod(void) const {
 	return this->m_valid_method;
 }

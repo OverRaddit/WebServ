@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/10 17:52:09 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/10 21:29:10 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,9 +150,9 @@ int Server::run()
 			if (curr_event->flags & EV_ERROR)
 				callback_error(curr_event->ident);
 			else if (curr_event->filter == EVFILT_READ)
-				callback_read(curr_event->ident);
+				callback_read(curr_event->ident, curr_event->data);
 			else if (curr_event->filter == EVFILT_WRITE)
-				callback_write(curr_event->ident);
+				callback_write(curr_event->ident, curr_event->data);
 		}
 	}
 }
@@ -207,6 +207,13 @@ int	Server::execute_client_request(int client_fd)
 	{
 		cli->getRequest()->setLocBlock(matching_it->second, cli->getRequest()->getReqTarget(), matching_it->first.length());
 		vector<string>	valid_method = matching_it->second.getValidMethod();
+		if (valid_method.size() == 0)
+		{
+			matching_it->second.setDefaultMethod("GET");
+			matching_it->second.setDefaultMethod("POST");
+			matching_it->second.setDefaultMethod("DELETE");
+		}
+		valid_method = matching_it->second.getValidMethod();
 		for (int i = 0;i < valid_method.size();i++)
 		{
 			if (valid_method[i] == cli->getRequest()->getMethod() || cli->getRequest()->getMethod() == "PUT")
