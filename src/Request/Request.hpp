@@ -23,7 +23,6 @@ public:
 	void	setReqHeader(string key, string value);
 	void	setStatusCode(int status_code);
 	void	setRedirectionURL(string url);
-	void	setReqType(int type);
 	void	setCgiPid(int cgi_pid);
 	void	setCgiResult(string cgi_result);
 	void	setSudoDir(string sudo_dir);
@@ -42,16 +41,12 @@ public:
 	string				getRedirectionURL(void) const;
 	int					getStatusCode(void) const;
 	long long			getContentLength(void) const;
-	int					getReqType(void) const;
-	string				getDelFileName(void) const;
 	string				getDownloadFileName(void) const;
 	bool				getIsIncomplete(void) const;
 	string				getIncompleteMessage(void) const;
 	int					getCgiPid(void) const;
 	string				getCgiResult(void) const;
 	string				getSudoDir(void) const;
-	string				getPrefixURL(void) const;
-	string				getSuffixURL(void) const;
 	string				getReqFileName(void) const;
 	LocationBlock		getLocBlock(void) const;
 	ServerBlock			getSerBlock(void) const;
@@ -66,16 +61,10 @@ private:
 	string				m_req_body;
 	int					m_status_code;
 	string				m_redirection_url;
-	int					m_req_type;
-	string				m_del_file_name;
-	string				m_file_name;
 	bool				m_is_incomplete;
 	string				m_incomplete_message;
 	int					m_cgi_pid;
 	string				m_cgi_result;
-	string				m_sudo_dir; // useless
-	string				m_prefix_url;
-	string				m_suffix_url;
 	string				m_req_file_name;
 
 	LocationBlock		m_loc_block;
@@ -87,6 +76,5 @@ private:
 	void	saveHeader(string header_line);
 };
 
-bool	is_directory(const char *suffix_url);
 
 #endif
