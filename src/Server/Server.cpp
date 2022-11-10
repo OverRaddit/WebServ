@@ -6,7 +6,7 @@
 /*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/09 21:42:39 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/10 14:13:07 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,17 +80,17 @@ int Server::init_multiplexing()
 		for(int i=0;i<v.size();i++)
 		{
 			vector<int> ports = v[i].getPortNum();
-			for(int i=0;i<ports.size();i++)
+			for(int j=0;j<ports.size();j++)
 			{
-				int curr_port = ports[i];
+				int curr_port = ports[j];
 				// already registered port
 				if (serverblock_info.find(curr_port) != serverblock_info.end())
 				{
 					vector<ServerBlock> &blocks = serverblock_info[curr_port];
 					int flag = 0;
-					for(int j=0;j<blocks.size();j++)
+					for(int k=0;k<blocks.size();k++)
 					{
-						if (blocks[j].getServerName() == v[i].getServerName())
+						if (blocks[k].getServerName() == v[i].getServerName())
 						{
 							flag = 1;
 							break;
