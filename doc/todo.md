@@ -148,3 +148,6 @@ https://brook-paw-154.notion.site/Inception-70b40226228c4fab96f1943aefca0d1a
 
 get : 읽기 전용
 post : 쓰기용
+
+=> 아님... post요청이라도 errorpage를 반환할때는 open시 readonly로 함!.
+=> fd를 통해 열려있는 모드 플래그값을 알아내는 것이 best일 듯 하다.
