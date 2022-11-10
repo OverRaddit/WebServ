@@ -131,6 +131,21 @@ void	Request::setReqHeader(string key, string value)
 	this->m_req_header.insert(pair<string, string>(key, value));
 }
 
+void	Request::setContentLength(string content_length)
+{
+	this->m_content_length = stoll(content_length);
+}
+
+void	Request::setCgiPid(int cgi_pid)
+{
+	this->m_cgi_pid = cgi_pid;
+}
+
+void	Request::setCgiResult(string cgi_result)
+{
+	this->m_cgi_result = cgi_result;
+}
+
 void	Request::setLocBlock(LocationBlock &loc_block, string url, size_t pos)
 {
 	string	split_url = "";
@@ -173,6 +188,11 @@ string	Request::getReqHeaderValue(string key) {
 long long	Request::getContentLength(void) const { return this->m_content_length; }
 
 string	Request::getReqBody(void) const { return this->m_req_body; }
+
+bool		Request::getIsIncomplete(void) const
+{
+	return this->m_is_incomplete;
+}
 
 string	Request::getMethod(void) const { return this->m_method; }
 

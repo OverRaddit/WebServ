@@ -6,7 +6,6 @@
 # include <string>
 # include <map>
 
-# include "../Server/RequestType.hpp"
 # include "../Config/Config.hpp"
 
 using namespace std;
@@ -51,7 +50,7 @@ public:
 	LocationBlock		getLocBlock(void) const;
 	ServerBlock			getSerBlock(void) const;
 
-	// void		saveURLInformation(void);	
+	// void		saveURLInformation(void);
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;

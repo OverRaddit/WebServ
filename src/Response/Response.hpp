@@ -16,7 +16,6 @@
 # include <iostream>
 # include <utility>
 
-# include "../Server/RequestType.hpp"
 # include "../Config/Config.hpp"
 
 # define NO_FILE -1
@@ -35,9 +34,6 @@ private:
 	map<string, string>		m_headers;
 	string					m_content;
 	string					m_cgiResult;
-	//string					m_rootPath;
-	//string					m_indexFile;
-	//string					m_ErrorFile;
 	LocationBlock			m_location;
 
 	string		makeHeaders();
@@ -79,9 +75,10 @@ public:
 	void		setCgiResult(string ret);
 	void		setContent(string content);
 
-	//void		setRootPath(string path);
-	//void		setIndexFile(string path);
-	//void		setErrorFile(string path);
+	void		setHtmlHeader();
+	void		setHtmlFooter();
+	void		appendContent(string content);
+
 	void		setLocationBlock(LocationBlock loc);
 
 	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
@@ -92,6 +89,7 @@ public:
 	void		errorResponse(int fd, int status);
 	void		defaultResponse(int fd);
 	void		fileResponse(int fd);
+	void		redirectResponse(int status, string url);
 
 	vector<pair<string, string> >	saveFileName(string content_type, string content_body);
 

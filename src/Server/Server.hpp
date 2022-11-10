@@ -20,14 +20,6 @@
 # include <stdlib.h>
 # include <string.h>
 
-# include "RequestType.hpp"
-// # define CGI_REQUEST 0
-// # define UPLOAD_REQUEST 1
-// # define DOWNLOAD_REQUEST 2
-// # define OTHER_REQUEST 3
-// # define DELETE_REQUEST 4
-// # define AUTOINDEX_REQUEST 5
-
 # define DELETE_HTTP_METHOD "DELETE"
 # define AUTOINDEX_URL "/autoindex"
 # define DOWNLOAD_URL "/download"
