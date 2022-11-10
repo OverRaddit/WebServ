@@ -95,8 +95,11 @@ public:
 
 	int			openFile(string path);
 	vector<int>	openFiles(vector<pair<string, string> > in);
-	string		readFile(int fd);
-	ssize_t		writeFile(int fd, string content);
+	string		read_fd(int fd);
+	ssize_t		write_fd(int fd, string content);
+
+	bool		readFile(int fd);
+	bool		writeFile(int fd);
 
 	string		getHttpResponse();
 };
