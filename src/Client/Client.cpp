@@ -86,9 +86,11 @@ int			Client::read_client_request()
 			if (req->getIsIncomplete())
 			{
 				string msg = req->getIncompleteMessage();
-				msg.append(string(buf, n));
+				string appending_msg = string(buf, n);
+
+				msg.append(appending_msg);
 				req->saveRequestAgain(msg);
-				appendRawRequest(msg);
+				appendRawRequest(appending_msg);
 			}
 			else if (req->saveOnlyBody(string(buf, n)) == req->getContentLength())
 				m_pending = false;
@@ -137,7 +139,9 @@ int			Client::read_pipe_result()
 	std::cout << getRequest()->getCgiResult() << std::endl;
 	std::cout << "====== pipe result end ======" << std::endl;
 
-	res->cgiResponse(getRequest()->getCgiResult());
+	//res->cgiResponse(getRequest()->getCgiResult());
+	res->setHeaders("Content-Type", "text/html");
+	res->setContent(getRequest()->getCgiResult());
 	return (1);
 }
 
@@ -147,7 +151,7 @@ void		Client::make_env(char **env)
 	env[1] = strdup(("CONTENT_LENGTH=" + req->getReqHeaderValue("Content-Length")).c_str());  // 요청 길이를 알 수 없는경우 -1 이여야함
 	env[2] = strdup(("CONTENT_TYPE=" + req->getReqHeaderValue("Content-Type")).c_str());
 	env[3] = strdup("GATEWAY_INTERFACE=CGI/1.1");
-	env[4] = strdup(("PATH_INFO=" + req->getReqTarget()).c_str());
+	env[4] = strdup(("PATH_INFO=" + req->getReqTarget() + "FUCK").c_str());
 	//env[5] = strdup(("PATH_TRANSLATED=");	// PATH_INFO의 변환. 스크립트의 가상경로를, 실제 호출 할 때 사용되는 경로로 맵핑. 요청 URI의 PATH_INFO 구성요소를 가져와, 적합한 가상 : 실제 변환을 수행하여 맵핑.
 	//env[6] = strdup("QUERY_STRING=");	// 경로 뒤의 요청 URL에 포함된 조회 문자열.
 	//env[7] = strdup("REMOTE_ADDR=");	// 요청을 보낸 클라이언트 IP 주소.
@@ -167,13 +171,14 @@ int			Client::cgi_init(string content)
 {
 	char **env = (char**)malloc(sizeof(char*) * 11);
 	make_env(env);
-	m_cgi = new Cgi(env);
+	this->m_cgi = new Cgi(env);
 
+	//
 	//setPipeFd(to_parent[0]);
+	setPipeFd(m_cgi->getToParent()[0]);
+	//m_cgi->setInput(content);
 
-
-	// 파이프의 입구 fd를 반환한다.
-	//return to_child[1];
+	return m_cgi->getToParent()[0];	// 이 방식 바꿀것.
 }
 
 
