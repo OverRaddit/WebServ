@@ -420,7 +420,7 @@ string Response::read_fd(int fd, intptr_t datalen) {
 		return "";
 	}
 	ssize_t ret = read(fd, buf, datalen);
-	if (ret == -1)   {
+	if (ret == -1) {
 		this->setStatusCode(500);
 		std::cerr << "Read Error!\n";
 		free(buf);
