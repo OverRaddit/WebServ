@@ -21,5 +21,5 @@ int			*Cgi::getToChild(void) { return to_child; }
 int			*Cgi::getToParent(void) { return to_parent; }
 std::string	Cgi::getInput(void) const { return input; }
 std::string	Cgi::getOutput(void) const { return output; }
-void		Cgi::setInput(std::string& _input) { input = _input; }
-void		Cgi::setOutput(std::string& _output) { output = _output; }
+void		Cgi::setInput(std::string _input) { input = _input; }
+void		Cgi::setOutput(std::string _output) { output = _output; }
