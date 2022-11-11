@@ -140,7 +140,7 @@ void	Request::setLocBlock(LocationBlock &loc_block, string url, size_t pos)
 		split_url = url.substr(pos + 1);
 	else
 		split_url = url.substr(pos);
-	if (split_url.back() == '/')
+	if (!split_url.empty() && split_url.back() == '/')
 		split_url.pop_back();
 	this->m_req_file_name += split_url;
 	// cout << "REQ FILE NAME : " << m_req_file_name << endl;
