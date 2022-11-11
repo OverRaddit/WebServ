@@ -32,6 +32,7 @@ private:
 	static bool				is_init;
 	int						m_status_code;
 	map<string, string>		m_headers;
+	map<int, int>			m_fdMode;
 	string					m_content;
 	string					m_cgiResult;
 	LocationBlock			m_location;
@@ -61,36 +62,44 @@ public:
 	//int			serveFile(string file_path);
 
 	static void	ResponseInit(); // Response 클래스를 초기화하는 한번만 실행 가능함수
-	void		makeContent(string content);
 
+// Getter
 	int					getStatusCode();
 	map<int ,string>	getStatusDesc();
 	map<string,string>	getHeaders();
 	string				getContent();
 	int					getRequestFile(string request_file, string dir_path);
+	int					getFdMode(int fd);
 
+// Setter
 	void		setStatusCode(int code);
 	void		setStatusDesc(int code, string desc);
 	void		setHeaders(string key, string value);
 	void		setCgiResult(string ret);
 	void		setContent(string content);
-
-	void		setHtmlHeader();
-	void		setHtmlFooter();
-	void		appendContent(string content);
-
 	void		setLocationBlock(LocationBlock loc);
 
+	void		appendHtmlHeader();
+	void		appendHtmlFooter();
+	void		appendContent(string content);
+
+// Make
+	void		makeContent(string content);
+
+// Response
 	void		cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
+	void		defaultResponse(int fd);
 	void		uploadResponse(vector<int> fd, string content_type, string content_body);  // 파일 업로드 경우의 응답처리
 	void		downloadResponse(string file_path);  // 파일 다운로드 응답처리
 	void		deleteResponse(string file_path);  // 파일 삭제 응답처리
 	void		autoIndexResponse(const char *dir_path);
 	void		errorResponse(int fd, int status);
-	void		defaultResponse(int fd);
-	void		fileResponse(int fd);
 	void		redirectResponse(int status, string url);
+	void		fileResponse(int fd);
 
+	string		getHttpResponse();
+
+// File
 	vector<pair<string, string> >	saveFileName(string content_type, string content_body);
 
 	int			openFile(string path, int flag);
@@ -101,7 +110,6 @@ public:
 	bool		readFile(int fd, intptr_t datalen);
 	bool		writeFile(int fd, intptr_t datalen);
 
-	string		getHttpResponse();
 };
 
 // encode와 decode관련 비멤버 함수
