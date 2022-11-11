@@ -19,12 +19,12 @@ bool Response::is_init = false;
 
 // Constructor && Destructor ===========================================
 
-Response::Response() : m_status_code(0), m_content(""), m_cgiResult("") {
+Response::Response() : m_status_code(0), m_content(""), m_openFilesNum(0) {
 	if (Response::is_init == false)
 		Response::ResponseInit();
 }
 
-Response::Response(int status) : m_status_code(0), m_content(""), m_cgiResult("") {
+Response::Response(int status) : m_status_code(0), m_content(""), m_openFilesNum(0) {
 	if (Response::is_init == false)
 		Response::ResponseInit();
 	this->setStatusCode(status);
@@ -112,25 +112,6 @@ string Response::getFileContent(string &sub_content, string boundary) {
 }
 
 
-int Response::saveFile(int fd, string content_type, string content_body) {
-	size_t i = content_type.find("boundary=");
-	if (i == string::npos)
-		return -1;
-	string boundary = content_type.substr(i+9);
-	string sub_content = content_body;
-	string file_name;
-	string file_body;
-
-	while (sub_content.find("--" + boundary + "--") != 0) {
-		file_name = this->parseHeader(sub_content);
-		file_body = this->getFileContent(sub_content, "--" + boundary);
-		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
-			return -1;
-		//this->write_fd(fd, file_body);
-	}
-	return 0;
-}
-
 // 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
 void Response::serveFile(int fd, intptr_t datalen) {
 	string data = "";
@@ -145,12 +126,6 @@ int Response::deleteFile(string file_path) {
 	string full_name = URLDecoding(file_path.c_str());
 	std::cout << "Decode file name: " << full_name << "\n";
 	return unlink(full_name.c_str());
-}
-
-void Response::putFile(vector<int> fd, string content_body) {
-	//for (int i=0; i<fd.size(); ++i) {
-	//	this->write_fd(fd[i], content_body);
-	//}
 }
 
 
@@ -267,9 +242,6 @@ void Response::setStatusDesc(int code, string desc) {
 void Response::setHeaders(string key, string value) {
 	this->m_headers[key] = value;
 }
-void Response::setCgiResult(string ret) {
-	this->m_cgiResult = ret;
-}
 void Response::setContent(string content) {
 	this->m_content.clear();
 	this->m_content = content;
@@ -339,16 +311,17 @@ void Response::uploadResponse(vector<int> fd, string content_type, string conten
 	cout << "content_body : " + content_body + "\n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	//if (this->saveFile(content_type, content_body) == -1)
-	this->putFile(fd, content_body);
 	this->makeContent("Upload Success");
 	cout << "[DEBUG] uploadResponse end\n";
 }
 
 // 일단 보류
-void Response::downloadResponse(string file_path) {
-	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
+void Response::downloadResponse(int fd) {
+	cout << "[DEBUG] downloadResponse start" << endl;
+	//this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
 	//this->serveFile(fd);
 		//this->makeContent("Download Fail");
+	cout << "[DEBUG] downloadResponse start" << endl;
 }
 
 void Response::deleteResponse(string file_path) {
@@ -386,38 +359,37 @@ void Response::fileResponse(int fd) {
 // 최종 응답 만들기 메소드
 string Response::getHttpResponse() {
 	this->setHeaders("Content-length", to_string(this->m_content.length()));
-	string result = this->makeHeaders();
-	result += this->getContent();
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	string result = this->makeHeaders() + this->getContent();
 	return result;
 }
 
 // File ====================================================================
 
 
-vector<pair<string, string> > Response::saveFileName(string content_type, string content_body) {
-	size_t i = content_type.find("boundary=");
-	//ofstream write_fd;
-	vector<pair<string, string> > v;
-	string boundary = content_type.substr(i+9);
-	string sub_content = content_body;
-	string file_name;
-	string file_body;
+//vector<pair<string, string> > Response::saveFileName(string content_type, string content_body) {
+//	size_t i = content_type.find("boundary=");
+//	//ofstream write_fd;
+//	vector<pair<string, string> > v;
+//	string boundary = content_type.substr(i+9);
+//	string sub_content = content_body;
+//	string file_name;
+//	string file_body;
 
-	while (sub_content.find("--" + boundary + "--") != 0) {
-		file_name = this->parseHeader(sub_content);
-		file_body = this->getFileContent(sub_content, "--" + boundary);
-		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
-			continue;
-		v.push_back(make_pair(file_name, file_name));
-		//this->write_fd(fd, file_body);
-		//write_fd.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
-		//write_fd.write(file_body.c_str(), file_body.size());
-		//write_fd.close();
-	}
-	return v;
-}
+//	while (sub_content.find("--" + boundary + "--") != 0) {
+//		file_name = this->parseHeader(sub_content);
+//		file_body = this->getFileContent(sub_content, "--" + boundary);
+//		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
+//			continue;
+//		v.push_back(make_pair(file_name, file_name));
+//		//this->write_fd(fd, file_body);
+//		//write_fd.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
+//		//write_fd.write(file_body.c_str(), file_body.size());
+//		//write_fd.close();
+//	}
+//	return v;
+//}
 
-// fd 반환 read, write 둘 다 가능
 // GET,POST에 따라 open 모드 다르게
 int Response::openFile(string path, int flag) {
 	int fd = open(path.c_str(), flag, 777);
@@ -425,6 +397,7 @@ int Response::openFile(string path, int flag) {
 		return -1;
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	this->m_fdMode[fd] = flag;
+	++this->m_openFilesNum;
 	return fd;
 }
 
@@ -447,7 +420,7 @@ string Response::read_fd(int fd, intptr_t datalen) {
 		return "";
 	}
 	ssize_t ret = read(fd, buf, datalen);
-	if (ret == -1)   {
+	if (ret == -1) {
 		this->setStatusCode(500);
 		std::cerr << "Read Error!\n";
 		free(buf);
@@ -500,6 +473,44 @@ bool Response::writeFile(int fd, intptr_t datalen) {
 	this->setContent(this->getContent().substr(write_len));
 	return false;
 }
+
+map<string, string> Response::parseFormData(string content_type, string content_body, string path) {
+	size_t i = content_type.find("boundary=");
+	map<string, string> ret;
+	if (i == string::npos)
+		return ret;
+	string boundary = content_type.substr(i+9);
+	string sub_content = content_body;
+	string file_name;
+	string file_body;
+
+	while (sub_content.find("--" + boundary + "--") != 0) {
+		file_name = this->parseHeader(sub_content);
+		file_body = this->getFileContent(sub_content, "--" + boundary);
+		if (file_name.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
+			continue;
+		ret[path + "/" + file_name] = file_body;
+	}
+	return ret;
+}
+
+// map<opened_fd, content> 저장해서 반환
+map<int, string> Response::formFilesOpen(map<string, string> m) {
+	map<int, string> ret;
+	map<string, string>::iterator iter = m.begin();
+	while (iter != m.end()) {
+		ret[this->openFile(iter->first, O_WRONLY)] = iter->second;
+		++iter;
+	}
+	return ret;
+}
+
+//bool Response::saveFiles(map<int, string> m) {
+//	map<int, string>::iterator iter = m.begin();
+//	while (iter != m.end()) {
+//		writeFile(iter->first,)
+//	}
+//}
 
 /*
 	여기부터 비 멤버함수  ======================================================
