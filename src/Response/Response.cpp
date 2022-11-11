@@ -17,6 +17,8 @@ bool	check_valid(const char *suffix_url)
 map<int, string> Response::m_status_description;
 bool Response::is_init = false;
 
+// Constructor && Destructor ===========================================
+
 Response::Response() : m_status_code(0), m_content(""), m_cgiResult("") {
 	if (Response::is_init == false)
 		Response::ResponseInit();
@@ -30,6 +32,8 @@ Response::Response(int status) : m_status_code(0), m_content(""), m_cgiResult(""
 
 Response::~Response() {
 }
+
+// Static Method =======================================================
 
 void Response::ResponseInit() {
 	Response::m_status_description[200] = "200 OK";
@@ -54,53 +58,11 @@ void Response::ResponseInit() {
 	Response::is_init = true;
 }
 
-int	Response::getStatusCode() {
-	return this->m_status_code;
-}
-map<int ,string> Response::getStatusDesc() {
-	return this->m_status_description;
-}
-map<string,string> Response::getHeaders() {
-	return this->m_headers;
-}
-string Response::getContent() {
-	return this->m_content;
-}
 
-void Response::setStatusCode(int code) {
-	this->m_status_code = code;
-}
-void Response::setStatusDesc(int code, string desc) {
-	this->m_status_description[code] = desc;
-}
-void Response::setHeaders(string key, string value) {
-	this->m_headers[key] = value;
-}
-void Response::setContent(string content) {
-	this->m_content.clear();
-	this->m_content = content;
-	this->setHeaders("Content-length", to_string(content.length()));
-}
+// 여기서부터 멤버함수들 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-void Response::setCgiResult(string ret) {
-	this->m_cgiResult = ret;
-}
+// Private Method  ==============================================
 
-//void Response::setRootPath(string path) {
-//	this->m_rootPath = path;
-//}
-
-//void Response::setErrorFile(string path) {
-//	this->m_ErrorFile = path;
-//}
-
-//void Response::setIndexFile(string path) {
-//	this->m_indexFile = path;
-//}
-
-void Response::setLocationBlock(LocationBlock loc) {
-	this->m_location = loc;
-}
 
 string Response::makeHeaders() {
 	string result = "";
@@ -111,38 +73,6 @@ string Response::makeHeaders() {
 	result.append("\r\n");
 
 	return result;
-}
-
-void Response::makeContent(string content) {
-	string result = "";
-	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
-	result.append("<body>");
-	result.append(content);
-	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
-	result.append("</body></html>");
-
-	this->setContent(result);
-}
-
-// append content를 반복 사용하여 html을 만드는 경우 먼저 호출
-void Response::setHtmlHeader() {
-	string result;
-	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
-	result.append("<body>");
-	this->setContent(result);
-}
-
-// append content를 반복 사용하여 html을 만드는 경우 마지막에 호출
-void Response::setHtmlFooter() {
-	string result;
-	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
-	result.append("</body></html>");
-	this->appendContent(result);
-}
-
-// 기존 m_content에 append함
-void Response::appendContent(string content) {
-	this->m_content.append(content);
 }
 
 string Response::parseHeader(string& sub_content) {
@@ -181,16 +111,6 @@ string Response::getFileContent(string &sub_content, string boundary) {
 	return body;
 }
 
-void Response::cgiResponse(string cgi_result) {
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContent(cgi_result);
-}
-
-void Response::putFile(vector<int> fd, string content_body) {
-	//for (int i=0; i<fd.size(); ++i) {
-	//	this->write_fd(fd[i], content_body);
-	//}
-}
 
 int Response::saveFile(int fd, string content_type, string content_body) {
 	size_t i = content_type.find("boundary=");
@@ -210,6 +130,268 @@ int Response::saveFile(int fd, string content_type, string content_body) {
 	}
 	return 0;
 }
+
+// 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
+void Response::serveFile(int fd, intptr_t datalen) {
+	string data = "";
+	data = this->readFile(fd, datalen);
+	close(fd);
+	this->setContent(data);
+}
+
+int Response::deleteFile(string file_path) {
+	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
+		return -1;
+	string full_name = URLDecoding(file_path.c_str());
+	std::cout << "Decode file name: " << full_name << "\n";
+	return unlink(full_name.c_str());
+}
+
+void Response::putFile(vector<int> fd, string content_body) {
+	//for (int i=0; i<fd.size(); ++i) {
+	//	this->write_fd(fd[i], content_body);
+	//}
+}
+
+
+int Response::getFileList(vector<string>& li, const char *dir_path) {
+	struct dirent	*file    = NULL;
+	DIR				*dir_ptr = NULL;
+
+	// 목록을 읽을 디렉토리명으로 DIR *를 return
+	if((dir_ptr = opendir(dir_path)) == NULL)
+		return -1;
+
+	// 디렉토리의 처음부터 파일 또는 디렉토리명을 순서대로 한개씩 읽기r.
+	while((file = readdir(dir_ptr)) != NULL) {
+		li.push_back(file->d_name);
+	}
+	// open된 directory 정보를 close.
+
+	closedir(dir_ptr);
+	return 0;
+}
+
+int Response::makeAutoIndex(const char *dir_path) {
+	vector<string> li;
+	string result = "";
+	if (getFileList(li, dir_path) == -1)
+		return -1;
+	result.append("<ul>\n");
+	for (int i=2; i<li.size(); ++i) {
+		result.append("<li><a href=\"/download/" + li[i] + "\" download>");
+		result.append(li[i]);
+		result.append("</a>");
+		result.append("</li>");
+	}
+	result.append("\n</ul>\n");
+	this->setContent(result);
+	return 0;
+}
+
+
+void Response::makeContentError(int status, int fd) {
+	int datalen = 100;
+	//int ret;
+	this->setStatusCode(status);
+	//ret = this->serveFile(this->m_location.getRootDir() + "/" + this->m_location.getErrorPage());
+	this->serveFile(fd, datalen);
+	cout << "root path " << this->m_location.getRootDir() + "/" + this->m_location.getErrorPage() << "\n";
+	//if (ret == -1)
+	//	this->errorResponse(500);
+	//else if (ret == 1)
+	//	this->errorResponse(404);
+	cout << "++++++++++ error content : " <<  this->getContent() << "========== \n";
+	//return 0;
+}
+
+void Response::makeContentFile(int fd) {
+	int datalen = 100;
+	this->serveFile(fd, datalen);
+	//if (status == -1)
+	//	this->makeContentError(500, fd);
+	//else if (status == 1)
+	//	this->makeContentError(404, fd);
+}
+
+
+// Public Method ========================================================
+
+// getter ==============================================================
+
+int	Response::getStatusCode() {
+	return this->m_status_code;
+}
+map<int ,string> Response::getStatusDesc() {
+	return this->m_status_description;
+}
+map<string,string> Response::getHeaders() {
+	return this->m_headers;
+}
+string Response::getContent() {
+	return this->m_content;
+}
+
+int	Response::getRequestFile(string request_file, string dir_path) {
+	int		 i;
+	struct stat buf;
+	bool	ret;
+
+	if (stat((dir_path + "/" + request_file).c_str(), &buf) < 0)
+		return NO_FILE; // NO FILE!!
+	if (S_ISREG(buf.st_mode))
+		return VALID_REQ_FILE; // 존재하는 파일 요청
+	else if (S_ISDIR(buf.st_mode))
+		return VALID_REQ_DIR; // 존재하는 디렉토리 요청
+	return 2;  // 예외
+}
+
+int Response::getFdMode(int fd) {
+	if (this->m_fdMode.find(fd) == this->m_fdMode.end()) {
+		cerr << "[Error] getFdMode에 존재하지 않는 fd를 입력하였습니다.\n";
+		return -1;
+	}
+	return this->m_fdMode[fd];
+}
+
+
+// setter ==========================================================
+
+
+void Response::setStatusCode(int code) {
+	this->m_status_code = code;
+}
+void Response::setStatusDesc(int code, string desc) {
+	this->m_status_description[code] = desc;
+}
+void Response::setHeaders(string key, string value) {
+	this->m_headers[key] = value;
+}
+void Response::setCgiResult(string ret) {
+	this->m_cgiResult = ret;
+}
+void Response::setContent(string content) {
+	this->m_content.clear();
+	this->m_content = content;
+	this->setHeaders("Content-length", to_string(content.length()));
+}
+void Response::setLocationBlock(LocationBlock loc) {
+	this->m_location = loc;
+}
+
+// append  ============================================
+
+// append content를 반복 사용하여 html을 만드는 경우 먼저 호출
+void Response::appendHtmlHeader() {
+	string result;
+	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
+	result.append("<body>");
+	this->setContent(result);
+}
+
+// append content를 반복 사용하여 html을 만드는 경우 마지막에 호출
+void Response::appendHtmlFooter() {
+	string result;
+	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
+	result.append("</body></html>");
+	this->appendContent(result);
+}
+
+// 기존 m_content에 append함
+void Response::appendContent(string content) {
+	this->m_content.append(content);
+}
+
+
+// Make ===============================================================
+
+
+void Response::makeContent(string content) {
+	string result = "";
+	result.append("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><title>webserv</title></head>");
+	result.append("<body>");
+	result.append(content);
+	result.append("<p>Click <a href=\"/\">here</a> to return home.</p>");
+	result.append("</body></html>");
+
+	this->setContent(result);
+}
+
+
+// Response ==========================================================
+
+
+void Response::cgiResponse(string cgi_result) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContent(cgi_result);
+}
+
+void Response::defaultResponse(int fd) {
+	std::cout << "default Response start : " << this->m_location.getRootDir() + "/" + this->m_location.getIndexFile() + " ======== \n";
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContentFile(fd);
+	//this->makeContentFile(this->m_location.getRootDir() + "/" + this->m_location.getIndexFile());
+	std::cout << "default Response end ======== \n";
+}
+
+void Response::uploadResponse(vector<int> fd, string content_type, string content_body) {
+	cout << "[DEBUG] uploadResponse start\n";
+	cout << "content_body : " + content_body + "\n";
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	//if (this->saveFile(content_type, content_body) == -1)
+	this->putFile(fd, content_body);
+	this->makeContent("Upload Success");
+	cout << "[DEBUG] uploadResponse end\n";
+}
+
+// 일단 보류
+void Response::downloadResponse(string file_path) {
+	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
+	//this->serveFile(fd);
+		//this->makeContent("Download Fail");
+}
+
+void Response::deleteResponse(string file_path) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (deleteFile(file_path) == 0)
+		this->makeContent("Delete Success");
+	else
+		this->makeContent("Delete Fail");
+}
+
+void Response::autoIndexResponse(const char *dir_path) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	if (this->makeAutoIndex(dir_path) == -1)
+		this->makeContent("Auto Index Fail");
+}
+
+void Response::errorResponse(int fd, int status) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContentError(status, fd);
+		//this->makeContentError(500);
+}
+
+void Response::redirectResponse(int status, string url) {
+	this->setStatusCode(status);
+	this->setHeaders("Location", url);
+	this->makeContent("Redirection Success");
+}
+
+void Response::fileResponse(int fd) {
+	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+	this->makeContentFile(fd);
+}
+
+
+// 최종 응답 만들기 메소드
+string Response::getHttpResponse() {
+	string result = this->makeHeaders();
+	result += this->getContent();
+	return result;
+}
+
+// File ====================================================================
+
 
 vector<pair<string, string> > Response::saveFileName(string content_type, string content_body) {
 	size_t i = content_type.find("boundary=");
@@ -234,154 +416,6 @@ vector<pair<string, string> > Response::saveFileName(string content_type, string
 	return v;
 }
 
-// 에러시 -1 반환 성공시 0, 잘못된 경로시 1 반환
-void Response::serveFile(int fd, intptr_t datalen) {
-	string data = "";
-	data = this->readFile(fd, datalen);
-	close(fd);
-	this->setContent(data);
-}
-
-int Response::deleteFile(string file_path) {
-	if (file_path.find("../") != string::npos)  // 지정 디렉토리 벗어나기 금지
-		return -1;
-	string full_name = URLDecoding(file_path.c_str());
-	std::cout << "Decode file name: " << full_name << "\n";
-	return unlink(full_name.c_str());
-}
-
-int Response::getFileList(vector<string>& li, const char *dir_path) {
-	struct dirent	*file    = NULL;
-	DIR				*dir_ptr = NULL;
-
-	// 목록을 읽을 디렉토리명으로 DIR *를 return
-	if((dir_ptr = opendir(dir_path)) == NULL)
-		return -1;
-
-	// 디렉토리의 처음부터 파일 또는 디렉토리명을 순서대로 한개씩 읽기r.
-	while((file = readdir(dir_ptr)) != NULL) {
-		li.push_back(file->d_name);
-	}
-	// open된 directory 정보를 close.
-
-	closedir(dir_ptr);
-	return 0;
-}
-
-int	Response::getRequestFile(string request_file, string dir_path) {
-	int		 i;
-	struct stat buf;
-	bool	ret;
-
-	if (stat((dir_path + "/" + request_file).c_str(), &buf) < 0)
-		return NO_FILE; // NO FILE!!
-	if (S_ISREG(buf.st_mode))
-		return VALID_REQ_FILE; // 존재하는 파일 요청
-	else if (S_ISDIR(buf.st_mode))
-		return VALID_REQ_DIR; // 존재하는 디렉토리 요청
-	return 2;  // 예외
-}
-
-int Response::makeAutoIndex(const char *dir_path) {
-	vector<string> li;
-	string result = "";
-	if (getFileList(li, dir_path) == -1)
-		return -1;
-	result.append("<ul>\n");
-	for (int i=2; i<li.size(); ++i) {
-		result.append("<li><a href=\"/download/" + li[i] + "\" download>");
-		result.append(li[i]);
-		result.append("</a>");
-		result.append("</li>");
-	}
-	result.append("\n</ul>\n");
-	this->setContent(result);
-	return 0;
-}
-
-// 일단 보류
-void Response::downloadResponse(string file_path) {
-	this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
-	//this->serveFile(fd);
-		//this->makeContent("Download Fail");
-}
-
-void Response::uploadResponse(vector<int> fd, string content_type, string content_body) {
-	cout << "[DEBUG] uploadResponse start\n";
-	cout << "content_body : " + content_body + "\n";
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	//if (this->saveFile(content_type, content_body) == -1)
-	this->putFile(fd, content_body);
-	this->makeContent("Upload Success");
-	cout << "[DEBUG] uploadResponse end\n";
-}
-
-void Response::deleteResponse(string file_path) {
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (deleteFile(file_path) == 0)
-		this->makeContent("Delete Success");
-	else
-		this->makeContent("Delete Fail");
-}
-
-void Response::autoIndexResponse(const char *dir_path) {
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	if (this->makeAutoIndex(dir_path) == -1)
-		this->makeContent("Auto Index Fail");
-}
-
-void Response::makeContentError(int status, int fd) {
-	int datalen = 100;
-
-
-
-	//int ret;
-	this->setStatusCode(status);
-	//ret = this->serveFile(this->m_location.getRootDir() + "/" + this->m_location.getErrorPage());
-	this->serveFile(fd, datalen);
-	cout << "root path " << this->m_location.getRootDir() + "/" + this->m_location.getErrorPage() << "\n";
-	//if (ret == -1)
-	//	this->errorResponse(500);
-	//else if (ret == 1)
-	//	this->errorResponse(404);
-	cout << "++++++++++ error content : " <<  this->getContent() << "========== \n";
-	//return 0;
-}
-
-void Response::makeContentFile(int fd) {
-	int datalen = 100;
-	this->serveFile(fd, datalen);
-	//if (status == -1)
-	//	this->makeContentError(500, fd);
-	//else if (status == 1)
-	//	this->makeContentError(404, fd);
-}
-
-void Response::defaultResponse(int fd) {
-	std::cout << "default Response start : " << this->m_location.getRootDir() + "/" + this->m_location.getIndexFile() + " ======== \n";
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContentFile(fd);
-	//this->makeContentFile(this->m_location.getRootDir() + "/" + this->m_location.getIndexFile());
-	std::cout << "default Response end ======== \n";
-}
-
-void Response::fileResponse(int fd) {
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContentFile(fd);
-}
-
-void Response::errorResponse(int fd, int status) {
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContentError(status, fd);
-		//this->makeContentError(500);
-}
-
-void Response::redirectResponse(int status, string url) {
-	this->setStatusCode(status);
-	this->setHeaders("Location", url);
-	this->makeContent("Redirection Success");
-}
-
 // fd 반환 read, write 둘 다 가능
 // GET,POST에 따라 open 모드 다르게
 int Response::openFile(string path, int flag) {
@@ -389,6 +423,7 @@ int Response::openFile(string path, int flag) {
 	if (fd < 0)
 		return -1;
 	fcntl(fd, F_SETFL, O_NONBLOCK);
+	this->m_fdMode[fd] = flag;
 	return fd;
 }
 
@@ -432,12 +467,6 @@ ssize_t Response::write_fd(int fd, intptr_t datalen, string content) {
 	return size;
 }
 
-string Response::getHttpResponse() {
-	string result = this->makeHeaders();
-	result += this->getContent();
-	return result;
-}
-
 // readFile 완성시 return true
 bool Response::readFile(int fd, intptr_t datalen) {
 	string ret = this->read_fd(fd, datalen);
@@ -455,16 +484,16 @@ bool Response::writeFile(int fd, intptr_t datalen) {
 	// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
 	if (write_len == -1) { // 에러 발생
 		close(fd);
-		this->setHtmlFooter();
+		this->appendHtmlFooter();
 		this->appendContent("Error: writeFile");
-		this->setHtmlFooter();
+		this->appendHtmlFooter();
 		return true;
 	}
 	else if (this->m_content.size() == write_len) {  // 완성
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-		this->setHtmlFooter();
+		this->appendHtmlFooter();
 		this->appendContent("writeFile success");
-		this->setHtmlFooter();
+		this->appendHtmlFooter();
 		return true;
 	}
 	this->setContent(this->getContent().substr(write_len));
@@ -472,7 +501,7 @@ bool Response::writeFile(int fd, intptr_t datalen) {
 }
 
 /*
-	여기부터 비 멤버함수
+	여기부터 비 멤버함수  ======================================================
 */
 
 // 16진수 문자값을 10진수 문자값으로 변환
