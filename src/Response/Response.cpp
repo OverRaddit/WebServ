@@ -419,7 +419,7 @@ vector<pair<string, string> > Response::saveFileName(string content_type, string
 // fd 반환 read, write 둘 다 가능
 // GET,POST에 따라 open 모드 다르게
 int Response::openFile(string path, int flag) {
-	int fd = open(path.c_str(), flag);
+	int fd = open(path.c_str(), flag, 777);
 	if (fd < 0)
 		return -1;
 	fcntl(fd, F_SETFL, O_NONBLOCK);
