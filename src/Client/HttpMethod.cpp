@@ -87,7 +87,10 @@ int Client::POST(Request *req, Response *res, string filepath)
 	{
 		case NO_FILE:
 			cout << "Upload New File" << endl;
-			res->makeContent("Upload New File");
+
+			// 현재 req_body가 chunked를 파싱하지 않아 내용물이 없다. 아래 주석을 풀지않으면 put테스트에서 터진다.
+			//res->makeContent("Upload New File");
+
 			target = upload_path;
 			res->setStatusCode(201);
 			break;

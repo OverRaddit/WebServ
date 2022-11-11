@@ -26,8 +26,8 @@ public:
 	int *getToParent(void);
 	std::string getInput(void) const;
 	std::string getOutput(void) const;
-	void setInput(std::string& input);
-	void setOutput(std::string& output);
+	void setInput(std::string input);
+	void setOutput(std::string output);
 };
 
 #endif

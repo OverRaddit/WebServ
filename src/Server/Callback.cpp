@@ -84,14 +84,11 @@ int Server::callback_read(int fd, intptr_t datalen)
 				std::cout << "File open! registered to kqueue..." << std::endl;
 				file_to_client[ret] = cli->getFd();
 
-				struct stat temp;
-				fstat(ret, &temp);
-				if (temp.st_mode & O_RDONLY)
+				if (cli->getResponse()->getFdMode(ret) == O_RDONLY)
 					change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				else
 					change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
-				//change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 			}
 			else
 			{
@@ -118,6 +115,8 @@ int Server::callback_read(int fd, intptr_t datalen)
 			return (0);
 		}
 
+		// cli->getCgi()->getToChild()[1];
+		// cli->getCgi()->getToParent()[0];
 		disconnect_pipe(cli->getPipeFd());
 		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	}
@@ -136,8 +135,12 @@ int Server::callback_read(int fd, intptr_t datalen)
 
 		if (cli->is_cgi_request(req))
 		{
+			Cgi* cgi = cli->getCgi();
+			// 파이프 입구도 pipe_to_client에 등록되어 있어야함!!!
+
 			// 읽기 완료한 내용(sample)을 cgi의 파이프 입구에 write해야 한다.
-			// cli->getResponse()->getContent()
+			// write할 수 있도록 파이프 입구 fd의 write를 켜준다.
+			change_events(cgi->getToChild()[1], EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		}
 		else
 			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -153,7 +156,8 @@ int Server::callback_write(int fd, intptr_t datalen)
 	if (is_file(fd))
 	{
 		cli = clients_info[file_to_client[fd]];
-		if (cli->getRequest()->getMethod() != "POST")
+		// file이 Read-only라면, write할 수 없음.
+		if (cli->getResponse()->getFdMode(fd) == O_RDONLY)
 			return 0;
 
 		std::cout << "file write event" << std::endl;
@@ -164,6 +168,15 @@ int Server::callback_write(int fd, intptr_t datalen)
 		if (is_write_done)
 			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		return 0;
+	}
+	else if (is_pipe(fd)) // 파이프에 입력을 write한다.
+	{
+		cli = clients_info[file_to_client[fd]];
+		Request* req = cli->getRequest();
+		Response* res = cli->getResponse();
+		Cgi* cgi = cli->getCgi();
+
+		res->writeFile(fd, datalen); // 이때 write할 content는 cgi의 입력이 맞나?
 	}
 	// 클라이언트에게만 write합니다.
 	else if (!is_client(fd))
