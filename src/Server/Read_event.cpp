@@ -41,7 +41,7 @@ int Server::client_read(int fd, intptr_t datalen)
 		} else if (cli->getRequest()->getMethod() == "POST") {
 			ret = cli->POST(cli->getRequest(), cli->getResponse());
 		} else if (cli->getRequest()->getMethod() == "PUT") {
-			ret = cli->POST(cli->getRequest(), cli->getResponse());
+			ret = cli->IPPOST(cli->getRequest(), cli->getResponse());
 		} else {
 			std::cerr << "Undefined Method" << std::endl;
 		}
@@ -65,7 +65,11 @@ int Server::client_read(int fd, intptr_t datalen)
 				if (cli->getResponse()->getFdMode(ret) == O_RDONLY)
 					change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 				else
+				{
+					// 업로드할 데이터의 내용은 req's body이다.
+					cli->getResponse()->setContent(cli->getRequest()->getReqBody());
 					change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				}
 			}
 		}
 		else

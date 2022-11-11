@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client()
-	: fd(-1), len(0), req(NULL), pipe_fd(-1), raw_request(""), m_pending(false)
+	: fd(-1), len(0), req(NULL), pipe_fd(-1), raw_request(""), m_pending(false), m_cgi(0)
 {
 	//addr = -1;
 }
@@ -173,8 +173,7 @@ int			Client::cgi_init(string content)
 	setPipeFd(m_cgi->getToParent()[0]);
 //=================================================================
 
-	req->setReqBody("hello world!"); // 나중에 고칠것.
-	res->setContent(req->getReqBody());
+	res->setContent(content);
 
 	pid_t pid;
 	int *to_child = m_cgi->getToChild();

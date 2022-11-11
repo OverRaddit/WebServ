@@ -183,3 +183,13 @@ post : 쓰기용
 =============
 
 ctrl - 누르면 함수이동 뒤로가기가 된다.
+
+m_cgi 0 초기화
+
+업로드완성.
+	- 리턴페이지가 이상하다.
+    	- 업로드파일 내용이 마지막 문자가 남아있다.
+      	- Response.cpp writeFile함수 맨밑.
+	- 파일 이름이 겹칠때 이상함.
+
+https://stackoverflow.com/questions/70369289/why-cant-i-open-my-file-using-open-method

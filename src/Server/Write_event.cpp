@@ -65,7 +65,7 @@ int Server::pipe_write(int fd, intptr_t datalen)
 
 int Server::file_write(int fd, intptr_t datalen)
 {
-	std::cout << "file write event" << std::endl;
+	//std::cout << "file write event" << std::endl;
 	Client *cli = clients_info[file_to_client[fd]];
 	Request* req = cli->getRequest();
 	Response* res = cli->getResponse();
@@ -75,7 +75,8 @@ int Server::file_write(int fd, intptr_t datalen)
 	if (cli->getResponse()->getFdMode(fd) == O_RDONLY)
 		return 0;
 	//============================================================================
-
+	// datalen == 1 ?? why?
+	// 한번에 1씩만 쓸수있다...?
 	bool is_write_done = res->writeFile(fd, datalen);
 	if (is_write_done)
 		change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);

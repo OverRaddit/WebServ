@@ -392,7 +392,12 @@ string Response::getHttpResponse() {
 
 // GET,POST에 따라 open 모드 다르게
 int Response::openFile(string path, int flag) {
-	int fd = open(path.c_str(), flag, 777);
+	int fd;
+
+	if (flag & O_CREAT)
+		fd = open(path.c_str(), flag, 777);
+	else
+		fd =  open(path.c_str(), flag);
 	if (fd < 0)
 		return -1;
 	fcntl(fd, F_SETFL, O_NONBLOCK);
@@ -470,7 +475,11 @@ bool Response::writeFile(int fd, intptr_t datalen) {
 		this->appendHtmlFooter();
 		return true;
 	}
+
+	//=========================================================================
+	// content를 한글자씩 보내다가 마지막 한글자가 content에 남아있게 된다.
 	this->setContent(this->getContent().substr(write_len));
+	//=========================================================================
 	return false;
 }
 

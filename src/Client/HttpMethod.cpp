@@ -99,32 +99,29 @@ int Client::POST(Request *req, Response *res)
 {
 	cout << "[POST]" << endl;
 
-	int fileflag = res->getRequestFile(req->getLocBlock().getRootDir(), req->getReqFileName());
-	int openflag = O_CREAT | O_RDWR | O_TRUNC;
+	int fileflag = res->getRequestFile(req->getReqFileName(), req->getSerBlock().getRootDir() + "/" + req->getLocBlock().getUploadDirectory());
+	int openflag = 0;
 
 	string target = "";
 	string upload_path = req->getSerBlock().getRootDir() + "/" + req->getLocBlock().getUploadDirectory() + "/" + req->getReqFileName();
 
 	if (is_cgi_request(req))
-	{
-		if (cgi_init(req->getReqBody()) < 0)
-			cerr << "CGI ERROR" << endl;
-		return 0;
-	}
+		return cgi_init(req->getReqBody());
 
 	switch(fileflag)
 	{
 		case NO_FILE:
 			cout << "Upload New File" << endl;
-
+			openflag = O_CREAT | O_RDWR;
 			// 현재 req_body가 chunked를 파싱하지 않아 내용물이 없다. 아래 주석을 풀지않으면 put테스트에서 터진다.
-			res->makeContent("Upload New File");
+			//res->makeContent("Upload New File");
 
 			target = upload_path;
 			res->setStatusCode(201);
 			break;
 		case VALID_REQ_FILE:
 			cout << "File already Exist! Truc File..." << endl;
+			openflag = O_TRUNC | O_RDWR;
 			target = upload_path;
 			res->setStatusCode(201);
 			break;
