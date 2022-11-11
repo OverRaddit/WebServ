@@ -81,14 +81,22 @@ int Server::callback_read(int fd, intptr_t datalen)
 
 			if (ret > 2)	// if file descriptor is returned..
 			{
-				std::cout << "File open! registered to kqueue..." << std::endl;
-				file_to_client[ret] = cli->getFd();
-
-				if (cli->getResponse()->getFdMode(ret) == O_RDONLY)
-					change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-				else
+				if (cli->is_cgi_request(cli->getRequest())) // 파이프가 반환되었다.
+				{
+					std::cout << "Pipe returned! registered to kqueue..." << std::endl;
+					pipe_to_client[ret] = cli->getFd();
 					change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				}
+				else
+				{
+					std::cout << "File returned! registered to kqueue..." << std::endl;
+					file_to_client[ret] = cli->getFd();
 
+					if (cli->getResponse()->getFdMode(ret) == O_RDONLY)
+						change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+					else
+						change_events(ret, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+				}
 			}
 			else
 			{
@@ -171,12 +179,21 @@ int Server::callback_write(int fd, intptr_t datalen)
 	}
 	else if (is_pipe(fd)) // 파이프에 입력을 write한다.
 	{
-		cli = clients_info[file_to_client[fd]];
+		cli = clients_info[pipe_to_client[fd]];
 		Request* req = cli->getRequest();
 		Response* res = cli->getResponse();
 		Cgi* cgi = cli->getCgi();
 
-		res->writeFile(fd, datalen); // 이때 write할 content는 cgi의 입력이 맞나?
+		if (!res->writeFile(fd, res->getContent().length()))
+			return 0;
+
+		// write done in pipe input.
+		pipe_to_client.erase(fd);	// 파이프 입구를 파이프목록에서 삭제
+		pipe_to_client[cgi->getToParent()[0]] = cli->getFd();
+		close(fd);					// 파이프 입구를 close
+		change_events(cgi->getToParent()[0], EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		//=====================
+		return 0;
 	}
 	// 클라이언트에게만 write합니다.
 	else if (!is_client(fd))
@@ -207,12 +224,14 @@ int Server::callback_write(int fd, intptr_t datalen)
 	free(res);
 
 	// keep-alive 옵션에따라 포트연결 유지여부를 결정한다.
-	if (cli->getRequest()->getReqHeaderValue("Connection") != "keep-alive")
+	if (cli->getRequest()->getReqHeaderValue("Connection") != "keep-alive") // curl
 	{
+		std::cout << "Keep-alive header off!" << std::endl;
 		disconnect_client(fd);
 		return (0);
 	}
 
+	std::cout << "Keep-alive header on!" << std::endl;
 	// 사용이 끝난 Res,Req 객체를 삭제한다.
 	delete cli->getResponse();
 	delete cli->getRequest();
