@@ -17,8 +17,19 @@ Cgi::Cgi(char **_env) : env(_env)
 	// return to_child[1];
 }
 
+Cgi::~Cgi()
+{
+	if (env)
+	{
+		for (int i=0; i<10; ++i)
+			free(env[i]);
+		free(env);
+	}
+}
+
 int			*Cgi::getToChild(void) { return to_child; }
 int			*Cgi::getToParent(void) { return to_parent; }
+char		**Cgi::getEnv(void) { return env; }
 std::string	Cgi::getInput(void) const { return input; }
 std::string	Cgi::getOutput(void) const { return output; }
 void		Cgi::setInput(std::string _input) { input = _input; }

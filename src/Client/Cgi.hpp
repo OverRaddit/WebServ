@@ -21,9 +21,11 @@ private:
 
 public:
 	Cgi(char **_env);
+	~Cgi();
 
 	int *getToChild(void);
 	int *getToParent(void);
+	char **getEnv(void);
 	std::string getInput(void) const;
 	std::string getOutput(void) const;
 	void setInput(std::string input);
