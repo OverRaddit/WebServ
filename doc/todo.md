@@ -1,20 +1,20 @@
 설정파일
-- main에 인자없을시 기본설정파일로 동작.
-- listen 뒤에 여러 숫자 들어오게.
-- delete, upload는 같은 root에서 동작.
-- type 지우기
+- [O]main에 인자없을시 기본설정파일로 동작.
+- [O]listen 뒤에 여러 숫자 들어오게.
+- [O]delete, upload는 같은 root에서 동작.
+- [O]type 지우기
 
 멀티플렉싱
--  하나의 서버블럭에 여러 포트존재.
--  노파일명 && 빈바디 -> 에러처리
--  파일명을 파싱해서 cgi요청인지 확인 후 플래그 설정.
+-  [O]하나의 서버블럭에 여러 포트존재.
+-  [O]노파일명 && 빈바디 -> 에러처리
+-  [O]파일명을 파싱해서 cgi요청인지 확인 후 플래그 설정.
 
 Response
-- =boundary는 form태그로 파일전송시에만 유효. 인지할것.
-  - size_t i = content_type.find("boundary="); 이 부분 예외처리필요.
-- sudo dir를 하드코딩에서 변수사용하도록 수정할 것.
-- download는 mandatory달성 & 테스트통과전까지 보류.
-- location block "return"
+- [O]=boundary는 form태그로 파일전송시에만 유효. 인지할것.
+  - [O]size_t i = content_type.find("boundary="); 이 부분 예외처리필요.
+- [O]sudo dir를 하드코딩에서 변수사용하도록 수정할 것.
+- [?]download는 mandatory달성 & 테스트통과전까지 보류.
+- [X]location block "return"
 
 - GET
   - if file exist
@@ -118,9 +118,11 @@ content returned: H
 # 11.10(목) 오늘의 할일
 
 keep-alive에 따라 포트를 유지시키거나 삭제한다.
-	-> 동작 확인할 것.
+-> 동작 확인할 것.
+-> 브라우저는 keep-alive on, curl은 keep-alive off이다.
 
 file_to_client에 있는 튜플은 언제삭제시키지?
+->file_fd를 close할때 같이해야 한다.
 
 multiplexing timeout 설정 찾아보기.
 
@@ -132,9 +134,10 @@ cgi를 돌릴때...
 CGI 과정 정리
 
 1. CGI 객체를 생성한다.(파이프 생성 및 파이프fd 논블락처리, 환경변수는 외부에서 만들어 넣어줌)
-   - CGI(env);
-2. cgi입력파일을 read한 결과를 cgi의 input에 넣는다.
-   - CGI.setInput(sample);
+   - [O]CGI(env);
+   - [X]pipe_to_client에 입력 출력 fd를 등록해야함.
+2. cgi에 넘어온 content를 cgi의 input에 write 한다.
+   - [O]CGI.setInput(sample);
 3. input데이터를 to_child[1]에 write한다.
    - pipe fd's write event
 4. to_parent[0]를 read하고 결과를 output에 저장한다.
@@ -151,3 +154,32 @@ post : 쓰기용
 
 => 아님... post요청이라도 errorpage를 반환할때는 open시 readonly로 함!.
 => fd를 통해 열려있는 모드 플래그값을 알아내는 것이 best일 듯 하다.
+
+====================
+# 11.11(금) 오늘의 할일
+
+1. GET이외에 POST, DELETE를 구현완료하고 테스트한다.
+
+- req's body를 file에 write해야 한다.
+- 이때 read할 file과 write할 파일을 모두 fd로 다루므로 둘을 분간할 방법이 필요하다.
+  - Client에서 read_flag, write_flag를 이용한다.
+
+- GET,POST,Method함수에서 3번째 인자인 filepath제거할것.
+
+2. CGI를 구현하고 테스트한다.
+3. keep-alive를 테스트한다.
+
+======================
+
+/audoindex/bbbb/aaa.bla
+1. locationblock[autoindex] == true,
+2. if (ISDIR(filename))
+   1. autoindex 응답
+3. else
+   1. errorpage 응답
+	-> filename == IS_DIR true일때만 응답. false errorpage.
+
+- aaa
+=============
+
+ctrl - 누르면 함수이동 뒤로가기가 된다.

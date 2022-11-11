@@ -83,6 +83,14 @@ public:
 
 	ServerBlock find_serverblock(int client_fd);
 	map<string, LocationBlock>::iterator locationBlockMapping(Client *cli, ServerBlock &s_b);
+
+	int	client_read(int fd, intptr_t datalen);
+	int	pipe_read(int fd, intptr_t datalen);
+	int	file_read(int fd, intptr_t datalen);
+	int	client_write(int fd, intptr_t datalen);
+	int	pipe_write(int fd, intptr_t datalen);
+	int	file_write(int fd, intptr_t datalen);
+
 //=============================================================================
 //	Getter & Setter
 //=============================================================================
