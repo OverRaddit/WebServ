@@ -385,6 +385,7 @@ void Response::fileResponse(int fd) {
 
 // 최종 응답 만들기 메소드
 string Response::getHttpResponse() {
+	this->setHeaders("Content-length", to_string(this->m_content.length()));
 	string result = this->makeHeaders();
 	result += this->getContent();
 	return result;
