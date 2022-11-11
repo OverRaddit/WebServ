@@ -56,9 +56,9 @@ public:
 
 	// HTTP METHOD
 	bool		is_cgi_request(Request *req);
-	int			GET(Request *req, Response *res, string filepath);
-	int			POST(Request *req, Response *res, string filepath);
-	int			DELETE(Request *req, Response *res, string filepath);
+	int			GET(Request *req, Response *res);
+	int			POST(Request *req, Response *res);
+	int			DELETE(Request *req, Response *res);
 };
 
 #endif

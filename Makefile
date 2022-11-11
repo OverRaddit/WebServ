@@ -6,7 +6,7 @@
 #    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/11/10 17:51:52 by gshim            ###   ########.fr        #
+#    Updated: 2022/11/11 21:29:13 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -44,6 +44,8 @@ SRC_LIST	=	src/main.cpp			\
 				src/Server/Server.cpp	\
 				src/Server/Callback.cpp	\
 				src/Server/Condition.cpp \
+				src/Server/Read_event.cpp \
+				src/Server/Write_event.cpp \
 				src/Response/Response.cpp \
 				src/Config/Config.cpp \
 				src/Config/LocationBlock.cpp \

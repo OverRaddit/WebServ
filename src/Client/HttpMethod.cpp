@@ -6,16 +6,16 @@ bool Client::is_cgi_request(Request *req)
 	return (req->getReqFileName().find(req->getSerBlock().getCgiExtension()) != string::npos);
 }
 
+// cgi처리하고 자식프로세스 만드는 함수 추가.
+
+
 //============================================
 
-int Client::GET(Request *req, Response *res, string filepath)
+int Client::GET(Request *req, Response *res)
 {
 	cout << "[GET]" << endl;
 
-	//  debug path
 	int fileflag = res->getRequestFile(req->getReqFileName(), req->getLocBlock().getRootDir());
-	cout << "rootdir: [" << req->getLocBlock().getRootDir() << "]" << endl;
-	cout << "req file name: [" << req->getReqFileName() << "]" << endl;
 	string target = "";
 
 	// file status
@@ -43,43 +43,42 @@ int Client::GET(Request *req, Response *res, string filepath)
 			break;
 	}
 
-
 	if (is_cgi_request(req))
 	{
 		// target을 read후 cgi에 넘기도록 수정할 것.
 		// read후 cgi처리를 해야함. 여기서는 처리할 수 없음.
-		if (cgi_init(target) < 0)
-			std:cerr << "CGI ERROR" << std::endl;
-		req->setReqBody("hello world!"); // 나중에 고칠것.
-		res->setContent(req->getReqBody());
+		// if (cgi_init(target) < 0)
+		// 	std:cerr << "CGI ERROR" << std::endl;
 
-		// =====
-		pid_t pid;
+		// req->setReqBody("hello world!"); // 나중에 고칠것.
+		// res->setContent(req->getReqBody());
 
-		int *to_child = getCgi()->getToChild();
-		int *to_parent = getCgi()->getToParent();
+		// // =====
+		// pid_t pid;
 
-		pid = fork();
-		getRequest()->setCgiPid(pid);
-		if (pid == 0)
-		{
-			dup2(to_child[0], 0);
-			dup2(to_parent[1], 1);
-			close(to_child[1]);
-			close(to_child[0]);
-			close(to_parent[1]);
-			close(to_parent[0]);
-			string cgi_tester = req->getSerBlock().getCgiTester();
-			if (execve(cgi_tester.c_str(), 0, getCgi()->getEnv()) == -1) {
-				std::cerr << "[child]cgi error\n";
-				exit(1);
-			}
-		}
-		close(to_child[0]);
-		close(to_parent[1]);
+		// int *to_child = getCgi()->getToChild();
+		// int *to_parent = getCgi()->getToParent();
 
-
-		return m_cgi->getToChild()[1];
+		// pid = fork();
+		// getRequest()->setCgiPid(pid);
+		// if (pid == 0)
+		// {
+		// 	dup2(to_child[0], 0);
+		// 	dup2(to_parent[1], 1);
+		// 	close(to_child[1]);
+		// 	close(to_child[0]);
+		// 	close(to_parent[1]);
+		// 	close(to_parent[0]);
+		// 	string cgi_tester = req->getSerBlock().getCgiTester();
+		// 	if (execve(cgi_tester.c_str(), 0, getCgi()->getEnv()) == -1) {
+		// 		std::cerr << "[child]cgi error\n";
+		// 		exit(1);
+		// 	}
+		// }
+		// close(to_child[0]);
+		// close(to_parent[1]);
+		// return m_cgi->getToChild()[1];
+		return cgi_init(target);
 	}
 	else
 	{
@@ -96,7 +95,7 @@ int Client::GET(Request *req, Response *res, string filepath)
 }
 
 // 현재 uploadResponse가 파일명을 받지 않음
-int Client::POST(Request *req, Response *res, string filepath)
+int Client::POST(Request *req, Response *res)
 {
 	cout << "[POST]" << endl;
 
@@ -137,24 +136,10 @@ int Client::POST(Request *req, Response *res, string filepath)
 			break;
 	}
 
-	if (is_cgi_request(req))
-	{
-		if (cgi_init(target) < 0)
-			std:cerr << "CGI ERROR" << std::endl;
-	}
-	else
-	{
-		return (res->openFile(target, openflag));
-	}
-	return 0;
-
-
-	// res->uploadResponse(target, req->getReqHeaderValue("Content-Type"), req->getReqBody());
-	// res->fileResponse(target);
-	return 0;
+	return (res->openFile(target, openflag));
 }
 
-int Client::DELETE(Request *req, Response *res, string filepath)
+int Client::DELETE(Request *req, Response *res)
 {
 	cout << "[DELETE]" << endl;
 
@@ -178,7 +163,7 @@ int Client::DELETE(Request *req, Response *res, string filepath)
 			break;
 		case VALID_REQ_FILE:
 			cout << "Found File! delete this file..." << endl;
-			res->deleteResponse(filepath);
+			res->deleteResponse(req->getSerBlock().getRootDir() + "/" + req->getReqFileName());
 			res->setStatusCode(204);
 			return 0;
 		case VALID_REQ_DIR:
