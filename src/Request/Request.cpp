@@ -36,10 +36,9 @@ Request::Request(string req_msg): m_req_header(), m_http_version(""), m_method("
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
-				if (i + 2 < len)
-					line = req_msg.substr(i + 2);
+				line = req_msg.substr(i);
 				this->setReqBody(line);
-				if (this->m_is_chunked && req_msg.substr(i).find("\r\n0\r\n") != string::npos)
+				if (this->m_is_chunked && this->m_req_body.find("\r\n0\r\n") != string::npos)
 					this->m_is_chunked = false;
 				return ;
 			}
@@ -59,7 +58,7 @@ Request::Request(string req_msg): m_req_header(), m_http_version(""), m_method("
 	}
 }
 
-void	Request::saveRequestAgain(string req_msg)
+void	Request::saveRequestAgain(string &req_msg)
 {
 	string	line = "";
 	size_t	len = req_msg.length();
@@ -74,10 +73,13 @@ void	Request::saveRequestAgain(string req_msg)
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
-				if (i + 2 < len)
-					line = req_msg.substr(i + 2);
+				//if (this->m_req_body.empty())
+				//	if (i + 2 < len)
+				//		line = req_msg.substr(i + 2);
+				//else
+				line = req_msg.substr(i);
 				this->setReqBody(line);
-				if (this->m_is_chunked && req_msg.substr(i).find("\r\n0\r\n") != string::npos)
+				if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
 					this->m_is_chunked = false;
 				this->m_is_incomplete = false;
 				return ;
@@ -99,15 +101,17 @@ void	Request::saveRequestAgain(string req_msg)
 
 // void	Request::saveRequestFinal(void)
 // {
-	
+
 // }
 
-int		Request::saveOnlyBody(string req_body)
+//int		Request::saveOnlyBody(string &req_body)
+int		Request::saveOnlyBody(string &req_body)
 {
 	this->m_req_body.append(req_body);
 
+	//cout << "!!!!!!!!!!!!!!!! " << this->m_req_body << endl;
 	// 800 짤리고 0\r\n 들어오는 것도 생각해야하나...ㅠㅠㅠ
-	if (this->m_is_chunked && req_body.find("\r\n0\r\n") != string::npos)
+	if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
 		this->m_is_chunked = false;
 	// int fd = open("log.txt", O_WRONLY | O_APPEND);
 	// write(fd, this->m_req_body.c_str(), this->m_req_body.size());

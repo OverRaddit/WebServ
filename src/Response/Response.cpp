@@ -203,7 +203,7 @@ map<int ,string> Response::getStatusDesc() {
 map<string,string> Response::getHeaders() {
 	return this->m_headers;
 }
-string Response::getContent() {
+string &Response::getContent() {
 	return this->m_content;
 }
 
@@ -437,8 +437,9 @@ string Response::read_fd(int fd, intptr_t datalen) {
 }
 
 // write 결과 값 반환
-ssize_t Response::write_fd(int fd, intptr_t datalen, string content) {
-	ssize_t size = write(fd, content.c_str(), datalen);
+ssize_t Response::write_fd(int fd, intptr_t datalen) {
+	(void)datalen;
+	ssize_t size = write(fd, this->m_content.c_str(), this->m_content.size());
 	if (size == -1) {
 		this->setStatusCode(500);
 		std::cerr << "Write Error!\n";
@@ -459,7 +460,7 @@ bool Response::readFile(int fd, intptr_t datalen) {
 
 // writeFile 완성시 return true
 bool Response::writeFile(int fd, intptr_t datalen) {
-	ssize_t write_len = this->write_fd(fd, datalen, this->m_content);
+	ssize_t write_len = this->write_fd(fd, datalen);
 	// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
 	if (write_len == -1) { // 에러 발생
 		close(fd);
