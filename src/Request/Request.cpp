@@ -36,10 +36,13 @@ Request::Request(string req_msg): m_req_header(), m_http_version(""), m_method("
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
-				line = req_msg.substr(i);
-				this->setReqBody(line);
-				if (this->m_is_chunked && this->m_req_body.find("\r\n0\r\n") != string::npos)
-					this->m_is_chunked = false;
+				if (i + 2 < len)
+				{
+					line = req_msg.substr(i + 2);
+					this->setReqBody(line);
+				}
+				// if (this->m_is_chunked && this->m_req_body.find("\r\n0\r\n") != string::npos)
+				// 	this->m_is_chunked = false;
 				return ;
 			}
 			else
@@ -74,14 +77,16 @@ void	Request::saveRequestAgain(string &req_msg)
 			else if (line.length() == 0)
 			{
 				//if (this->m_req_body.empty())
-				//	if (i + 2 < len)
-				//		line = req_msg.substr(i + 2);
+				if (i + 2 < len)
+				{
+					line = req_msg.substr(i + 2);
+					line = req_msg.substr(i);
+					this->setReqBody(line);
+					this->m_is_incomplete = false;
+				}
 				//else
-				line = req_msg.substr(i);
-				this->setReqBody(line);
-				if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
-					this->m_is_chunked = false;
-				this->m_is_incomplete = false;
+				// if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
+				// 	this->m_is_chunked = false;
 				return ;
 			}
 			else
@@ -111,8 +116,8 @@ int		Request::saveOnlyBody(string &req_body)
 
 	//cout << "!!!!!!!!!!!!!!!! " << this->m_req_body << endl;
 	// 800 짤리고 0\r\n 들어오는 것도 생각해야하나...ㅠㅠㅠ
-	if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
-		this->m_is_chunked = false;
+	// if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
+	// 	this->m_is_chunked = false;
 	// int fd = open("log.txt", O_WRONLY | O_APPEND);
 	// write(fd, this->m_req_body.c_str(), this->m_req_body.size());
 	// write(fd, "\n\n-------\n\n", 11);
