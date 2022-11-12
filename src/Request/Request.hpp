@@ -30,8 +30,9 @@ public:
 	void	setFilename(string file_name);
 	void	setIsChunked(bool flag);
 
-	int		saveOnlyBody(string req_body);
-	void	saveRequestAgain(string req_msg);
+	//int		saveOnlyBody(string &req_body);
+	int		saveOnlyBody(string &req_body);
+	void	saveRequestAgain(string &req_msg);
 
 	string				getReqHeaderValue(string key);
 	string				getMethod(void) const;

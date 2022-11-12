@@ -69,7 +69,7 @@ public:
 	int						getStatusCode();
 	map<int ,string>		getStatusDesc();
 	map<string,string>		getHeaders();
-	string					getContent();
+	string					&getContent();
 	int						getRequestFile(string request_file, string dir_path);
 	int						getFdMode(int fd);
 
@@ -106,7 +106,7 @@ public:
 	int						openFile(string path, int flag);
 	vector<int>				openFiles(vector<pair<string, string> > in, int flag);
 	string					read_fd(int fd, intptr_t datalen);
-	ssize_t					write_fd(int fd, intptr_t datalen, string content);
+	ssize_t					write_fd(int fd, intptr_t datalen);
 
 	bool					readFile(int fd, intptr_t datalen);
 	bool					writeFile(int fd, intptr_t datalen);

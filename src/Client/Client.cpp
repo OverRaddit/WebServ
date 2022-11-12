@@ -58,8 +58,8 @@ void		Client::setCgi(Cgi *cgi){ m_cgi = cgi; }
 
 int			Client::read_client_request()
 {
-	char buf[65524] = {0};
-	int n = read(fd, buf, 65524 - 1);	// null문자까지 포함해서 읽기위해.
+	char buf[65524] = {};
+	int n = read(fd, buf, 65524);	// null문자까지 포함해서 읽기위해.
 	if (n < 0)
 	{
 		std::cerr << "client read error!" << std::endl;
@@ -72,9 +72,9 @@ int			Client::read_client_request()
 	}
 	else
 	{
-		buf[n] = '\0';
+		//buf[n] = '\0';
 		string req_msg = string(buf, n);
-	
+
 		if (m_pending == false)
 		{
 			if (buf[0] < 'A' || buf[0] > 'Z')
@@ -90,20 +90,28 @@ int			Client::read_client_request()
 				string msg = req->getIncompleteMessage();
 				msg.append(req_msg);
 				req->saveRequestAgain(msg);
+					// int fd = open("log.txt", O_WRONLY | O_APPEND);
+				// write(fd, this->m_req_body.c_str(), this->m_req_body.size());
+				// write(fd, "\n\n-------\n\n", 11);
+				// close(fd);
 				appendRawRequest(req_msg);
 			}
 			else if (req->getIsChunked())
+			{
+				// req_msg는 매번 덮어씌워지기 때문에 레퍼런스로 받으면 안된다.
 				req->saveOnlyBody(req_msg);
+				cout << "#############getIsChunked2############### : " << req->getReqBody() << endl;
+			}
 			else if (req->saveOnlyBody(req_msg) == req->getContentLength())
 				m_pending = false;
 		}
 		// 현재 요청이 완성되었는지 확인한다. 1571,
 		if (req->getContentLength() > req->getReqBody().length() || req->getIsIncomplete() || req->getIsChunked())
 		{
-			// cout << "###### req->getContentLength() : " << req->getContentLength() << " " << "req->getReqBody().length() : " << req->getReqBody().length() << endl;
+			// cout << "###### req->getContentLength() : " << req->getContentLength() << " " << "req->getReqBody().length() : " << "[" << req->getReqBody().length() << "]" << endl;
 			// cout << "###### req->getIsIncomplete() : " << req->getIsIncomplete() << endl;
 			// cout << "###### req->getIsChunked() : " << req->getIsChunked() << endl;
-			// cout << "###### req->getReqBody() : " << req->getReqBody() << endl;
+			// cout << "###### req->getReqBody() : " << "[" << req->getReqBody() << "]" << endl;
 			// cout << "----------------------------------------------------\n";
 			m_pending = true;
 			return 0;
