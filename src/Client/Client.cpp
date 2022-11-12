@@ -73,11 +73,13 @@ int			Client::read_client_request()
 	else
 	{
 		buf[n] = '\0';
+		string req_msg = string(buf, n);
+	
 		if (m_pending == false)
 		{
 			if (buf[0] < 'A' || buf[0] > 'Z')
 				return 0;
-			setRawRequest(string(buf, n));
+			setRawRequest(req_msg);
 			Request *req = new Request(getRawRequest());
 			setRequest(req);
 		}
@@ -86,19 +88,23 @@ int			Client::read_client_request()
 			if (req->getIsIncomplete())
 			{
 				string msg = req->getIncompleteMessage();
-				string appending_msg = string(buf, n);
-
-				msg.append(appending_msg);
+				msg.append(req_msg);
 				req->saveRequestAgain(msg);
-				appendRawRequest(appending_msg);
+				appendRawRequest(req_msg);
 			}
-			else if (req->saveOnlyBody(string(buf, n)) == req->getContentLength())
+			else if (req->getIsChunked())
+				req->saveOnlyBody(req_msg);
+			else if (req->saveOnlyBody(req_msg) == req->getContentLength())
 				m_pending = false;
 		}
-
 		// 현재 요청이 완성되었는지 확인한다. 1571,
-		if (req->getContentLength() > req->getReqBody().length() || req->getIsIncomplete())
+		if (req->getContentLength() > req->getReqBody().length() || req->getIsIncomplete() || req->getIsChunked())
 		{
+			// cout << "###### req->getContentLength() : " << req->getContentLength() << " " << "req->getReqBody().length() : " << req->getReqBody().length() << endl;
+			// cout << "###### req->getIsIncomplete() : " << req->getIsIncomplete() << endl;
+			// cout << "###### req->getIsChunked() : " << req->getIsChunked() << endl;
+			// cout << "###### req->getReqBody() : " << req->getReqBody() << endl;
+			// cout << "----------------------------------------------------\n";
 			m_pending = true;
 			return 0;
 		}

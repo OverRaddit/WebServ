@@ -28,6 +28,7 @@ public:
 	void	setLocBlock(LocationBlock &loc_block, string url, size_t pos);
 	void	setSerBlock(ServerBlock &server_block);
 	void	setFilename(string file_name);
+	void	setIsChunked(bool flag);
 
 	int		saveOnlyBody(string req_body);
 	void	saveRequestAgain(string req_msg);
@@ -42,6 +43,7 @@ public:
 	long long			getContentLength(void) const;
 	string				getDownloadFileName(void) const;
 	bool				getIsIncomplete(void) const;
+	bool				getIsChunked(void) const;
 	string				getIncompleteMessage(void) const;
 	int					getCgiPid(void) const;
 	string				getCgiResult(void) const;
@@ -50,7 +52,6 @@ public:
 	LocationBlock		getLocBlock(void) const;
 	ServerBlock			getSerBlock(void) const;
 
-	// void		saveURLInformation(void);
 private:
 	map<string, string>	m_req_header;
 	long long 			m_content_length;
@@ -61,6 +62,7 @@ private:
 	int					m_status_code;
 	string				m_redirection_url;
 	bool				m_is_incomplete;
+	bool				m_is_chunked;
 	string				m_incomplete_message;
 	int					m_cgi_pid;
 	string				m_cgi_result;
@@ -73,6 +75,7 @@ private:
 
 	void	saveStartLine(string start_line);
 	void	saveHeader(string header_line);
+	void	saveRequestFinal(void);
 };
 
 
