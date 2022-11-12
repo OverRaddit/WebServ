@@ -21,30 +21,38 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string request_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_is_incomplete(false), m_cgi_pid(-1)
+Request::Request(string req_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_is_incomplete(false), m_is_chunked(false), m_cgi_pid(-1)
 {
 	string	line = "";
-	size_t	len = request_msg.length();
-	for (int i = 0;request_msg[i];i++)
+	size_t	len = req_msg.length();
+	bool	crlf_complete = true;
+
+	for (int i = 0;req_msg[i];i++)
 	{
-		if (request_msg[i] == '\r')
+		if (req_msg[i] == '\r')
 		{
+			crlf_complete = false;
 			if (m_method.empty())
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
 				if (i + 2 < len)
-					this->setReqBody(request_msg.substr(i + 2));
-				break;
+					line = req_msg.substr(i + 2);
+				this->setReqBody(line);
+				if (this->m_is_chunked && req_msg.substr(i).find("\r\n0\r\n") != string::npos)
+					this->m_is_chunked = false;
+				return ;
 			}
 			else
 				this->saveHeader(line);
 			line = "";
 		}
-		else if (request_msg[i] != '\n')
-			line += request_msg[i];
+		else if (req_msg[i] != '\n')
+			line += req_msg[i];
+		else if (req_msg[i] == '\n')
+			crlf_complete = true;
 	}
-	if (line.length() != 0)
+	if (line.length() != 0 || !crlf_complete)
 	{
 		this->m_incomplete_message = line;
 		this->m_is_incomplete = true;
@@ -55,18 +63,24 @@ void	Request::saveRequestAgain(string req_msg)
 {
 	string	line = "";
 	size_t	len = req_msg.length();
+	bool	crlf_complete = true;
 
 	for (int i = 0;req_msg[i];i++)
 	{
 		if (req_msg[i] == '\r')
 		{
+			crlf_complete = false;
 			if (m_method.empty())
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
 				if (i + 2 < len)
-					this->setReqBody(req_msg.substr(i + 2));
-				break;
+					line = req_msg.substr(i + 2);
+				this->setReqBody(line);
+				if (this->m_is_chunked && req_msg.substr(i).find("\r\n0\r\n") != string::npos)
+					this->m_is_chunked = false;
+				this->m_is_incomplete = false;
+				return ;
 			}
 			else
 				this->saveHeader(line);
@@ -74,16 +88,31 @@ void	Request::saveRequestAgain(string req_msg)
 		}
 		else if (req_msg[i] != '\n')
 			line += req_msg[i];
+		else if (req_msg[i] == '\n')
+			crlf_complete = true;
 	}
-	if (line.length() != 0)
+	if (line.length() != 0 || !crlf_complete)
 		this->m_incomplete_message = line;
 	else
 		this->m_is_incomplete = false;
 }
 
+// void	Request::saveRequestFinal(void)
+// {
+	
+// }
+
 int		Request::saveOnlyBody(string req_body)
 {
 	this->m_req_body.append(req_body);
+
+	// 800 짤리고 0\r\n 들어오는 것도 생각해야하나...ㅠㅠㅠ
+	if (this->m_is_chunked && req_body.find("\r\n0\r\n") != string::npos)
+		this->m_is_chunked = false;
+	// int fd = open("log.txt", O_WRONLY | O_APPEND);
+	// write(fd, this->m_req_body.c_str(), this->m_req_body.size());
+	// write(fd, "\n\n-------\n\n", 11);
+	// close(fd);
 	return req_body.length();
 }
 
@@ -128,6 +157,8 @@ void	Request::setReqHeader(string key, string value)
 {
 	if (key == "Content-Length" || key == "content-length")
 		setContentLength(value);
+	if ((key == "Transfer-Encoding" || key == "transfer-encoding") && value == "chunked")
+		setIsChunked(true);
 	this->m_req_header.insert(pair<string, string>(key, value));
 }
 
@@ -160,6 +191,8 @@ void	Request::setRedirectionURL(string url) { this->m_redirection_url = url; }
 
 void	Request::setSerBlock(ServerBlock &server_block) { this->m_ser_block = server_block; }
 
+void	Request::setIsChunked(bool flag) { this->m_is_chunked = flag; }
+
 // ----------------------------------------- Getter -----------------------------------------------------
 string	Request::getReqHeaderValue(string key) {
 	string	lower_key = "";
@@ -187,6 +220,8 @@ string	Request::getRedirectionURL(void) const { return this->m_redirection_url; 
 int		Request::getStatusCode(void) const { return this->m_status_code; }
 
 bool	Request::getIsIncomplete(void) const { return this->m_is_incomplete; }
+
+bool	Request::getIsChunked(void) const { return this->m_is_chunked; }
 
 string	Request::getIncompleteMessage(void) const { return this->m_incomplete_message; }
 
