@@ -187,6 +187,9 @@ int			Client::cgi_init(string content)
 	setPipeFd(m_cgi->getToParent()[0]);
 //=================================================================
 
+	// 무지성 상태코드주입
+	res->setStatusCode(200);
+
 	res->setContent(content);
 
 	pid_t pid;
