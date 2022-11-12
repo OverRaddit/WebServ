@@ -3,7 +3,13 @@
 
 bool Client::is_cgi_request(Request *req)
 {
-	return (req->getReqFileName().find(req->getSerBlock().getCgiExtension()) != string::npos);
+	// cgi확장자명이 존재하면서
+	if (req->getSerBlock().getCgiExtension() != "")
+		// 해당 확장자명이 파일의 대상파일의 확장자명과 일치할때
+		if (req->getReqFileName().find(req->getSerBlock().getCgiExtension()) != string::npos)
+			return true;
+	return false;
+	//return (req->getReqFileName().find(req->getSerBlock().getCgiExtension()) != string::npos);
 }
 
 // cgi처리하고 자식프로세스 만드는 함수 추가.
@@ -17,6 +23,9 @@ int Client::GET(Request *req, Response *res)
 
 	int fileflag = res->getRequestFile(req->getReqFileName(), req->getLocBlock().getRootDir());
 	string target = "";
+
+	if (is_cgi_request(req))
+		return cgi_init(req->getReqBody());
 
 	// file status
 	switch(fileflag)
@@ -43,8 +52,8 @@ int Client::GET(Request *req, Response *res)
 			break;
 	}
 
-	if (is_cgi_request(req))
-	{
+	// if (is_cgi_request(req))
+	// {
 		// target을 read후 cgi에 넘기도록 수정할 것.
 		// read후 cgi처리를 해야함. 여기서는 처리할 수 없음.
 		// if (cgi_init(target) < 0)
@@ -78,10 +87,11 @@ int Client::GET(Request *req, Response *res)
 		// close(to_child[0]);
 		// close(to_parent[1]);
 		// return m_cgi->getToChild()[1];
-		return cgi_init(target);
-	}
-	else
-	{
+
+	// 	return cgi_init(target);
+	// }
+	// else
+	// {
 		int ret = res->openFile(target, O_RDONLY);
 		if (ret < 0)
 		{
@@ -90,8 +100,8 @@ int Client::GET(Request *req, Response *res)
 		}
 		else
 			return ret;
-	}
-	return 0;
+	// }
+	//return 0;
 }
 
 // 현재 uploadResponse가 파일명을 받지 않음
@@ -140,16 +150,12 @@ int Client::DELETE(Request *req, Response *res)
 {
 	cout << "[DELETE]" << endl;
 
-	int fileflag = res->getRequestFile(req->getLocBlock().getRootDir(), req->getReqFileName());
+	int fileflag = res->getRequestFile(req->getReqFileName(), req->getLocBlock().getRootDir());
 	string target = "";
 	int openflag = O_RDONLY;
 
 	if (is_cgi_request(req))
-	{
-		if (cgi_init(req->getReqBody()) < 0)
-			std:cerr << "CGI ERROR" << std::endl;
-		return 0;
-	}
+		return cgi_init(req->getReqBody());
 
 	switch (fileflag)
 	{
