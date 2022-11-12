@@ -41,7 +41,7 @@ int Server::client_read(int fd, intptr_t datalen)
 		} else if (cli->getRequest()->getMethod() == "POST") {
 			ret = cli->POST(cli->getRequest(), cli->getResponse());
 		} else if (cli->getRequest()->getMethod() == "PUT") {
-			ret = cli->IPPOST(cli->getRequest(), cli->getResponse());
+			ret = cli->POST(cli->getRequest(), cli->getResponse());
 		} else {
 			std::cerr << "Undefined Method" << std::endl;
 		}
