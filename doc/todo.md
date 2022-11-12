@@ -192,4 +192,18 @@ m_cgi 0 초기화
       	- Response.cpp writeFile함수 맨밑.
 	- 파일 이름이 겹칠때 이상함.
 
-https://stackoverflow.com/questions/70369289/why-cant-i-open-my-file-using-open-method
+https://stackoverflow.com/questions/70369289/why-cant-i-open-my-file-using-open-methode
+
+====================
+
+autoindex
+[O]redirection
+[O]cgi
+
+서버 오래켜놓으면 어느순간 죽음;; 왜그러는지 모르겠음
+- keep-alive로 살려놓은 포트가 닫힐때 터진다?
+
+Cgi 요청처리할때 상태코드를 어떻게 처리할지 모르겠다.
+- 현재 cgi_init에서 무조건 200으로 셋팅하고있다.
+
+======================
