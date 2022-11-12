@@ -18,23 +18,35 @@ int Server::client_read(int fd, intptr_t datalen)
 		// 이름 validate으로 바꿀 것.
 		// 여기서 걸러진 요청은 바로 write할 수 있게 바꿔야 한다.
 		execute_client_request(cli->getFd());
+		int ret = 0;
+		// Response 생성 및 필요한 인자 전달.
+		cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
 
 		// 검증단계에서 응답코드가 정해진 것들은 바로 응답한다.
 		if (cli->getRequest()->getStatusCode() != 0)
 		{
 			cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-			cli->getResponse()->makeContent("test\n");
-			change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+
+			// 에러페이지 반환
+			if (cli->getRequest()->getStatusCode() / 100 == 4)
+			{
+				ret = cli->getResponse()->openFile(cli->getRequest()->getSerBlock().getRootDir() + "/" + cli->getRequest()->getSerBlock().getErrorPage(), O_RDONLY);
+				file_to_client[ret] = cli->getFd();
+				change_events(ret, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			}
+			// 리디렉션
+			else if (cli->getRequest()->getStatusCode() / 100 == 3)
+			{
+				// 해줘야함?
+				//cli->getResponse()->setStatusCode(cli->getRequest()->getStatusCode());
+				cli->getResponse()->redirectResponse(cli->getRequest()->getStatusCode(), cli->getRequest()->getRedirectionURL());
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			}
+
 			return 0;
 		}
-		// ====================================================================
-		int ret = 0;
-
-		// Response 생성 및 필요한 인자 전달.
-		cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-
-		// 메소드별로 실행한다.
-		if (cli->getRequest()->getMethod() == "GET"){
+		// ㅁㅔ소드별 실실행
+		else if (cli->getRequest()->getMethod() == "GET"){
 			ret = cli->GET(cli->getRequest(), cli->getResponse());
 		} else if (cli->getRequest()->getMethod() == "DELETE") {
 			ret = cli->DELETE(cli->getRequest(), cli->getResponse());
@@ -108,9 +120,16 @@ int Server::file_read(int fd, intptr_t datalen)
 	if (!res->readFile(fd, datalen))
 		return 0;
 
-	if (cli->is_cgi_request(req))
+	//if (req->is_valid_request(req->getStatusCode()) && cli->is_cgi_request(req))
+	if (req->getStatusCode() / 100 != 4  && cli->is_cgi_request(req))
 	{
 		Cgi* cgi = cli->getCgi();
+
+		// if (cli->getRequest()->getMethod() == "GET")
+		// {
+		// 	cli->cgi_init(res->getContent());
+		// }
+
 		// 파이프 입구도 pipe_to_client에 등록되어 있어야함!!!
 
 
