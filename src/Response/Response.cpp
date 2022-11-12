@@ -390,16 +390,16 @@ string Response::getHttpResponse() {
 //	return v;
 //}
 
-// GET,POST에 따라 open 모드 다르게
 int Response::openFile(string path, int flag) {
 	int fd;
-
-	if (flag & O_CREAT)
-		fd = open(path.c_str(), flag, 777);
-	else
-		fd =  open(path.c_str(), flag);
+	fd =  open(path.c_str(), flag, 0644);
+	// FOR DEBUG =============================
 	if (fd < 0)
+	{
+		printf("%s\n", strerror(errno));
 		return -1;
+	}
+	//========================================
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	this->m_fdMode[fd] = flag;
 	++this->m_openFilesNum;
