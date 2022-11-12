@@ -464,14 +464,16 @@ bool Response::writeFile(int fd, intptr_t datalen) {
 	// write 반환값의 누적합이 req의 content-length와 일치 시에 완료로 정의한다.
 	if (write_len == -1) { // 에러 발생
 		close(fd);
-		this->appendHtmlFooter();
+		//this->appendHtmlFooter();
+		this->appendHtmlHeader();
 		this->appendContent("Error: writeFile");
 		this->appendHtmlFooter();
 		return true;
 	}
 	else if (this->m_content.size() == write_len) {  // 완성
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-		this->appendHtmlFooter();
+		//this->appendHtmlFooter();
+		this->appendHtmlHeader();
 		this->appendContent("writeFile success");
 		this->appendHtmlFooter();
 		return true;
