@@ -54,6 +54,7 @@ void	LocationBlock::setMaxBodySize(string loc_block, size_t pos)
 		{
 			max_body_size += loc_block[i];
 			flag = 3;
+			break;
 		}
 		max_body_size += loc_block[i];
 	}
