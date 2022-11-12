@@ -53,14 +53,15 @@ void	LocationBlock::setMaxBodySize(string loc_block, size_t pos)
 		else if (loc_block[i + 1] == ';')
 		{
 			max_body_size += loc_block[i];
-			flag = 3;
+			if (!max_body_size.empty())
+				flag = 3;
 			break;
 		}
 		max_body_size += loc_block[i];
 	}
 	if (flag == -1)
 	{
-		cerr << "[client_max_body_size] must have units!!\n";
+		cerr << "Invalid client_max_body_size\n";
 		exit(1);
 	}
 	else if (flag == 0)
