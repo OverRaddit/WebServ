@@ -56,10 +56,11 @@ void	ServerBlock::setRootDir(string root_dir){ this->m_root_dir = root_dir; }
 
 void	ServerBlock::setServerName(string server_name) { this->m_server_name = server_name; }
 
-void	ServerBlock::setPortNums(string port_nums, vector<int> &p_nums)
+void	ServerBlock::setPortNums(string port_nums)
 {
 	string	port_num = "";
 	bool 	flag = false;
+	int		int_port_num = 0;
 
 	if (port_nums == "")
 	{
@@ -81,9 +82,18 @@ void	ServerBlock::setPortNums(string port_nums, vector<int> &p_nums)
 			flag = true;
 		if (flag || i == port_nums.length() - 1)
 		{
-			try {
-				this->m_port_nums.push_back(stoi(port_num));
-				p_nums.push_back(stoi(port_num));
+			try
+			{
+				int_port_num = stoi(port_num);
+				for (int i = 0;i < this->m_port_nums.size();i++)
+				{
+					if (this->m_port_nums[i] == int_port_num)
+					{
+						cerr << "DUPLICATED LISTEN PORT FOUNDED!!\n";
+						exit(1);
+					}
+				}
+				this->m_port_nums.push_back(int_port_num);
 			}
 			catch(exception &e) {
 				cerr << "INVALID PORT NUMBER\n";

@@ -11,7 +11,7 @@ class ServerBlock {
 public:
 	ServerBlock(void);
 
-	void	setPortNums(string port_nums, vector<int> &p_nums);
+	void	setPortNums(string port_nums);
 	void	setServerName(string server_name);
 	void	setRootDir(string root_dir);
 	void	setCgiTester(string cgi_tester);

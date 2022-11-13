@@ -42,25 +42,6 @@ Config::Config(string file) {
 				this->saveDirective(idx, line);
 		}
 	}
-	checkDuplicatedPortNum();
-}
-void	Config::checkDuplicatedPortNum(void)
-{
-	size_t len = this->m_port_nums.size();
-	int		p_num = 0;
-
-	for (size_t i = 0;i < len;i++)
-	{
-		p_num = this->m_port_nums[i];
-		for (size_t j = i + 1;j < len;j++)
-		{
-			if (p_num == this->m_port_nums[j])
-			{
-				cerr << "DUPLICATED LISTEN PORT FOUNDED!!\n";
-				exit(1);
-			}
-		}
-	}
 }
 
 void	Config::saveDirective(int idx, string line)
@@ -87,7 +68,7 @@ void	Config::saveDirective(int idx, string line)
 			dir_data += line[i];
 	}
 	if (directive == "listen")
-		this->m_server_blocks[idx].setPortNums(dir_data, this->m_port_nums);
+		this->m_server_blocks[idx].setPortNums(dir_data);
 	else if (directive == "server_name")
 		this->m_server_blocks[idx].setServerName(dir_data);
 	else if (directive == "root")
