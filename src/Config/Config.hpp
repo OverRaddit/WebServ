@@ -16,11 +16,9 @@ public:
 private:
 	Config(void);
 	void	saveDirective(int idx, string line);
-	void	checkDuplicatedPortNum(void);
 
 	ifstream			m_config_file;
 	vector<ServerBlock>	m_server_blocks;
-	vector<int>		m_port_nums;
 };
 
 #endif
