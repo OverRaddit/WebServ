@@ -22,7 +22,7 @@ int Server::callback_error(int fd)
 	}
 	else if (is_file(fd))
 	{
-		std::cerr << "Pipe socket[" << fd << "] got error" << std::endl;
+		std::cerr << "File fd[" << fd << "] got error" << std::endl;
 		file_to_client.erase(fd);
 		close(fd);
 	}
@@ -44,12 +44,12 @@ int Server::callback_read(int fd, intptr_t datalen)
 
 int Server::callback_write(int fd, intptr_t datalen)
 {
-	if (is_file(fd))
-		file_write(fd, datalen);
+	if (is_client(fd))
+		client_write(fd, datalen);
 	else if (is_pipe(fd))
 		pipe_write(fd, datalen);
-	else if (is_client(fd))
-		client_write(fd, datalen);
+	else if (is_file(fd))
+		file_write(fd, datalen);
 	return (0);
 }
 
