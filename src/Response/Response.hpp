@@ -16,10 +16,6 @@
 # include <iostream>
 # include <utility>
 
-//for debug=======
-# include <errno.h>
-//for debug=======
-
 # include "../Config/Config.hpp"
 
 # define NO_FILE -1
@@ -55,14 +51,9 @@ private:
 	void					makeContentFile(int fd);
 
 public:
-	// 왜 private??
 	Response ();
 	Response (int status);
 	~Response ();
-
-	// 임시로 public 이동
-	//int			serveFile(string file_path);
-
 	static void				ResponseInit(); // Response 클래스를 초기화하는 한번만 실행 가능함수
 
 // Getter
@@ -101,7 +92,6 @@ public:
 	string					getHttpResponse();
 
 // File
-	//vector<pair<string, string> >	saveFileName(string content_type, string content_body);
 
 	int						openFile(string path, int flag);
 	vector<int>				openFiles(vector<pair<string, string> > in, int flag);
@@ -114,7 +104,6 @@ public:
 // 새로 만드는 중인 메소드
 	map<string, string>		parseFormData(string content_type, string content_body, string path);  // m_content로 받을 데이터를 파싱해서 파일로 저장하는 함수
 	map<int, string>		formFilesOpen(map<string, string> m);
-	//bool					saveFiles(map<int, string> m)
 };
 
 // encode와 decode관련 비멤버 함수

@@ -37,8 +37,6 @@ int Server::client_read(int fd, intptr_t datalen)
 			// 리디렉션
 			else if (cli->getRequest()->getStatusCode() / 100 == 3)
 			{
-				// 해줘야함?
-				//cli->getResponse()->setStatusCode(cli->getRequest()->getStatusCode());
 				cli->getResponse()->redirectResponse(cli->getRequest()->getStatusCode(), cli->getRequest()->getRedirectionURL());
 				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 			}
@@ -124,14 +122,7 @@ int Server::file_read(int fd, intptr_t datalen)
 	if (req->getStatusCode() / 100 != 4  && cli->is_cgi_request(req))
 	{
 		Cgi* cgi = cli->getCgi();
-
-		// if (cli->getRequest()->getMethod() == "GET")
-		// {
-		// 	cli->cgi_init(res->getContent());
-		// }
-
 		// 파이프 입구도 pipe_to_client에 등록되어 있어야함!!!
-
 
 		// 다음단계 : 파이프에 데이터를 입력
 		change_events(cgi->getToChild()[1], EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);

@@ -167,26 +167,15 @@ int Response::makeAutoIndex(const char *dir_path) {
 
 void Response::makeContentError(int status, int fd) {
 	int datalen = 100;
-	//int ret;
 	this->setStatusCode(status);
-	//ret = this->serveFile(this->m_location.getRootDir() + "/" + this->m_location.getErrorPage());
 	this->serveFile(fd, datalen);
 	cout << "root path " << this->m_location.getRootDir() + "/" + this->m_location.getErrorPage() << "\n";
-	//if (ret == -1)
-	//	this->errorResponse(500);
-	//else if (ret == 1)
-	//	this->errorResponse(404);
 	cout << "++++++++++ error content : " <<  this->getContent() << "========== \n";
-	//return 0;
 }
 
 void Response::makeContentFile(int fd) {
 	int datalen = 100;
 	this->serveFile(fd, datalen);
-	//if (status == -1)
-	//	this->makeContentError(500, fd);
-	//else if (status == 1)
-	//	this->makeContentError(404, fd);
 }
 
 
@@ -302,7 +291,6 @@ void Response::defaultResponse(int fd) {
 	std::cout << "default Response start : " << this->m_location.getRootDir() + "/" + this->m_location.getIndexFile() + " ======== \n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	this->makeContentFile(fd);
-	//this->makeContentFile(this->m_location.getRootDir() + "/" + this->m_location.getIndexFile());
 	std::cout << "default Response end ======== \n";
 }
 
@@ -310,7 +298,6 @@ void Response::uploadResponse(vector<int> fd, string content_type, string conten
 	cout << "[DEBUG] uploadResponse start\n";
 	cout << "content_body : " + content_body + "\n";
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	//if (this->saveFile(content_type, content_body) == -1)
 	this->makeContent("Upload Success");
 	cout << "[DEBUG] uploadResponse end\n";
 }
@@ -341,7 +328,6 @@ void Response::autoIndexResponse(const char *dir_path) {
 void Response::errorResponse(int fd, int status) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
 	this->makeContentError(status, fd);
-		//this->makeContentError(500);
 }
 
 void Response::redirectResponse(int status, string url) {
@@ -366,40 +352,9 @@ string Response::getHttpResponse() {
 
 // File ====================================================================
 
-
-//vector<pair<string, string> > Response::saveFileName(string content_type, string content_body) {
-//	size_t i = content_type.find("boundary=");
-//	//ofstream write_fd;
-//	vector<pair<string, string> > v;
-//	string boundary = content_type.substr(i+9);
-//	string sub_content = content_body;
-//	string file_name;
-//	string file_body;
-
-//	while (sub_content.find("--" + boundary + "--") != 0) {
-//		file_name = this->parseHeader(sub_content);
-//		file_body = this->getFileContent(sub_content, "--" + boundary);
-//		if (file_name.find("./") != string::npos)  // 지정 디렉토리 벗어나기 금지
-//			continue;
-//		v.push_back(make_pair(file_name, file_name));
-//		//this->write_fd(fd, file_body);
-//		//write_fd.open(this->m_location.getRootDir() + this->m_location.getUploadDirectory() + file_name);  // 수정
-//		//write_fd.write(file_body.c_str(), file_body.size());
-//		//write_fd.close();
-//	}
-//	return v;
-//}
-
 int Response::openFile(string path, int flag) {
 	int fd;
 	fd =  open(path.c_str(), flag, 0644);
-	// FOR DEBUG =============================
-	if (fd < 0)
-	{
-		printf("%s\n", strerror(errno));
-		return -1;
-	}
-	//========================================
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 	this->m_fdMode[fd] = flag;
 	++this->m_openFilesNum;
@@ -472,7 +427,6 @@ bool Response::writeFile(int fd, intptr_t datalen) {
 	}
 	else if (this->m_content.size() == write_len) {  // 완성
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
-		//this->appendHtmlFooter();
 		this->appendHtmlHeader();
 		this->appendContent("writeFile success");
 		this->appendHtmlFooter();
@@ -516,13 +470,6 @@ map<int, string> Response::formFilesOpen(map<string, string> m) {
 	}
 	return ret;
 }
-
-//bool Response::saveFiles(map<int, string> m) {
-//	map<int, string>::iterator iter = m.begin();
-//	while (iter != m.end()) {
-//		writeFile(iter->first,)
-//	}
-//}
 
 /*
 	여기부터 비 멤버함수  ======================================================

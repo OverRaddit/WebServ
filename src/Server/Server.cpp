@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/13 19:31:46 by jinyoo           ###   ########.fr       */
+/*   Updated: 2022/11/13 20:25:38 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,24 +219,12 @@ int	Server::execute_client_request(int client_fd)
 			if (valid_method[i] == cli->getRequest()->getMethod() || cli->getRequest()->getMethod() == "PUT")
 			{
 				is_valid_method = true;
-				// cli->getRequest()->setReqType(matching_it->second.getRequestType());
-				// // 좀더 확장성 있는 방법을 강구해야 할듯...
-				// if (valid_method[i] == DELETE_HTTP_METHOD)
-				// 	cli->getRequest()->setReqType(DELETE_REQUEST);
-				// else if (matching_it->second.getAutoIndex())
-				// 	cli->getRequest()->setReqType(AUTOINDEX_REQUEST);
 
 				// Rootdir 확인
 				cout << "this location's block's root is...  ";
-				//cout << matching_it->second.getRootDir() << endl;
-				//cli->getRequest()->setSudoDir(matching_it->second.getRootDir());
 				cout << cli->getRequest()->getLocBlock().getRootDir() << endl;
-				// index 확인
 				cout << "this location's block's index is...  ";
-				//cout << matching_it->second.getAutoIndex() << endl;
-				//cli->getRequest()->setAutoIndex(matching_it->second.getAutoIndex());
 				cout << cli->getRequest()->getLocBlock().getIndexFile() << endl;
-
 				break;
 			}
 		}

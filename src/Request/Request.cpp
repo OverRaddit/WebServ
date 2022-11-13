@@ -41,8 +41,6 @@ Request::Request(string req_msg): m_req_header(), m_http_version(""), m_method("
 					line = req_msg.substr(i + 2);
 					this->setReqBody(line);
 				}
-				// if (this->m_is_chunked && this->m_req_body.find("\r\n0\r\n") != string::npos)
-				// 	this->m_is_chunked = false;
 				return ;
 			}
 			else
@@ -76,7 +74,6 @@ void	Request::saveRequestAgain(string &req_msg)
 				this->saveStartLine(line);
 			else if (line.length() == 0)
 			{
-				//if (this->m_req_body.empty())
 				if (i + 2 < len)
 				{
 					line = req_msg.substr(i + 2);
@@ -84,9 +81,6 @@ void	Request::saveRequestAgain(string &req_msg)
 					this->setReqBody(line);
 					this->m_is_incomplete = false;
 				}
-				//else
-				// if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
-				// 	this->m_is_chunked = false;
 				return ;
 			}
 			else
@@ -104,24 +98,9 @@ void	Request::saveRequestAgain(string &req_msg)
 		this->m_is_incomplete = false;
 }
 
-// void	Request::saveRequestFinal(void)
-// {
-
-// }
-
-//int		Request::saveOnlyBody(string &req_body)
 int		Request::saveOnlyBody(string &req_body)
 {
 	this->m_req_body.append(req_body);
-
-	//cout << "!!!!!!!!!!!!!!!! " << this->m_req_body << endl;
-	// 800 짤리고 0\r\n 들어오는 것도 생각해야하나...ㅠㅠㅠ
-	// if (this->m_is_chunked && m_req_body.find("\r\n0\r\n") != string::npos)
-	// 	this->m_is_chunked = false;
-	// int fd = open("log.txt", O_WRONLY | O_APPEND);
-	// write(fd, this->m_req_body.c_str(), this->m_req_body.size());
-	// write(fd, "\n\n-------\n\n", 11);
-	// close(fd);
 	return req_body.length();
 }
 
@@ -186,7 +165,6 @@ void	Request::setLocBlock(LocationBlock &loc_block, string url, size_t pos)
 	if (!split_url.empty() && split_url.back() == '/')
 		split_url.pop_back();
 	this->m_req_file_name += split_url;
-	// cout << "REQ FILE NAME : " << m_req_file_name << endl;
 }
 
 void	Request::setContentLength(string content_length) { this->m_content_length = stoll(content_length); }

@@ -3,19 +3,18 @@
 Client::Client()
 	: fd(-1), len(0), req(NULL), pipe_fd(-1), raw_request(""), m_pending(false), m_cgi(0)
 {
-	//addr = -1;
+
 }
 
 Client::Client(int fd, sockaddr_in addr, socklen_t len)
 	: fd(fd), addr(addr), len(len), req(NULL), pipe_fd(-1), raw_request("")
 		, m_pending(false)
 {
-	//std::cout << "Client Constructor!" << std::endl;
+
 }
 
 Client::~Client()
 {
-	std::cout << "Client Destructor!" << std::endl;
 	if (req)
 		delete req;
 	if (res)
@@ -216,36 +215,3 @@ int			Client::cgi_init(string content)
 	close(to_parent[1]);
 	return m_cgi->getToChild()[1];
 }
-
-
-// int			Client::cgi_init(string content)
-// {
-// 	pid_t	pid;
-
-// 	// 이 로직들은 파이프의 write에 해당하는 처리로직이 된다.
-// 	if (write(to_child[1], content.c_str(), strlen(buf)) < 0)
-// 		return -1;
-
-// 	pid = fork();
-// 	getRequest()->setCgiPid(pid);
-// 	if (pid == 0)
-// 	{
-// 		dup2(to_child[0], 0);
-// 		dup2(to_parent[1], 1);
-// 		close(to_child[1]);
-// 		close(to_child[0]);
-// 		close(to_parent[1]);
-// 		close(to_parent[0]);
-// 		if (execve("./src/cgi_tester", 0, env) == -1) {
-// 			std::cerr << "[child]cgi error\n";
-// 			exit(1);
-// 		}
-// 	}
-// 	close(to_child[0]);
-// 	close(to_child[1]);
-// 	close(to_parent[1]);
-// 	for (int i=0; i<10; ++i)
-// 		free(env[i]);
-// 	free(env);
-// 	return to_parent[0];
-// }
