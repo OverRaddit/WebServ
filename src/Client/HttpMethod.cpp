@@ -42,13 +42,27 @@ int Client::GET(Request *req, Response *res)
 			res->setStatusCode(200);
 			break;
 		case VALID_REQ_DIR:
-			// 이 경우, index file은 항상 존재한다고 가정한다.
-			if (req->getReqFileName() == "")
-				target = req->getLocBlock().getRootDir() + "/" + req->getLocBlock().getIndexFile();
+			if (req->getLocBlock().getAutoIndex())
+			{
+				if (req->getReqFileName() == "")
+					target = req->getLocBlock().getRootDir();
+				else
+					target = req->getLocBlock().getRootDir() + "/" + req->getReqFileName();
+				cout << "autoindex request :" << target << endl;
+				res->autoIndexResponse(target.c_str());
+				res->setStatusCode(200); // 여기서 설정 x
+				return 0;
+			}
 			else
-				target = req->getLocBlock().getRootDir() + "/" + req->getReqFileName() + "/" + req->getLocBlock().getIndexFile();
-			cout << "This file is directory. Return IndexFile : " << target << endl;
-			res->setStatusCode(200);
+			{
+				if (req->getReqFileName() == "")
+					target = req->getLocBlock().getRootDir() + "/" + req->getLocBlock().getIndexFile();
+				else
+					target = req->getLocBlock().getRootDir() + "/" + req->getReqFileName() + "/" + req->getLocBlock().getIndexFile();
+				// 이 경우, index file은 항상 존재한다고 가정한다.
+				cout << "This file is directory. Return IndexFile : " << target << endl;
+				res->setStatusCode(200);
+			}
 			break;
 	}
 
@@ -178,3 +192,4 @@ int Client::DELETE(Request *req, Response *res)
 
 	return (res->openFile(target, openflag));
 }
+//======

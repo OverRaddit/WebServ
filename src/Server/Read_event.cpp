@@ -46,7 +46,7 @@ int Server::client_read(int fd, intptr_t datalen)
 			return 0;
 		}
 		// ㅁㅔ소드별 실실행
-		else if (cli->getRequest()->getMethod() == "GET"){
+		else if (cli->getRequest()->getMethod() == "GET" || cli->getRequest()->getLocBlock().getAutoIndex()){
 			ret = cli->GET(cli->getRequest(), cli->getResponse());
 		} else if (cli->getRequest()->getMethod() == "DELETE") {
 			ret = cli->DELETE(cli->getRequest(), cli->getResponse());
