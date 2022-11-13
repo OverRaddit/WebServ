@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
+/*   By: jinyoo <jinyoo@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/10 21:29:10 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/13 19:31:46 by jinyoo           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -285,7 +285,14 @@ ServerBlock Server::find_serverblock(int client_fd)
 		}
 	}
 	// 서버 블록 결정
-	vector<ServerBlock> v = serverblock_info[stoi(port)];
+	std::vector<ServerBlock> v;
+	if (serverblock_info.find(stoi(port)) != serverblock_info.end())
+		v = serverblock_info[stoi(port)];
+	else
+	{
+		std::cout << "Default ServerBlock choose..." << std::endl;
+		return v[0];
+	}
 	int flag = false;
 	ServerBlock s_b;
 	for(int i=0;i<v.size();i++)

@@ -156,7 +156,10 @@ void	Request::saveHeader(string header_line)
 	{
 		if (header_line[i] != ':')
 			continue ;
-		this->setReqHeader(header_line.substr(0, i), header_line.substr(i+2));
+		if (header_line[i + 1] == ' ')
+			this->setReqHeader(header_line.substr(0, i), header_line.substr(i+2));
+		else
+			this->setReqHeader(header_line.substr(0, i), header_line.substr(i+1));
 		break;
 	}
 }
