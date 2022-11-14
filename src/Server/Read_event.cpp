@@ -1,9 +1,10 @@
 #include "Server.hpp"
 
-int Server::client_read(int fd, intptr_t datalen)
+int Server::client_read(int fd)
 {
 	Client *cli = clients_info[fd];
 	int ret = cli->read_client_request();
+
 	if (ret < 0)
 	{
 		disconnect_client(fd);
@@ -43,7 +44,7 @@ int Server::client_read(int fd, intptr_t datalen)
 
 			return 0;
 		}
-		// ㅁㅔ소드별 실실행
+		// 메소드별 실행
 		else if (cli->getRequest()->getMethod() == "GET" || cli->getRequest()->getLocBlock().getAutoIndex()){
 			ret = cli->GET(cli->getRequest(), cli->getResponse());
 		} else if (cli->getRequest()->getMethod() == "DELETE") {
@@ -56,9 +57,9 @@ int Server::client_read(int fd, intptr_t datalen)
 			std::cerr << "Undefined Method" << std::endl;
 		}
 
-		if (ret > 2)	// if file descriptor is returned..
+		if (ret > 2) // 유효한 fd가 반환되었을 경우
 		{
-			if (cli->is_cgi_request(cli->getRequest())) // 파이프가 반환되었다.
+			if (cli->is_cgi_request(cli->getRequest())) // Cgi요청인 경우 반환된 fd는 파이프입구fd이다.
 			{
 				Cgi *cgi = cli->getCgi();
 				std::cout << "Pipe returned! registered to kqueue..." << std::endl;
@@ -88,7 +89,7 @@ int Server::client_read(int fd, intptr_t datalen)
 	return 0;
 }
 
-int Server::pipe_read(int fd, intptr_t datalen)
+int Server::pipe_read(int fd)
 {
 	std::cout << "pipe read event" << std::endl;
 	Client *cli = clients_info[pipe_to_client[fd]];
@@ -119,7 +120,7 @@ int Server::file_read(int fd, intptr_t datalen)
 		return 0;
 
 	//if (req->is_valid_request(req->getStatusCode()) && cli->is_cgi_request(req))
-	if (req->getStatusCode() / 100 != 4  && cli->is_cgi_request(req))
+	if ((req->getStatusCode() / 100 != 4 || req->getStatusCode() / 100 != 5)  && cli->is_cgi_request(req))
 	{
 		Cgi* cgi = cli->getCgi();
 		// 파이프 입구도 pipe_to_client에 등록되어 있어야함!!!

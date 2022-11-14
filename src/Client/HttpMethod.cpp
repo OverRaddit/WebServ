@@ -31,10 +31,10 @@ int Client::GET(Request *req, Response *res)
 	{
 		case NO_FILE:
 			cout << "Cannot found File" << endl;
-			res->makeContent("No such file! Can't get cgi File");
+			//res->makeContent("No such file!");
 			target = req->getSerBlock().getRootDir() + "/" + req->getSerBlock().getErrorPage();
 			res->setStatusCode(404);
-			return 0;
+			break;
 		case VALID_REQ_FILE:
 			cout << "Found File" << endl;
 			target = req->getLocBlock().getRootDir() + "/" + req->getReqFileName();

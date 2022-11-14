@@ -30,7 +30,7 @@ public:
 	void	setFilename(string file_name);
 	void	setIsChunked(bool flag);
 
-	int		saveOnlyBody(string &req_body);
+	size_t	saveOnlyBody(string &req_body);
 	void	saveRequestAgain(string &req_msg);
 
 	string				getReqHeaderValue(string key);
@@ -40,7 +40,7 @@ public:
 	string				getReqBody(void) const;
 	string				getRedirectionURL(void) const;
 	int					getStatusCode(void) const;
-	long long			getContentLength(void) const;
+	size_t				getContentLength(void) const;
 	string				getDownloadFileName(void) const;
 	bool				getIsIncomplete(void) const;
 	bool				getIsChunked(void) const;
@@ -54,17 +54,17 @@ public:
 
 private:
 	map<string, string>	m_req_header;
-	long long 			m_content_length;
 	string				m_method;
 	string				m_req_target;
 	string				m_http_version;
 	string				m_req_body;
-	int					m_status_code;
-	string				m_redirection_url;
+	size_t 				m_content_length;
 	bool				m_is_incomplete;
 	bool				m_is_chunked;
-	string				m_incomplete_message;
+	int					m_status_code;
 	int					m_cgi_pid;
+	string				m_redirection_url;
+	string				m_incomplete_message;
 	string				m_cgi_result;
 	string				m_req_file_name;
 

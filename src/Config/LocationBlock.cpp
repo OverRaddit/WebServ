@@ -120,6 +120,11 @@ void LocationBlock::setAutoIndex(string loc_block, size_t pos)
 
 	for (size_t i = pos + len + 1;loc_block[i] != ';';i++)
 		on_off += loc_block[i];
+	if (on_off != "off" && on_off != "on")
+	{
+		cerr << "Invalid Config File\n";
+		exit(1);
+	}
 	if (on_off == "on")
 		this->m_autoindex = true;
 }
@@ -130,7 +135,7 @@ vector<string>	LocationBlock::getValidMethod(void) const {
 	return this->m_valid_method;
 }
 
-long long	LocationBlock::getMaxBodySize(void) const {
+size_t	LocationBlock::getMaxBodySize(void) const {
 	return this->m_max_body_size;
 }
 

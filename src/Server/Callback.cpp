@@ -18,11 +18,19 @@ int Server::callback_error(int fd)
 	else if (is_pipe(fd))
 	{
 		std::cerr << "Pipe socket[" << fd << "] got error" << std::endl;
+		change_events(pipe_to_client[fd], EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		Client* cli = clients_info[pipe_to_client[fd]];
+		cli->getResponse()->setStatusCode(500);
+		cli->getResponse()->setContent("Pipe Error");
 		disconnect_pipe(fd);
 	}
 	else if (is_file(fd))
 	{
 		std::cerr << "File fd[" << fd << "] got error" << std::endl;
+		change_events(file_to_client[fd], EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		Client* cli = clients_info[file_to_client[fd]];
+		cli->getResponse()->setStatusCode(500);
+		cli->getResponse()->setContent("Regular file fd Error");
 		file_to_client.erase(fd);
 		close(fd);
 	}
@@ -34,9 +42,9 @@ int Server::callback_read(int fd, intptr_t datalen)
 	if (is_listensocket(fd))
 		connect_new_client(fd);
 	else if (is_client(fd))
-		client_read(fd, datalen);
+		client_read(fd);
 	else if (is_pipe(fd))
-		pipe_read(fd, datalen);
+		pipe_read(fd);
 	else if (is_file(fd))
 		file_read(fd, datalen);
 	return (0);
@@ -45,9 +53,9 @@ int Server::callback_read(int fd, intptr_t datalen)
 int Server::callback_write(int fd, intptr_t datalen)
 {
 	if (is_client(fd))
-		client_write(fd, datalen);
+		client_write(fd);
 	else if (is_pipe(fd))
-		pipe_write(fd, datalen);
+		pipe_write(fd);
 	else if (is_file(fd))
 		file_write(fd, datalen);
 	return (0);
@@ -66,15 +74,31 @@ void Server::disconnect_pipe(int pipe_fd)
 		return ;
 	}
 	// 클라이언트의 파이프fd를 유효하지 않게 바꾼다.
-	clients_info[pipe_to_client[pipe_fd]]->setPipeFd(-1);
-	pipe_to_client.erase(pipe_fd);
-	close(pipe_fd);
+	Client *cli = clients_info[pipe_to_client[pipe_fd]];
+	cli->setPipeFd(-1);
+	Cgi* cgi = clients_info[pipe_to_client[pipe_fd]]->getCgi();
+	if (cgi)
+	{
+		close(cgi->getToChild()[1]);
+		close(cgi->getToParent()[0]);
+		pipe_to_client.erase(cgi->getToChild()[1]);
+		pipe_to_client.erase(cgi->getToParent()[0]);
+	}
+	delete cgi;
+	cli->setCgi(0);
 }
 
 void Server::disconnect_client(int client_fd)
 {
 	close(client_fd);
 	Client *cli = clients_info[client_fd];
+	if (cli->getCgi())
+	{
+		close(cli->getCgi()->getToChild()[1]);
+		close(cli->getCgi()->getToParent()[0]);
+		pipe_to_client.erase(cli->getCgi()->getToChild()[1]);
+		pipe_to_client.erase(cli->getCgi()->getToParent()[0]);
+	}
 	if (clients_info[client_fd]->getPipeFd() != -1)
 		disconnect_pipe(clients_info[client_fd]->getPipeFd());
 
@@ -82,7 +106,6 @@ void Server::disconnect_client(int client_fd)
 	delete cli->getRequest();
 	cli->setRequest(0);
 	cli->setResponse(0);
-
 	delete clients_info[client_fd];
 	clients_info.erase(client_fd);
 	std::cout << "[DEBUG]client disconnected: " << client_fd << std::endl;
@@ -115,7 +138,3 @@ int Server::connect_new_client(int fd)
 	change_events(client_socket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	return (0);
 }
-
-
-
-

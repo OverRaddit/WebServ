@@ -19,6 +19,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
+# include <sys/time.h>
 
 # define DELETE_HTTP_METHOD "DELETE"
 # define AUTOINDEX_URL "/autoindex"
@@ -54,9 +55,6 @@ public:
 //=============================================================================
 	Server();							// 기본생성자
 	Server(string config_filepath);		// 생성자
-	Server(const Server& a);			// 복사생성자
-	Server& operator=(const Server& a);	// 대입연산자
-	~Server();							// 소멸자
 
 //=============================================================================
 //	Method
@@ -84,11 +82,11 @@ public:
 	ServerBlock find_serverblock(int client_fd);
 	map<string, LocationBlock>::iterator locationBlockMapping(Client *cli, ServerBlock &s_b);
 
-	int	client_read(int fd, intptr_t datalen);
-	int	pipe_read(int fd, intptr_t datalen);
+	int	client_read(int fd);
+	int	pipe_read(int fd);
 	int	file_read(int fd, intptr_t datalen);
-	int	client_write(int fd, intptr_t datalen);
-	int	pipe_write(int fd, intptr_t datalen);
+	int	client_write(int fd);
+	int	pipe_write(int fd);
 	int	file_write(int fd, intptr_t datalen);
 
 //=============================================================================

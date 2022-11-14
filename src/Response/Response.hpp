@@ -81,8 +81,8 @@ public:
 // Response
 	void					cgiResponse(string cgi_result);  // cgi 결과를 요청하는 경우의 응답처리
 	void					defaultResponse(int fd);
-	void					uploadResponse(vector<int> fd, string content_type, string content_body);  // 파일 업로드 경우의 응답처리
-	void					downloadResponse(int fd);  // 파일 다운로드 응답처리
+//	void					uploadResponse(vector<int> fd, string content_type, string content_body);  // 파일 업로드 경우의 응답처리
+//	void					downloadResponse(int fd);  // 파일 다운로드 응답처리
 	void					deleteResponse(string file_path);  // 파일 삭제 응답처리
 	void					autoIndexResponse(const char *dir_path);
 	void					errorResponse(int fd, int status);

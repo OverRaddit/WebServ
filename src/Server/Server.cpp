@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/13 20:25:38 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/14 19:49:46 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,6 @@ Server::Server(string config_filepath)
 	// read config file.
 	config = new Config(config_filepath);
 }
-Server::Server(const Server& a){ *this = a; }
-Server& Server::operator=(const Server& a){ return *this; }
-Server::~Server(){}
 
 //=============================================================================
 //	Method
@@ -77,10 +74,10 @@ int Server::init_multiplexing()
 
 	{
 		vector<ServerBlock> v = getConfig()->getServerBlocks(); // reference로 받으면 좋을듯...!
-		for(int i=0;i<v.size();i++)
+		for(size_t i=0;i<v.size();i++)
 		{
 			vector<int> ports = v[i].getPortNum();
-			for(int j=0;j<ports.size();j++)
+			for(size_t j=0;j<ports.size();j++)
 			{
 				int curr_port = ports[j];
 				// already registered port
@@ -88,7 +85,7 @@ int Server::init_multiplexing()
 				{
 					vector<ServerBlock> &blocks = serverblock_info[curr_port];
 					int flag = 0;
-					for(int k=0;k<blocks.size();k++)
+					for(size_t k=0;k<blocks.size();k++)
 					{
 						if (blocks[k].getServerName() == v[i].getServerName())
 						{
@@ -127,7 +124,7 @@ int Server::run()
 	for (map<int, vector<ServerBlock> >::iterator iter = serverblock_info.begin() ; iter !=  serverblock_info.end(); iter++)
 	{
 		cout << iter->first << ":" << endl;
-		for(int i=0;i<iter->second.size();i++)
+		for(size_t i=0;i<iter->second.size();i++)
 			cout <<  "	[" << iter->second[i].getServerName() << "]" << endl;
 	}
 	cout << endl;
@@ -163,7 +160,6 @@ map<string, LocationBlock>::iterator	Server::locationBlockMapping(Client *cli, S
 	map<string, LocationBlock>::iterator	it;
 	map<string, LocationBlock>::iterator	matching_it;
 	size_t	matched_len = 0;
-	size_t pos;
 
 	cli->getRequest()->setSerBlock(s_b);
 	it = s_b.getLocationBlocks().begin();
@@ -200,6 +196,11 @@ int	Server::execute_client_request(int client_fd)
 {
 	Client *cli = clients_info[client_fd];
 	ServerBlock s_b = find_serverblock(client_fd);
+	if (cli->getRequest()->getStatusCode() == 0)
+	{
+		cout << "Status Code : " << cli->getRequest()->getStatusCode() << endl;
+		return 1;
+	}
 	map<string, LocationBlock>::iterator matching_it = locationBlockMapping(cli, s_b);
 	bool is_valid_method = false;
 
@@ -214,7 +215,7 @@ int	Server::execute_client_request(int client_fd)
 			matching_it->second.setDefaultMethod("DELETE");
 		}
 		valid_method = matching_it->second.getValidMethod();
-		for (int i = 0;i < valid_method.size();i++)
+		for (size_t i = 0; i < valid_method.size();i++)
 		{
 			if (valid_method[i] == cli->getRequest()->getMethod() || cli->getRequest()->getMethod() == "PUT")
 			{
@@ -263,7 +264,7 @@ ServerBlock Server::find_serverblock(int client_fd)
 	std::string hostname = "", port = "";
 
 	// 헤더 정보 저장
-	for(int i=0;i<host_header.length();i++)
+	for(size_t i=0;i<host_header.length();i++)
 	{
 		if (host_header[i] == ':')
 		{
@@ -274,6 +275,12 @@ ServerBlock Server::find_serverblock(int client_fd)
 	}
 	// 서버 블록 결정
 	std::vector<ServerBlock> v;
+	if (hostname == "" || port == "")
+	{
+		ServerBlock mock;
+		cli->getRequest()->setStatusCode(400);
+		return mock;
+	}
 	if (serverblock_info.find(stoi(port)) != serverblock_info.end())
 		v = serverblock_info[stoi(port)];
 	else
@@ -283,7 +290,7 @@ ServerBlock Server::find_serverblock(int client_fd)
 	}
 	int flag = false;
 	ServerBlock s_b;
-	for(int i=0;i<v.size();i++)
+	for(size_t i=0;i<v.size();i++)
 	{
 		if (v[i].getServerName() == hostname)
 		{

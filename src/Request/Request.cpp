@@ -21,13 +21,13 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string req_msg): m_req_header(), m_http_version(""), m_method(""), m_req_body(""), m_req_target(""), m_content_length(0), m_is_incomplete(false), m_is_chunked(false), m_cgi_pid(-1)
+Request::Request(string req_msg): m_req_header(), m_method(""), m_req_target(""), m_http_version(""), m_req_body(""), m_content_length(0), m_is_incomplete(false), m_is_chunked(false), m_cgi_pid(-1)
 {
 	string	line = "";
 	size_t	len = req_msg.length();
 	bool	crlf_complete = true;
 
-	for (int i = 0;req_msg[i];i++)
+	for (size_t i = 0;req_msg[i];i++)
 	{
 		if (req_msg[i] == '\r')
 		{
@@ -65,7 +65,7 @@ void	Request::saveRequestAgain(string &req_msg)
 	size_t	len = req_msg.length();
 	bool	crlf_complete = true;
 
-	for (int i = 0;req_msg[i];i++)
+	for (size_t i = 0;req_msg[i];i++)
 	{
 		if (req_msg[i] == '\r')
 		{
@@ -98,7 +98,7 @@ void	Request::saveRequestAgain(string &req_msg)
 		this->m_is_incomplete = false;
 }
 
-int		Request::saveOnlyBody(string &req_body)
+size_t	Request::saveOnlyBody(string &req_body)
 {
 	this->m_req_body.append(req_body);
 	return req_body.length();
@@ -107,9 +107,8 @@ int		Request::saveOnlyBody(string &req_body)
 void	Request::saveStartLine(string start_line)
 {
 	int		cnt = 0;
-	size_t	pos;
 
-	for (int i = 0;i < start_line.length();i++)
+	for (size_t i = 0;i < start_line.length();i++)
 	{
 		if (start_line[i] != ' ')
 		{
@@ -129,9 +128,8 @@ void	Request::saveHeader(string header_line)
 {
 	string	key = "";
 	string	value = "";
-	int		i;
 
-	for(int i=0;i<header_line.length();i++)
+	for(size_t i = 0;i<header_line.length();i++)
 	{
 		if (header_line[i] != ':')
 			continue ;
@@ -186,7 +184,7 @@ void	Request::setIsChunked(bool flag) { this->m_is_chunked = flag; }
 // ----------------------------------------- Getter -----------------------------------------------------
 string	Request::getReqHeaderValue(string key) {
 	string	lower_key = "";
-	for (int i = 0;i < key.length();i++)
+	for (size_t i = 0;i < key.length();i++)
 		lower_key += tolower(key[i]);
 	if (this->m_req_header.find(key) != this->m_req_header.end())
 		return this->m_req_header[key];
@@ -195,7 +193,7 @@ string	Request::getReqHeaderValue(string key) {
 	return "";
 }
 
-long long	Request::getContentLength(void) const { return this->m_content_length; }
+size_t	Request::getContentLength(void) const { return this->m_content_length; }
 
 string	Request::getReqBody(void) const { return this->m_req_body; }
 

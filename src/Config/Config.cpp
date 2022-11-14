@@ -55,7 +55,7 @@ void	Config::saveDirective(int idx, string line)
 		cerr << "Sentence Must Be Finished By ';'\n";
 		exit(1);
 	}
-	for (int i = 1; i < line.length() - 1;i++)
+	for (size_t i = 1; i < line.length() - 1;i++)
 	{
 		if (line[i] == ' ' && flag)
 		{

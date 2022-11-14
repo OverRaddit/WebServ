@@ -25,14 +25,14 @@ public:
 	vector<string>	getValidMethod(void) const;
 	string			getUploadDirectory(void) const;
 	string			getRootDir(void) const;
-	long long 		getMaxBodySize(void) const;
+	size_t 			getMaxBodySize(void) const;
 	bool			getAutoIndex(void) const;
 	string			getRedirectionURL(void) const;
 	string			getIndexFile(void) const;
 	string			getErrorPage(void) const;
 private:
 	vector<string>	m_valid_method;
-	long long		m_max_body_size;
+	size_t			m_max_body_size;
 	string			m_upload_dir;
 	string			m_root_dir;
 	string			m_index_file;

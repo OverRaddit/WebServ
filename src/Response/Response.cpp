@@ -2,9 +2,8 @@
 
 bool	check_valid(const char *suffix_url)
 {
-	int		 i;
 	struct stat buf;
-	bool	ret;
+	bool	ret = false;
 
 	stat(suffix_url, &buf);
 	if (S_ISREG(buf.st_mode))
@@ -153,7 +152,7 @@ int Response::makeAutoIndex(const char *dir_path) {
 	if (getFileList(li, dir_path) == -1)
 		return -1;
 	result.append("<ul>\n");
-	for (int i=2; i<li.size(); ++i) {
+	for (size_t i=2; i<li.size(); ++i) {
 		result.append("<li><a href=\"/download/" + li[i] + "\" download>");
 		result.append(li[i]);
 		result.append("</a>");
@@ -169,8 +168,6 @@ void Response::makeContentError(int status, int fd) {
 	int datalen = 100;
 	this->setStatusCode(status);
 	this->serveFile(fd, datalen);
-	cout << "root path " << this->m_location.getRootDir() + "/" + this->m_location.getErrorPage() << "\n";
-	cout << "++++++++++ error content : " <<  this->getContent() << "========== \n";
 }
 
 void Response::makeContentFile(int fd) {
@@ -197,9 +194,7 @@ string &Response::getContent() {
 }
 
 int	Response::getRequestFile(string request_file, string dir_path) {
-	int		 i;
 	struct stat buf;
-	bool	ret;
 
 	if (stat((dir_path + "/" + request_file).c_str(), &buf) < 0)
 		return NO_FILE; // NO FILE!!
@@ -294,22 +289,21 @@ void Response::defaultResponse(int fd) {
 	std::cout << "default Response end ======== \n";
 }
 
-void Response::uploadResponse(vector<int> fd, string content_type, string content_body) {
-	cout << "[DEBUG] uploadResponse start\n";
-	cout << "content_body : " + content_body + "\n";
-	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
-	this->makeContent("Upload Success");
-	cout << "[DEBUG] uploadResponse end\n";
-}
+// void Response::uploadResponse(vector<int> fd, string content_type, string content_body) {
+// 	cout << "[DEBUG] uploadResponse start\n";
+// 	cout << "content_body : " + content_body + "\n";
+// 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
+// 	this->makeContent("Upload Success");
+// 	cout << "[DEBUG] uploadResponse end\n";
+// }
 
-// 일단 보류
-void Response::downloadResponse(int fd) {
-	cout << "[DEBUG] downloadResponse start" << endl;
-	//this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
-	//this->serveFile(fd);
-		//this->makeContent("Download Fail");
-	cout << "[DEBUG] downloadResponse start" << endl;
-}
+// void Response::downloadResponse(int fd) {
+// 	cout << "[DEBUG] downloadResponse start" << endl;
+// 	//this->setHeaders("Content-Disposition", "attachment; filename=\"" + file_path + "\"");
+// 	//this->serveFile(fd);
+// 		//this->makeContent("Download Fail");
+// 	cout << "[DEBUG] downloadResponse start" << endl;
+// }
 
 void Response::deleteResponse(string file_path) {
 	this->setHeaders("Content-Type", "text/html; charset=UTF-8");
@@ -364,7 +358,7 @@ int Response::openFile(string path, int flag) {
 vector<int> Response::openFiles(vector<pair<string, string> > in, int flag) {
 	vector<int> out;
 	int fd;
-	for (int i=0; i<in.size(); ++i) {
+	for (size_t i=0; i<in.size(); ++i) {
 		fd = this->openFile(in[i].first, flag);
 		out.push_back(fd);
 	}
@@ -406,7 +400,7 @@ ssize_t Response::write_fd(int fd, intptr_t datalen) {
 bool Response::readFile(int fd, intptr_t datalen) {
 	string ret = this->read_fd(fd, datalen);
 	this->appendContent(ret);
-	if (ret.size() == datalen) {
+	if (ret.size() == (size_t)datalen) {
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
 		return true;
 	}
@@ -425,7 +419,7 @@ bool Response::writeFile(int fd, intptr_t datalen) {
 		this->appendHtmlFooter();
 		return true;
 	}
-	else if (this->m_content.size() == write_len) {  // 완성
+	else if (this->m_content.size() == (size_t)write_len) {  // 완성
 		close(fd); // 사용이 끝난 정적파일 fd는 닫아준다.
 		this->appendHtmlHeader();
 		this->appendContent("writeFile success");

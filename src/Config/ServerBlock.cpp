@@ -38,7 +38,7 @@ void	ServerBlock::setCgiTester(string cgi_tester)
 
 	this->m_cgi_tester = "";
 	this->m_cgi_extension = "";
-	for (int i = 0;i < cgi_tester.length();i++)
+	for (size_t i = 0;i < cgi_tester.length();i++)
 	{
 		if (cgi_tester[i] == ' ')
 		{
@@ -85,7 +85,7 @@ void	ServerBlock::setPortNums(string port_nums)
 			try
 			{
 				int_port_num = stoi(port_num);
-				for (int i = 0;i < this->m_port_nums.size();i++)
+				for (size_t i = 0;i < this->m_port_nums.size();i++)
 				{
 					if (this->m_port_nums[i] == int_port_num)
 					{
