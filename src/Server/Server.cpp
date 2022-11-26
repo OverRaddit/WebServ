@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+        */
+/*   By: gshim <gshim@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/07 19:50:39 by gshim             #+#    #+#             */
-/*   Updated: 2022/11/14 19:49:46 by gshim            ###   ########.fr       */
+/*   Updated: 2022/11/14 20:01:42 by gshim            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,7 +196,7 @@ int	Server::execute_client_request(int client_fd)
 {
 	Client *cli = clients_info[client_fd];
 	ServerBlock s_b = find_serverblock(client_fd);
-	if (cli->getRequest()->getStatusCode() == 0)
+	if (cli->getRequest()->getStatusCode() != 0)
 	{
 		cout << "Status Code : " << cli->getRequest()->getStatusCode() << endl;
 		return 1;
