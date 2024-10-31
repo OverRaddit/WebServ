@@ -3,6 +3,26 @@
 ServerBlock::ServerBlock(void): m_error_page("")
 {}
 
+void ServerBlock::setDirective(const std::string& directive, const std::string& data)
+{
+	if (directive == "listen")
+		this->setPortNums(data);
+	else if (directive == "server_name")
+		this->setServerName(data);
+	else if (directive == "root")
+		this->setRootDir(data);
+	else if (directive == "cgi")
+		this->setCgiTester(data);
+	else if (directive == "error_page")
+		this->setErrorPage(data);
+	else if (directive == "index")
+		this->setIndexFile(data);
+	else {
+		cerr << "지정되지 않은 지시어가 발견되었습니다. : [" << directive << "]\n";
+		exit(1);
+	}
+}
+
 void	ServerBlock::setLocationBlock(string loc_block)
 {
 	size_t	pos;

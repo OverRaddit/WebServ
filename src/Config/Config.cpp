@@ -16,15 +16,18 @@ Config::Config(void) {}
 Config::Config(string file) {
 	string	line = "";
 	string	loc_block = "";
-	bool	loc_block_flag = false;
-	int		idx = -1;
+	bool		loc_block_flag = false;
+	int			idx = -1;
 
+	// config파일 open
 	this->m_config_file.open(file);
 	if (this->m_config_file.fail())
 	{
 		cerr << "Error\n";
 		exit(1);
 	}
+
+	// 파싱
 	while (getline(this->m_config_file, line))
 	{
 		if (line == "server {")
@@ -54,6 +57,24 @@ Config::Config(string file) {
 	}
 }
 
+void Config::parseDirectiveLine(const std::string& line, std::string& directive, std::string& dir_data) const {
+	size_t spacePos = line.find(' ');
+
+	if (line.back() != ';')
+	{
+		cerr << "Sentence Must Be Finished By ';'\n";
+		exit(1);
+	}
+
+	if (spacePos != std::string::npos) {
+		directive = line.substr(1, spacePos - 1); // 맨앞글자인 /t를 제거하기 위해 1에서 시작.
+		dir_data = line.substr(spacePos + 1, line.length() - (spacePos + 1) - 1); // 맨뒤의 ;를 제거하기 위해 -1
+	} else {
+		cerr << "Invalid directive format\n";
+		exit(1);
+	}
+}
+
 /**
  * 서버 블록 설정에 지시어를 저장합니다.
  * @param idx 지시어가 속한 서버 블록의 인덱스입니다.
@@ -65,41 +86,9 @@ void	Config::saveDirective(int idx, string line)
 {
 	string	directive = "";
 	string	dir_data = "";
-	bool	flag = true;
 
-	if (line.back() != ';')
-	{
-		cerr << "Sentence Must Be Finished By ';'\n";
-		exit(1);
-	}
-
-	// Todo. 이 부분을 공백을 기준으로 split하는 코드를 넣는게 좋아 보입니다.
-	for (size_t i = 1; i < line.length() - 1;i++)
-	{
-		if (line[i] == ' ' && flag)
-		{
-			flag = false;
-			continue;
-		}
-		if (flag)
-			directive += line[i];
-		else
-			dir_data += line[i];
-	}
-
-	if (directive == "listen")
-		this->m_server_blocks[idx].setPortNums(dir_data);
-	else if (directive == "server_name")
-		this->m_server_blocks[idx].setServerName(dir_data);
-	else if (directive == "root")
-		this->m_server_blocks[idx].setRootDir(dir_data);
-	else if (directive == "cgi")
-		this->m_server_blocks[idx].setCgiTester(dir_data);
-	else if (directive == "error_page")
-		this->m_server_blocks[idx].setErrorPage(dir_data);
-	else if (directive == "index")
-		this->m_server_blocks[idx].setIndexFile(dir_data);
-	// Todo. 지시어가 지정되지 않은 단어라면 예외처리를 해야 합니다.
+	parseDirectiveLine(line, directive, dir_data);
+	this->m_server_blocks[idx].setDirective(directive, dir_data);
 }
 
 /**

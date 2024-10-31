@@ -3,7 +3,7 @@
 
 # include <vector>
 # include <fstream>
-#include <sys/_types/_size_t.h>
+# include <sys/_types/_size_t.h>
 # include "ServerBlock.hpp"
 
 using namespace std;
@@ -15,6 +15,7 @@ public:
 	vector<ServerBlock> &getServerBlocks(void);
 private:
 	Config(void);
+	void	parseDirectiveLine(const std::string& line, std::string& dir, std::string& data) const;
 	void	saveDirective(int idx, string line);
 
 	ifstream			m_config_file;

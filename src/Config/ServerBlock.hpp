@@ -11,6 +11,7 @@ class ServerBlock {
 public:
 	ServerBlock(void);
 
+	void	setDirective(const std::string& directive, const std::string& data);
 	void	setPortNums(string port_nums);
 	void	setServerName(string server_name);
 	void	setRootDir(string root_dir);
@@ -19,7 +20,7 @@ public:
 	void	setLocationBlock(string loc_block);
 	void	setIndexFile(string file_name);
 
-	vector<int>		getPortNum(void) const;
+	vector<int>	getPortNum(void) const;
 	string			getErrorPage(void) const;
 	string			getServerName(void) const;
 	string			getRootDir(void) const;
@@ -30,7 +31,7 @@ public:
 private:
 	map<string, LocationBlock>	m_loc_blocks;
 	string						m_error_page;
-	vector<int>					m_port_nums;
+	vector<int>				m_port_nums;
 	string						m_server_name;
 	string						m_root_dir;
 	string						m_cgi_tester;
