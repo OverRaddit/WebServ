@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gshim <gshim@student.42seoul.kr>           +#+  +:+       +#+         #
+#    By: gshim <gshim@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 18:07:40 by gshim             #+#    #+#              #
-#    Updated: 2022/11/14 18:29:48 by gshim            ###   ########.fr        #
+#    Updated: 2022/11/14 20:34:59 by gshim            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,8 @@ LINE_CLEAR	=	"\x1b[1A\x1b[M"
 # =============================================================================
 CXX			=	c++
 CFLAGS		=	-Wall -Wextra -Werror -std=c++98
-CDEBUG		=	-g -fsanitize=address
+#CDEBUG		=	-g -fsanitize=address
+CDBUG =
 
 # =============================================================================
 # File Variables

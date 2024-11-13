@@ -21,7 +21,7 @@ Request& Request::operator=(const Request& a)
 Request::~Request(){}
 
 
-Request::Request(string req_msg): m_req_header(), m_method(""), m_req_target(""), m_http_version(""), m_req_body(""), m_content_length(0), m_is_incomplete(false), m_is_chunked(false), m_cgi_pid(-1)
+Request::Request(string req_msg): m_req_header(), m_method(""), m_req_target(""), m_http_version(""), m_req_body(""), m_content_length(0), m_is_incomplete(false), m_is_chunked(false), m_status_code(0), m_cgi_pid(-1)
 {
 	string	line = "";
 	size_t	len = req_msg.length();

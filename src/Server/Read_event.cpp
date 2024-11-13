@@ -26,10 +26,13 @@ int Server::client_read(int fd)
 		// 검증단계에서 응답코드가 정해진 것들은 바로 응답한다.
 		if (cli->getRequest()->getStatusCode() != 0)
 		{
-			cli->setResponse(new Response(cli->getRequest()->getStatusCode()));
-
 			// 에러페이지 반환
-			if (cli->getRequest()->getStatusCode() / 100 == 4)
+			if (cli->getRequest()->getStatusCode() == 400)
+			{
+				cli->getResponse()->setContent("Bad Request");
+				change_events(cli->getFd(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+			}
+			else if (cli->getRequest()->getStatusCode() / 100 == 4)
 			{
 				ret = cli->getResponse()->openFile(cli->getRequest()->getSerBlock().getRootDir() + "/" + cli->getRequest()->getSerBlock().getErrorPage(), O_RDONLY);
 				file_to_client[ret] = cli->getFd();
